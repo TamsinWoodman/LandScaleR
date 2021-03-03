@@ -107,12 +107,12 @@ makeLandUseRaster <- function(land_use_df,
                                        land_use_matrix = tmp_land_use_matrix)
 
   # Convert the land-use matrix to a raster
-  land_use_raster <- raster(land_use_matrix,
-                            xmn = land_use_min_lon,
-                            xmx = land_use_max_lon + grid_cell_size,
-                            ymn = land_use_min_lat,
-                            ymx = land_use_max_lat + grid_cell_size,
-                            crs = project_string)
+  land_use_raster <- raster::raster(land_use_matrix,
+                                    xmn = land_use_min_lon,
+                                    xmx = land_use_max_lon + grid_cell_size,
+                                    ymn = land_use_min_lat,
+                                    ymx = land_use_max_lat + grid_cell_size,
+                                    crs = project_string)
 
   return(land_use_raster)
 
@@ -126,6 +126,7 @@ makeLandUseRaster <- function(land_use_df,
 #'   be one of the column names in `land_use_df`.
 #'
 #' @return A raster stack with each layer corresponding to one land-use.
+#' @export
 makeLandUseRasterStack <- function(land_use_df,
                                    raster_layers = c("suitable_fraction",
                                                      "pa_fraction",
