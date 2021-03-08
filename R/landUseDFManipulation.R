@@ -61,3 +61,42 @@ calculateLandUseFraction <- function(land_use_area, total_area) {
 
   return(land_use_fraction)
 }
+
+#' Generate land-use fractions data frame
+#'
+#' Generates a data frame containing the fraction of each land-use within each
+#'   output cell from PLUMv2. The included land-uses are: managed forest, other
+#'   natural, cropland, pasture, barren and urban.
+#'
+#' @param land_use_df Data frame of land-use output from PLUMv2. Must have 'Lon'
+#'   and 'Lat' columns.
+#' @param land_uses A list of land-uses for which to convert areas into
+#'   fractions.
+#'
+#' @return A data frame containing the fraction of each land-use in each grid
+#'   cell from PLUMv2.
+makeLandUseFractionDataFrame <- function(land_use_df,
+                                         land_uses = c("managedForest",
+                                                       "unmanagedForest",
+                                                       "otherNatural",
+                                                       "cropland",
+                                                       "pasture",
+                                                       "barren",
+                                                       "urban")) {
+
+  land_use_fractions_df <- land_use_df[ , c("Lon", "Lat")]
+
+  for (i in 1:length(land_uses)) {
+    column_name <- land_uses[i]
+
+    land_use_fractions <- calculateLandUseFraction(land_use_df[column_name], land_use_df["area"])
+
+    land_use_fractions_df <- cbind(land_use_fractions_df, land_use_fractions)
+
+    new_column_name <- paste0(column_name,
+                              "_fraction")
+    colnames(land_use_fractions_df)[ncol(land_use_fractions_df)] <- new_column_name
+  }
+
+  return(land_use_fractions_df)
+}
