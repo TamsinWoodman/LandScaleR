@@ -20,4 +20,5 @@ assignFineScaleCells <- function(fine_scale_raster,
                                        coarse_scale_polygons,
                                        cellnumbers = TRUE)
 
+  return(assigned_fine_scale_cells)
 }
