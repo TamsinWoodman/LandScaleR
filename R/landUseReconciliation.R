@@ -1,3 +1,22 @@
+#' Land-use reconciliation
+#'
+#' Performs the following actions: assigns fine-scale cells to coarse-scale
+#'   cells, reconciles the coarse-scale areas with fine-scale areas, and
+#'   aggregates land-uses.
+#'
+reconcileLandUses <- function(coarse_scale_raster,
+                              fine_scale_raster) {
+
+  # Convert coarse-scale raster to data frame and add cell ID column
+  coarse_scale_df <- as.data.frame(rasterToPoints(coarse_scale_raster))
+  coarse_scale_df$coarse_ID <- seq(1:nrow(coarse_scale_df))
+
+  # Convert fine-scale raster to data frame
+  fine_scale_df <- as.data.frame(rasterToPoints(fine_scale_raster))
+
+  return(coarse_scale_df)
+}
+
 #' Assign fine-scale cells to coarse-scale grid cells
 #'
 #' Assigns fine-scale cells on an initial land-use map to coarse-scale grid
