@@ -14,30 +14,37 @@ reconcileLandUses <- function(coarse_scale_raster,
   # Convert fine-scale raster to data frame
   fine_scale_df <- as.data.frame(rasterToPoints(fine_scale_raster))
 
-  return(coarse_scale_df)
+  # Assign fine-scale cells
+  fine_scale_df_with_IDs <- assignFineScaleCells(fine_scale_df,
+                                                 coarse_scale_df)
+
+  return(fine_scale_df_with_IDs)
 }
 
 #' Assign fine-scale cells to coarse-scale grid cells
 #'
 #' Assigns fine-scale cells on an initial land-use map to coarse-scale grid
-#' cells from a land-use model.
+#' cells from a land-use model using a nearest-neighbour method.
 #'
-#' @param fine_scale_raster A raster of fine-scale cells.
-#' @param coarse_scale_raster A raster of coarse-scale cells to which to assign
-#'   the fine-scale cells. Must have be on same projection as the fine-scale
+#' @param fine_scale_raster A data frame of fine-scale cells.
+#' @param coarse_scale_raster A data frame of coarse-scale cells to which to
+#'   assign the fine-scale cells. Must have be on same projection as the fine-scale
 #'   cells.
 #'
-#' @return A list, where each element corresponds to one coarse-scale grid cell.
-#'   Within each element is a data frame with the cell numbers of fine-scale
-#'   cells and their values.
-assignFineScaleCells <- function(fine_scale_raster,
-                                 coarse_scale_raster) {
+#' @return A copy of the fine-scale cells data frame with an extra column
+#'   containing the ID of the coarse-scale cell to which each fine-scale cell
+#'   belongs.
+assignFineScaleCells <- function(fine_scale_df,
+                                 coarse_scale_df) {
 
-  coarse_scale_polygons <- rasterToPolygons(coarse_scale_raster)
+  # Calculate nearest neighbours
+  nearest_neighbours <- get.knnx(coarse_scale_df[ , 1:2],
+                                 fine_scale_df[ , 1:2],
+                                 1)
 
-  assigned_fine_scale_cells <- extract(fine_scale_raster,
-                                       coarse_scale_polygons,
-                                       cellnumbers = TRUE)
+  # Add nearest neighbours to fine-scale cell df
+  fine_scale_df_with_nn <- fine_scale_df
+  fine_scale_df_with_nn$coarse_ID <- nearest_neighbours$nn.index
 
-  return(assigned_fine_scale_cells)
+  return(fine_scale_df_with_nn)
 }

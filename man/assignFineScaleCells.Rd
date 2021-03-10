@@ -4,21 +4,21 @@
 \alias{assignFineScaleCells}
 \title{Assign fine-scale cells to coarse-scale grid cells}
 \usage{
-assignFineScaleCells(fine_scale_raster, coarse_scale_raster)
+assignFineScaleCells(fine_scale_df, coarse_scale_df)
 }
 \arguments{
-\item{fine_scale_raster}{A raster of fine-scale cells.}
+\item{fine_scale_raster}{A data frame of fine-scale cells.}
 
-\item{coarse_scale_raster}{A raster of coarse-scale cells to which to assign
-the fine-scale cells. Must have be on same projection as the fine-scale
+\item{coarse_scale_raster}{A data frame of coarse-scale cells to which to
+assign the fine-scale cells. Must have be on same projection as the fine-scale
 cells.}
 }
 \value{
-A list, where each element corresponds to one coarse-scale grid cell.
-  Within each element is a data frame with the cell numbers of fine-scale
-  cells and their values.
+A copy of the fine-scale cells data frame with an extra column
+  containing the ID of the coarse-scale cell to which each fine-scale cell
+  belongs.
 }
 \description{
 Assigns fine-scale cells on an initial land-use map to coarse-scale grid
-cells from a land-use model.
+cells from a land-use model using a nearest-neighbour method.
 }
