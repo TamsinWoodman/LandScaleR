@@ -7,11 +7,11 @@
 assignFineScaleCells(fine_scale_df, coarse_scale_df)
 }
 \arguments{
-\item{fine_scale_raster}{A data frame of fine-scale cells.}
+\item{fine_scale_df}{A data frame of fine-scale cells.}
 
-\item{coarse_scale_raster}{A data frame of coarse-scale cells to which to
-assign the fine-scale cells. Must have be on same projection as the fine-scale
-cells.}
+\item{coarse_scale_df}{A data frame of coarse-scale cells to which to assign
+the fine-scale cells. Must have be on same projection as the
+fine-scale cells.}
 }
 \value{
 A copy of the fine-scale cells data frame with an extra column
