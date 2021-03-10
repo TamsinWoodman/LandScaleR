@@ -174,5 +174,7 @@ convertFractionsToAreas <- function(fractions_raster,
   areas_raster <- calc(fractions_raster,
                        fun = function(x) {x * cell_area})
 
+  names(areas_raster) <- names(fractions_raster)
+
   return(areas_raster)
 }
