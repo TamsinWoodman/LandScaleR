@@ -154,3 +154,25 @@ makeLandUseRasterStack <- function(land_use_df,
 
   return(land_use_raster_stack)
 }
+
+#' Convert raster with fractions of land-use to areas of land-use
+#'
+#' Takes a raster where each grid cell contains the fraction of a land-use
+#'   category, and converts the value in each grid cell to the area taken up by
+#'   that category.
+#'
+#' @param fractions_raster A `raster` or `rasterStack` where each grid cell
+#'   contains the fraction of area covered by a land-use category.
+#' @param cell_area The area of a grid cell, which should be the same for every
+#'   cell in the raster.
+#'
+#' @return A `raster` or `rasterStack` object where each grid cell contains the
+#'   area covered by a land-use category.
+convertFractionsToAreas <- function(fractions_raster,
+                                    cell_area) {
+
+  areas_raster <- calc(fractions_raster,
+                       fun = function(x) {x * cell_area})
+
+  return(areas_raster)
+}
