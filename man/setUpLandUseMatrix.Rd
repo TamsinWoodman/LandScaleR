@@ -5,7 +5,7 @@
 \title{Set up a matrix for land-use data filled with NA.}
 \usage{
 setUpLandUseMatrix(
-  grid_cell_size,
+  cell_resolution,
   land_use_min_lat,
   land_use_max_lat,
   land_use_min_lon,
@@ -13,7 +13,9 @@ setUpLandUseMatrix(
 )
 }
 \arguments{
-\item{grid_cell_size}{Resolution of the land-use data. Default is 0.5.}
+\item{cell_resolution}{Resolution of the land-use data, given as c(x, y) or
+c(longitude, latitude).
+Default is c(0.5, 0.5).}
 
 \item{land_use_min_lat}{The minimum latitude in the `land_use_df`.}
 
@@ -25,8 +27,8 @@ setUpLandUseMatrix(
 }
 \value{
 A matrix filled with NAs. Columns will be from minimum longitude to
-  maximum longitude with step size `grid_cell_size`. Rows will be from
-  maximum latitude to minimum latitude with step size `grid_cell_size`.
+  maximum longitude with step size `cell_resolution[1]`. Rows will be from
+  maximum latitude to minimum latitude with step size `cell_resolution[2]`.
 }
 \description{
 Set up a matrix for land-use data filled with NA.

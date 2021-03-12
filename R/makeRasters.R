@@ -7,17 +7,17 @@
 #' @inheritParams makeLandUseRaster
 #'
 #' @return A matrix filled with NAs. Columns will be from minimum longitude to
-#'   maximum longitude with step size `grid_cell_size`. Rows will be from
-#'   maximum latitude to minimum latitude with step size `grid_cell_size`.
-setUpLandUseMatrix <- function(grid_cell_size,
+#'   maximum longitude with step size `cell_resolution[1]`. Rows will be from
+#'   maximum latitude to minimum latitude with step size `cell_resolution[2]`.
+setUpLandUseMatrix <- function(cell_resolution,
                                land_use_min_lat,
                                land_use_max_lat,
                                land_use_min_lon,
                                land_use_max_lon) {
 
   # Set the latitude and longitude values
-  land_use_lat_values <- seq(land_use_min_lat, land_use_max_lat, grid_cell_size)
-  land_use_lon_values <- seq(land_use_min_lon, land_use_max_lon, grid_cell_size)
+  land_use_lat_values <- seq(land_use_min_lat, land_use_max_lat, cell_resolution[2])
+  land_use_lon_values <- seq(land_use_min_lon, land_use_max_lon, cell_resolution[1])
 
   # Create empty matrix
   land_use_matrix <- matrix(nrow = length(land_use_lat_values),
@@ -65,9 +65,15 @@ fillLandUseMatrix <- function(land_use_df,
 #'   PLUMv2 run.
 #' @param land_use_type The land-use type for which to generate a raster. Must
 #'   be one of the column names in `land_use_df`. Default is "cropland".
-#' @param grid_cell_size Resolution of the land-use data. Default is 0.5.
+#' @param cell_resolution Resolution of the land-use data, given as c(x, y) or
+#'   c(longitude, latitude).
+#'   Default is c(0.5, 0.5).
 #' @param project_string A string that gives the projection for input to the
 #'   `raster` function. Default is "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs".
+#' @param lon_column The name of the column containing longitude values,
+#'   defaults to "Lon".
+#' @param lat_column The name of the column containing latitude values, defaults
+#'   to "Lat".
 #'
 #' @return A raster of the given land-use type. Default is a raster of 0.5
 #'   degree grid cells, each one containing the fraction of cropland in that
@@ -75,8 +81,10 @@ fillLandUseMatrix <- function(land_use_df,
 #' @export
 makeLandUseRaster <- function(land_use_df,
                               land_use_type = "cropland",
-                              grid_cell_size = 0.5,
-                              project_string = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs") {
+                              cell_resolution = c(0.5, 0.5),
+                              project_string = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs",
+                              lon_column = "Lon",
+                              lat_column = "Lat") {
 
   if(!is.character(land_use_type)) {
     stop("Land use type must be a string")
@@ -87,15 +95,15 @@ makeLandUseRaster <- function(land_use_df,
   }
 
   # Find the minimum and maximum latitude values
-  land_use_min_lat <- min(land_use_df$Lat)
-  land_use_max_lat <- max(land_use_df$Lat)
+  land_use_min_lat <- min(land_use_df[lat_column])
+  land_use_max_lat <- max(land_use_df[lat_column])
 
   # Find the minimum and maximum longitude values
-  land_use_min_lon <- min(land_use_df$Lon)
-  land_use_max_lon <- max(land_use_df$Lon)
+  land_use_min_lon <- min(land_use_df[lon_column])
+  land_use_max_lon <- max(land_use_df[lon_column])
 
   # Set up an empty matrix to hold the land-use fractions
-  tmp_land_use_matrix <- setUpLandUseMatrix(grid_cell_size = grid_cell_size,
+  tmp_land_use_matrix <- setUpLandUseMatrix(cell_resolution = cell_resolution,
                                             land_use_min_lat = land_use_min_lat,
                                             land_use_max_lat = land_use_max_lat,
                                             land_use_min_lon = land_use_min_lon,
@@ -109,9 +117,9 @@ makeLandUseRaster <- function(land_use_df,
   # Convert the land-use matrix to a raster
   land_use_raster <- raster::raster(land_use_matrix,
                                     xmn = land_use_min_lon,
-                                    xmx = land_use_max_lon + grid_cell_size,
+                                    xmx = land_use_max_lon + cell_resolution[1],
                                     ymn = land_use_min_lat,
-                                    ymx = land_use_max_lat + grid_cell_size,
+                                    ymx = land_use_max_lat + cell_resolution[2],
                                     crs = project_string)
 
   return(land_use_raster)
@@ -120,8 +128,7 @@ makeLandUseRaster <- function(land_use_df,
 
 #' Make raster stack of land-uses from a PLUMv2 land-use data frame.
 #'
-#' @param land_use_df Data frame of land-use output from one timestep of a
-#'   PLUMv2 run.
+#' @inheritParams makeLandUseRaster
 #' @param raster_layers List of land-uses to include in the raster stack. Must
 #'   be one of the column names in `land_use_df`.
 #'
@@ -136,7 +143,11 @@ makeLandUseRasterStack <- function(land_use_df,
                                                      "cropland_fract",
                                                      "pasture_fract",
                                                      "barren_fract",
-                                                     "urban_fract")) {
+                                                     "urban_fract"),
+                                   cell_resolution = c(0.5, 0.5),
+                                   project_string = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs",
+                                   lon_column = "Lon",
+                                   lat_column = "Lat") {
 
   if(!all(raster_layers %in% colnames(land_use_df))) {
     stop("All raster layers must be column names in the land-use data frame")
@@ -146,7 +157,11 @@ makeLandUseRasterStack <- function(land_use_df,
 
   for (i in 1:length(raster_layers)) {
     land_use_rasters[[i]] <- makeLandUseRaster(land_use_df = land_use_df,
-                                               land_use_type = raster_layers[i])
+                                               land_use_type = raster_layers[i],
+                                               cell_resolution = cell_resolution,
+                                               project_string = project_string,
+                                               lon_column = lon_column,
+                                               lat_column = lat_column)
   }
 
   land_use_raster_stack <- stack(land_use_rasters)

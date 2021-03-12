@@ -8,7 +8,11 @@ makeLandUseRasterStack(
   land_use_df,
   raster_layers = c("suitable_fraction", "pa_fraction", "managedForest_fract",
     "unmanagedForest_fract", "otherNatural_fract", "cropland_fract", "pasture_fract",
-    "barren_fract", "urban_fract")
+    "barren_fract", "urban_fract"),
+  cell_resolution = c(0.5, 0.5),
+  project_string = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs",
+  lon_column = "Lon",
+  lat_column = "Lat"
 )
 }
 \arguments{
@@ -17,6 +21,19 @@ PLUMv2 run.}
 
 \item{raster_layers}{List of land-uses to include in the raster stack. Must
 be one of the column names in `land_use_df`.}
+
+\item{cell_resolution}{Resolution of the land-use data, given as c(x, y) or
+c(longitude, latitude).
+Default is c(0.5, 0.5).}
+
+\item{project_string}{A string that gives the projection for input to the
+`raster` function. Default is "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs".}
+
+\item{lon_column}{The name of the column containing longitude values,
+defaults to "Lon".}
+
+\item{lat_column}{The name of the column containing latitude values, defaults
+to "Lat".}
 }
 \value{
 A raster stack with each layer corresponding to one land-use.
