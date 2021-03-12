@@ -8,7 +8,8 @@ reconcileLandUses(
   coarse_scale_raster,
   fine_scale_raster,
   coarse_cell_area,
-  fine_cell_area
+  fine_cell_area,
+  final_land_use_types
 )
 }
 \arguments{
@@ -23,6 +24,13 @@ as the `coarse_scale_raster`.}
 `coarse_scale_raster`.}
 
 \item{fine_cell_area}{The area of a grid cell in the `fine_scale_raster`.}
+
+\item{final_land_use_types}{A matrix containing the fraction of each
+coarse-scale land-use type that contributes to each fine-scale land-use
+type. Columns should contain fine-scale land-use categories, and rows are
+the coarse-scale land-use categories. Each cell should contain the
+proportion of the coarse-scale land-use category that contributes to the
+fine-scale category in the output map.}
 }
 \value{
 
