@@ -33,7 +33,9 @@ proportion of the coarse-scale land-use category that contributes to the
 fine-scale category in the output map.}
 }
 \value{
-
+A ReconciledLandUses class containing a data frame of fine-scale
+  cells assigned to coarse-scale cells, and a second data frame of
+  coarse-scale cells with adjusted and aggregated land-use areas.
 }
 \description{
 Performs the following actions: assigns fine-scale cells to coarse-scale

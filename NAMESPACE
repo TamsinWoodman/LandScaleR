@@ -2,3 +2,4 @@
 
 export(makeLandUseRaster)
 export(makeLandUseRasterStack)
+exportClasses(ReconciledLandUses)

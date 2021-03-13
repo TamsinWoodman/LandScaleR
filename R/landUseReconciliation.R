@@ -19,7 +19,9 @@
 #'   proportion of the coarse-scale land-use category that contributes to the
 #'   fine-scale category in the output map.
 #'
-#' @return
+#' @return A ReconciledLandUses class containing a data frame of fine-scale
+#'   cells assigned to coarse-scale cells, and a second data frame of
+#'   coarse-scale cells with adjusted and aggregated land-use areas.
 reconcileLandUses <- function(coarse_scale_raster,
                               fine_scale_raster,
                               coarse_cell_area,
@@ -47,7 +49,11 @@ reconcileLandUses <- function(coarse_scale_raster,
   agg_adj_coarse_scale_df <- aggregateToFinalLandUseTypes(final_land_use_types,
                                                           adj_coarse_scale_df)
 
-  return(agg_adj_coarse_scale_df)
+  reconciled_land_uses <- new("ReconciledLandUses",
+                              fine_scale_df = fine_scale_df_with_IDs,
+                              coarse_scale_df = agg_adj_coarse_scale_df)
+
+  return(reconciled_land_uses)
 }
 
 #' Assign fine-scale cells to coarse-scale grid cells
