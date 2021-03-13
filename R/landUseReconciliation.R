@@ -35,6 +35,10 @@ reconcileLandUses <- function(coarse_scale_raster,
   # Convert fine-scale raster to data frame
   fine_scale_df <- as.data.frame(rasterToPoints(fine_scale_raster))
 
+  # Set land-use types
+  coarse_land_use_types <- names(coarse_scale_raster)
+  fine_land_use_types <- names(fine_scale_raster)
+
   # Assign fine-scale cells
   fine_scale_df_with_IDs <- assignFineScaleCells(fine_scale_df,
                                                  coarse_scale_df)
@@ -42,6 +46,7 @@ reconcileLandUses <- function(coarse_scale_raster,
   # Adjust coarse-scale land-use areas according to fine-scale areas
   adj_coarse_scale_df <- reconcileLandUseAreas(coarse_scale_df,
                                                fine_scale_df_with_IDs,
+                                               coarse_land_use_types,
                                                coarse_cell_area,
                                                fine_cell_area)
 
@@ -51,7 +56,8 @@ reconcileLandUses <- function(coarse_scale_raster,
 
   reconciled_land_uses <- new("ReconciledLandUses",
                               fine_scale_df = fine_scale_df_with_IDs,
-                              coarse_scale_df = agg_adj_coarse_scale_df)
+                              coarse_scale_df = agg_adj_coarse_scale_df,
+                              land_use_types = fine_land_use_types)
 
   return(reconciled_land_uses)
 }
@@ -96,6 +102,8 @@ assignFineScaleCells <- function(fine_scale_df,
 #' @param fine_scale_df_assigned A fine-scale cells data frame with a column
 #'   containing the ID of the coarse grid cell to which each fine-scale cell
 #'   belongs. This is output by the `assignFineScaleCells` function.
+#' @param coarse_land_use_types Vector of land-use types in the coarse-scale
+#'   data frame.
 #' @inheritParams reconcileLandUses
 #'
 #' @return A data frame of land-use areas within coarse-scale cells, with every
@@ -103,11 +111,9 @@ assignFineScaleCells <- function(fine_scale_df,
 #'   grid cell.
 reconcileLandUseAreas <- function(coarse_scale_df,
                                   fine_scale_df_assigned,
+                                  coarse_land_use_types,
                                   coarse_cell_area,
                                   fine_cell_area) {
-
-  # Set names of columns with land-use values
-  land_use_columns <- colnames(coarse_scale_df[ , 3:(ncol(coarse_scale_df) - 1)])
 
   # Calculate area of fine-scale cells assigned to each coarse grid cell
   fine_scale_areas <- apply(coarse_scale_df,
@@ -118,7 +124,7 @@ reconcileLandUseAreas <- function(coarse_scale_df,
 
   # Adjust coarse land-use areas using equation 1 from Le Page et al. (2016)
   adj_coarse_scale_df <- coarse_scale_df[ , 1:2]
-  adj_coarse_scale_df[ , land_use_columns] <- apply(coarse_scale_df[ , land_use_columns],
+  adj_coarse_scale_df[ , coarse_land_use_types] <- apply(coarse_scale_df[ , coarse_land_use_types],
                                                     2,
                                                     adjustCoarseLandUseAreas,
                                                     fine_scale_areas = fine_scale_areas,
@@ -130,7 +136,7 @@ reconcileLandUseAreas <- function(coarse_scale_df,
 
   ### Need to add some kind of check in here to make sure that the sum of the
   ### new land-use areas is equal to the fine-scale area for that cell
-  # adj_coarse_scale_df$total_area <- apply(adj_coarse_scale_df[ , land_use_columns],
+  # adj_coarse_scale_df$total_area <- apply(adj_coarse_scale_df[ , coarse_land_use_types],
   #                                         1,
   #                                         sum)
 
