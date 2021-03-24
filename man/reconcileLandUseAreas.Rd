@@ -7,6 +7,7 @@
 reconcileLandUseAreas(
   coarse_scale_df,
   fine_scale_df_assigned,
+  coarse_land_use_types,
   coarse_cell_area,
   fine_cell_area
 )
@@ -19,6 +20,9 @@ fine-scale cells.}
 \item{fine_scale_df_assigned}{A fine-scale cells data frame with a column
 containing the ID of the coarse grid cell to which each fine-scale cell
 belongs. This is output by the `assignFineScaleCells` function.}
+
+\item{coarse_land_use_types}{Vector of land-use types in the coarse-scale
+data frame.}
 
 \item{coarse_cell_area}{The area of a grid cell in the
 `coarse_scale_raster`.}

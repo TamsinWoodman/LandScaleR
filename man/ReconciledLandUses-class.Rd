@@ -15,5 +15,8 @@ one raster cell.}
 
 \item{\code{coarse_scale_df}}{A data frame of coarse-scale land-uses, where each row
 is one raster cell.}
+
+\item{\code{land_use_types}}{A character vector with the land-use types. The land-use
+types should be the same in each data frame.}
 }}
 
