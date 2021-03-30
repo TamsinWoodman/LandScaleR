@@ -33,12 +33,12 @@ calculateKernelDensities <- function(fine_scale_df_with_IDs,
 
   # Fill kernel density data frame
   kernel_density_df[ , land_use_types] <- t(apply(fine_scale_df_with_IDs,
-                             1,
-                             calculateKernelDensitiesForOneCell,
-                             fine_scale_df_with_IDs = fine_scale_df_with_IDs,
-                             land_use_types = land_use_types,
-                             cell_x_dist = cell_x_dist,
-                             cell_y_dist = cell_y_dist))
+                                                  1,
+                                                  calculateKernelDensitiesForOneCell,
+                                                  fine_scale_df_with_IDs = fine_scale_df_with_IDs,
+                                                  land_use_types = land_use_types,
+                                                  cell_x_dist = cell_x_dist,
+                                                  cell_y_dist = cell_y_dist))
 
   # Add coarse-scale cell IDs to kernel density data frame
   kernel_density_df$coarse_ID <- fine_scale_df_with_IDs$coarse_ID
