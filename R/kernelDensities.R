@@ -1,22 +1,21 @@
 #' Calculate kernel densities
 #'
-#' Calculates kernel densities for all cell and land-use types in a data frame.
+#' Calculates kernel densities for all cell and land cover types in a reference
+#'   map data frame.
 #'
-#' @param fine_scale_df_with_IDs A data frame of fine-scale cells including the
-#'   the ID of the coarse-scale cell that each fine-scale cell is assigned to.
-#' @param land_use_types The names of columns containing land-use values in the
-#'   `final_scale_df_with_IDs` data frame.
-#' @param cell_resolution The resolution of one cell in the landscape. Should be
-#'   in the form `c(x, y)`.
-#' @param moving_window The radius of cells to include in the kernel density
-#'   calculation. A value of 1 means that the neighbour cells for calculating
+#' @inheritParams reconcileLCDeltas
+#' @param ref_map_LC_types Vector of land cover types in the reference map.
+#' @param cell_resolution Resolution of one cell in the map, in the form
+#'   `c(x, y)`.
+#' @param moving_window Radius of cells to include in the kernel density
+#'   calculation. A value of 1 means that the neighbour cells used to calculate
 #'   kernel density will be 1 cell in every direction around the focal cell.
 #'   Defaults to 1.
 #'
-#' @return A data frame with the kernel density value for each land-use type in
+#' @return Data frame with the kernel density value for each land cover type in
 #'   each cell.
-calculateKernelDensities <- function(fine_scale_df_with_IDs,
-                                     land_use_types,
+calculateKernelDensities <- function(ref_map_df_with_IDs,
+                                     ref_map_LC_types,
                                      cell_resolution,
                                      moving_window = 1) {
 
@@ -29,19 +28,19 @@ calculateKernelDensities <- function(fine_scale_df_with_IDs,
   cell_y_dist <- moving_window * y_size
 
   # Set up new data frame containing kernel densities
-  kernel_density_df <- fine_scale_df_with_IDs[ , c("x", "y")]
+  kernel_density_df <- ref_map_df_with_IDs[ , c("x", "y")]
 
   # Fill kernel density data frame
-  kernel_density_df[ , land_use_types] <- t(apply(fine_scale_df_with_IDs,
+  kernel_density_df[ , ref_map_LC_types] <- t(apply(ref_map_df_with_IDs,
                                                   1,
                                                   calculateKernelDensitiesForOneCell,
-                                                  fine_scale_df_with_IDs = fine_scale_df_with_IDs,
-                                                  land_use_types = land_use_types,
+                                                  ref_map_df_with_IDs = ref_map_df_with_IDs,
+                                                  ref_map_LC_types = ref_map_LC_types,
                                                   cell_x_dist = cell_x_dist,
                                                   cell_y_dist = cell_y_dist))
 
   # Add coarse-scale cell IDs to kernel density data frame
-  kernel_density_df$coarse_ID <- fine_scale_df_with_IDs$coarse_ID
+  kernel_density_df$coarse_ID <- ref_map_df_with_IDs$coarse_ID
 
   end_time <- Sys.time()
 
@@ -51,22 +50,22 @@ calculateKernelDensities <- function(fine_scale_df_with_IDs,
   return(kernel_density_df)
 }
 
-#' Calculate kernel densities for all land-use types in one cell
+#' Calculate kernel densities for all land cover types in one cell
 #'
-#' Calculates the kernel density values for all land-use types in a single grid
-#'   cell.
+#' Calculates the kernel density values for all land cover types in a single
+#'   grid cell.
 #'
-#' @param grid_cell Single row from a fine-scale cell data frame with x and y
-#'   values and the area of each land-use type in that cell.
-#' @param cell_x_dist The radius of the cell neighbourhood in the x-direction.
-#' @param cell_y_dist The radius of the cell neighbourhood in the y-direction.
+#' @param grid_cell Single row from reference map data frame with x and y values
+#'   and the area of each land cover type in that cell.
+#' @param cell_x_dist Radius of the cell neighbourhood in the x-direction.
+#' @param cell_y_dist Radius of the cell neighbourhood in the y-direction.
 #' @inheritParams calculateKernelDensities
 #'
-#' @return A named vector of the kernel density for each land-use within the
+#' @return Named vector of the kernel density for each land-use within the
 #'   grid cell.
 calculateKernelDensitiesForOneCell <- function(grid_cell,
-                                               fine_scale_df_with_IDs,
-                                               land_use_types,
+                                               ref_map_df_with_IDs,
+                                               ref_map_LC_types,
                                                cell_x_dist,
                                                cell_y_dist) {
 
@@ -76,10 +75,10 @@ calculateKernelDensitiesForOneCell <- function(grid_cell,
   cell_coords <- c(cell_x_coord, cell_y_coord)
 
   # Find neighbour cells
-  neighbour_cells <- fine_scale_df_with_IDs[which(fine_scale_df_with_IDs["x"] >= (cell_x_coord - cell_x_dist) &
-                                                    fine_scale_df_with_IDs["x"] <= (cell_x_coord + cell_x_dist) &
-                                                    fine_scale_df_with_IDs["y"] >= (cell_y_coord - cell_y_dist) &
-                                                    fine_scale_df_with_IDs["y"] <= (cell_y_coord + cell_y_dist)), ]
+  neighbour_cells <- ref_map_df_with_IDs[which(ref_map_df_with_IDs["x"] >= (cell_x_coord - cell_x_dist) &
+                                                    ref_map_df_with_IDs["x"] <= (cell_x_coord + cell_x_dist) &
+                                                    ref_map_df_with_IDs["y"] >= (cell_y_coord - cell_y_dist) &
+                                                    ref_map_df_with_IDs["y"] <= (cell_y_coord + cell_y_dist)), ]
 
   # Remove focal cell from neighbour cells df
   neighbour_cells <- neighbour_cells[-which(neighbour_cells["x"] == cell_x_coord &
@@ -91,7 +90,7 @@ calculateKernelDensitiesForOneCell <- function(grid_cell,
                                                     lonlat = FALSE)
 
   # Find kernel density for each land-use type
-  grid_cell_kernel_densities <- apply(neighbour_cells[ , land_use_types],
+  grid_cell_kernel_densities <- apply(neighbour_cells[ , ref_map_LC_types],
                                                       2,
                                                       kernelDensityFunction,
                                                       distance_values = neighbour_cells$distance,
@@ -100,25 +99,23 @@ calculateKernelDensitiesForOneCell <- function(grid_cell,
   return(grid_cell_kernel_densities)
 }
 
-#' Calculate kernel density value for a single land-use in a single cell
+#' Calculate kernel density value for a single land cover in a single cell
 #'
-#' Calculates the kernel density value for a single land-use in a single
+#' Calculates the kernel density value for a single land cover in a single
 #'   fine-scale grid cell.
 #'
-#' @param land_use_values A vector of land-use values within each neighbouring
-#'   cell.
-#' @param distance_values A vector giving the distance of each neighbouring cell
-#'   from the focal cell, should be the same length as `land_use_values`
-#'   parameter.
-#' @param number_of_neighbour_cells The number of neighbour cells.
+#' @param LC_values Vector of land cover areas within each neighbour cell.
+#' @param distance_values Vector giving the distance of each neighbour cell
+#'   from the focal cell, should be the same length as `LC_values`.
+#' @param number_of_neighbour_cells Number of neighbour cells.
 #'
 #' @return The kernel density of the given land-use in the focal cell.
-kernelDensityFunction <- function(land_use_values,
+kernelDensityFunction <- function(LC_values,
                                   distance_values,
                                   number_of_neighbour_cells) {
 
   # Fix for NA values included here
-  kernel_density <- (1 / number_of_neighbour_cells) * sum(land_use_values / distance_values^2, na.rm = TRUE)
+  kernel_density <- (1 / number_of_neighbour_cells) * sum(LC_values / distance_values^2, na.rm = TRUE)
 
   return(kernel_density)
 }

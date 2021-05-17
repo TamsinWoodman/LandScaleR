@@ -5,31 +5,32 @@
 \title{Calculate kernel densities}
 \usage{
 calculateKernelDensities(
-  fine_scale_df_with_IDs,
-  land_use_types,
+  ref_map_df_with_IDs,
+  ref_map_LC_types,
   cell_resolution,
   moving_window = 1
 )
 }
 \arguments{
-\item{fine_scale_df_with_IDs}{A data frame of fine-scale cells including the
-the ID of the coarse-scale cell that each fine-scale cell is assigned to.}
+\item{ref_map_df_with_IDs}{Reference map data frame with a column containing
+the ID of the coarse grid cell to which each reference map cell was
+assigned to. This is output from the `assignFineScaleCells` function.}
 
-\item{land_use_types}{The names of columns containing land-use values in the
-`final_scale_df_with_IDs` data frame.}
+\item{ref_map_LC_types}{Vector of land cover types in the reference map.}
 
-\item{cell_resolution}{The resolution of one cell in the landscape. Should be
-in the form `c(x, y)`.}
+\item{cell_resolution}{Resolution of one cell in the map, in the form
+`c(x, y)`.}
 
-\item{moving_window}{The radius of cells to include in the kernel density
-calculation. A value of 1 means that the neighbour cells for calculating
+\item{moving_window}{Radius of cells to include in the kernel density
+calculation. A value of 1 means that the neighbour cells used to calculate
 kernel density will be 1 cell in every direction around the focal cell.
 Defaults to 1.}
 }
 \value{
-A data frame with the kernel density value for each land-use type in
+Data frame with the kernel density value for each land cover type in
   each cell.
 }
 \description{
-Calculates kernel densities for all cell and land-use types in a data frame.
+Calculates kernel densities for all cell and land cover types in a reference
+  map data frame.
 }

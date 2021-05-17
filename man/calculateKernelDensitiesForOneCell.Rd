@@ -2,35 +2,35 @@
 % Please edit documentation in R/kernelDensities.R
 \name{calculateKernelDensitiesForOneCell}
 \alias{calculateKernelDensitiesForOneCell}
-\title{Calculate kernel densities for all land-use types in one cell}
+\title{Calculate kernel densities for all land cover types in one cell}
 \usage{
 calculateKernelDensitiesForOneCell(
   grid_cell,
-  fine_scale_df_with_IDs,
-  land_use_types,
+  ref_map_df_with_IDs,
+  ref_map_LC_types,
   cell_x_dist,
   cell_y_dist
 )
 }
 \arguments{
-\item{grid_cell}{Single row from a fine-scale cell data frame with x and y
-values and the area of each land-use type in that cell.}
+\item{grid_cell}{Single row from reference map data frame with x and y values
+and the area of each land cover type in that cell.}
 
-\item{fine_scale_df_with_IDs}{A data frame of fine-scale cells including the
-the ID of the coarse-scale cell that each fine-scale cell is assigned to.}
+\item{ref_map_df_with_IDs}{Reference map data frame with a column containing
+the ID of the coarse grid cell to which each reference map cell was
+assigned to. This is output from the `assignFineScaleCells` function.}
 
-\item{land_use_types}{The names of columns containing land-use values in the
-`final_scale_df_with_IDs` data frame.}
+\item{ref_map_LC_types}{Vector of land cover types in the reference map.}
 
-\item{cell_x_dist}{The radius of the cell neighbourhood in the x-direction.}
+\item{cell_x_dist}{Radius of the cell neighbourhood in the x-direction.}
 
-\item{cell_y_dist}{The radius of the cell neighbourhood in the y-direction.}
+\item{cell_y_dist}{Radius of the cell neighbourhood in the y-direction.}
 }
 \value{
-A named vector of the kernel density for each land-use within the
+Named vector of the kernel density for each land-use within the
   grid cell.
 }
 \description{
-Calculates the kernel density values for all land-use types in a single grid
-  cell.
+Calculates the kernel density values for all land cover types in a single
+  grid cell.
 }

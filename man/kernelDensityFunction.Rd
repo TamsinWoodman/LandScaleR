@@ -2,28 +2,22 @@
 % Please edit documentation in R/kernelDensities.R
 \name{kernelDensityFunction}
 \alias{kernelDensityFunction}
-\title{Calculate kernel density value for a single land-use in a single cell}
+\title{Calculate kernel density value for a single land cover in a single cell}
 \usage{
-kernelDensityFunction(
-  land_use_values,
-  distance_values,
-  number_of_neighbour_cells
-)
+kernelDensityFunction(LC_values, distance_values, number_of_neighbour_cells)
 }
 \arguments{
-\item{land_use_values}{A vector of land-use values within each neighbouring
-cell.}
+\item{LC_values}{Vector of land cover areas within each neighbour cell.}
 
-\item{distance_values}{A vector giving the distance of each neighbouring cell
-from the focal cell, should be the same length as `land_use_values`
-parameter.}
+\item{distance_values}{Vector giving the distance of each neighbour cell
+from the focal cell, should be the same length as `LC_values`.}
 
-\item{number_of_neighbour_cells}{The number of neighbour cells.}
+\item{number_of_neighbour_cells}{Number of neighbour cells.}
 }
 \value{
 The kernel density of the given land-use in the focal cell.
 }
 \description{
-Calculates the kernel density value for a single land-use in a single
+Calculates the kernel density value for a single land cover in a single
   fine-scale grid cell.
 }
