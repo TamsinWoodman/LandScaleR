@@ -1,16 +1,17 @@
-#' S4 class to hold land-use data frames
+#' S4 class to hold processed land cover deltas
 #'
-#' An S4 class with slots for fine-scale and coarse-scale land-use data frames.
+#' An S4 class with slots for the reference map and processed land cover delta
+#'   values.
 #'
-#' @slot fine_scale_df A data frame of fine-scale land-uses, where each row is
-#'   one raster cell.
-#' @slot coarse_scale_df A data frame of coarse-scale land-uses, where each row
-#'   is one raster cell.
-#' @slot land_use_types A character vector with the land-use types. The land-use
+#' @slot ref_map_df Data frame of the reference map, where each row is one
+#'   raster cell.
+#' @slot LC_deltas Data frame of land cover changes between two coarse-scale
+#'   timesteps. Must be the same projection as the `ref_map_df`
+#' @slot LC_types Character vector with the land-use types. The land-use
 #'   types should be the same in each data frame.
 #'
 #' @export
-setClass("ReconciledLandUses",
-         representation = list(fine_scale_df = "data.frame",
-                               coarse_scale_df = "data.frame",
-                               land_use_types = "character"))
+setClass("ProcessedLCDeltas",
+         representation = list(ref_map_df = "data.frame",
+                               LC_deltas = "data.frame",
+                               LC_types = "character"))

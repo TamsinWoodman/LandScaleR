@@ -2,4 +2,4 @@
 
 export(makeLandUseRaster)
 export(makeLandUseRasterStack)
-exportClasses(ReconciledLandUses)
+exportClasses(ProcessedLCDeltas)
