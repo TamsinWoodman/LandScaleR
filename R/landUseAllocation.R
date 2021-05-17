@@ -1,76 +1,95 @@
-#' Calculate land-use delta values
+#' Intensification of land-uses
 #'
-#' Calculates the change in each land-use type (delta) in every coarse-scale
-#'   cell between two time steps. The fine-scale data frame is used as the
-#'   baseline for the previous timestep, and the coarse-scale data frame gives
-#'   the new land-use areas for the subsequent timestep.
-#'
-#' @inheritParams calculateKernelDensities
-#' @param agg_adj_coarse_scale_df Coarse-scale land-use data frame containing
-#'   the aggregated and adjusted land-use areas.
-#'
-#' @return A data frame with the delta value for each land-use type in each
-#'   coarse-scale grid cell.
-calculateLandUseDeltas <- function(fine_scale_df_with_IDs,
-                                   agg_adj_coarse_scale_df,
-                                   land_use_types) {
+intensifyLandUses <- function(fine_scale_df_with_IDs,
+                              kernel_density_df,
+                              land_use_deltas,
+                              transition_priorities) {
 
-  land_use_deltas <- agg_adj_coarse_scale_df[ , c("x", "y")]
+  # for each coarse-scale grid cell
+    # loop through transition priorities
+      # intensify land-use if delta > 0 for a land-use type
+  for (i in 1:nrow(land_use_deltas)) {
+    coarse_ID <- land_use_deltas$coarse_ID
 
-  land_use_deltas[ , land_use_types] <- t(apply(agg_adj_coarse_scale_df,
-                                              1,
-                                              calculateLandUseDeltasForOneCell,
-                                              fine_scale_df_with_IDs = fine_scale_df_with_IDs,
-                                              land_use_types = land_use_types))
+    # Loop through the land-uses
+    for (j in 1:nrow(transition_priorities)) {
+      land_use_one <- row.names(transition_priorities)[j]
+      land_use_one_delta <- land_use_deltas[i, land_use_one]
 
-  land_use_deltas$coarse_ID <- agg_adj_coarse_scale_df$coarse_ID
+      # Intensify land-use if it increases in the cell
+      if (land_use_one_delta > 0) {
+        print(paste(i, land_use_one))
 
-  return(land_use_deltas)
+        # Get sorted list of priorities
+        sorted_priority_land_uses <- getSortedTransitionPriorities(transition_priorities,
+                                                                   j)
+
+        # Loop through the other land-uses in priority order
+        for (k in 1:length(sorted_priority_land_uses)) {
+          land_use_two <- sorted_priority_land_uses[k]
+
+          if (land_use_deltas[i, land_use_two] < 0) {
+            print(paste0(i, " negative ", land_use_two))
+
+            # Get cells to intensify land-use one in
+            cells_for_intensification <- fine_scale_df_with_IDs[which(fine_scale_df_with_IDs[ , land_use_one] > 0 &
+                                                                        fine_scale_df_with_IDs[ , land_use_two] > 0 &
+                                                                        fine_scale_df_with_IDs[ , "coarse_ID"] == i), ]
+
+            # Get kernel densities for cells to intensify land-use one in
+            kernel_densities_for_intensification <- kernel_density_df[which(kernel_density_df[ , "fine_ID"] %in% cells_for_intensification[ , "fine_ID"]), ]
+
+            # Calculate tentative conversion values
+            sum_of_kernel_densities <- sum(kernel_densities_for_intensification[ , land_use_one])
+            tentative_conversion <- land_use_one_delta * (kernel_densities_for_intensification[ , land_use_one] / sum_of_kernel_densities)
+            print(tentative_conversion)
+
+            # Calculate the actual conversion values
+            actual_conversion <- pmin(cells_for_intensification[ , land_use_two],
+                                      tentative_conversion)
+            print(actual_conversion)
+
+            # Calculate total conversion value
+            total_conversion <- sum(actual_conversion)
+
+
+            print(total_conversion)
+            print(land_use_one_delta)
+            ### Need to add a break in the for loop if the total_conversion value
+            ### has met the land_use_one_delta
+          }
+        }
+
+        # Get fine-scale data frame with corresponding cells
+
+
+      }
+
+    }
+  }
 }
 
-#' Calculate land-use delta values for one grid cell
-#'
-#' Calculates the change in land-use types in a single coarse-scale grid cell
-#'   between two time steps.
-#'
-#' @param coarse_grid_cell The reconciled land-use areas within a single
-#'   coarse-scale grid cell.
-#' @inheritParams calculateLandUseDeltas
-#'
-#' @return A one-row data frame giving the delta value for each land-use type in
-#'   the given grid cell.
-calculateLandUseDeltasForOneCell <- function(coarse_grid_cell,
-                                             fine_scale_df_with_IDs,
-                                             land_use_types) {
+#' Get a sorted list of transition priorities for land-use allocation
+getSortedTransitionPriorities <- function(transition_priorities,
+                                          row_number) {
 
-  coarse_ID <- coarse_grid_cell["coarse_ID"]
+  all_sorted_priorities <- sort(transition_priorities[row_number, ])
+  sorted_priorities <- all_sorted_priorities[-which(all_sorted_priorities == 0)]
+  sorted_priority_land_uses <- names(sorted_priorities)
 
-  matched_fine_scale_cells <- fine_scale_df_with_IDs[which(fine_scale_df_with_IDs$coarse_ID == coarse_ID), ]
-
-  fine_scale_land_use_areas <- apply(matched_fine_scale_cells[ , land_use_types],
-                                     2,
-                                     calculateLandUseDeltasForOneCellAndLandUseType)
-
-  grid_cell_land_use_deltas <- coarse_grid_cell[land_use_types] - fine_scale_land_use_areas
-
-  return(grid_cell_land_use_deltas)
+  return(sorted_priority_land_uses)
 }
 
-#' Calculate area of one land-use type in a coarse-scale cell
+#' Intensify one land-use
 #'
-#' Sums the area of one land-use type in all fine-scale cells allocated to a
-#'   single coarse-scale cell.
-#'
-#' @param matched_fine_scale_cells_land_use_areas Vector with the area of one
-#'   land-use type in each fine-scale cells allocated to a single coarse-scale
-#'   cell.
-#'
-#' @return A single value giving the area of one land-use type in all fine-scale
-#'   cells allocated to a single coarse-scale cell.
-calculateLandUseDeltasForOneCellAndLandUseType <- function(matched_fine_scale_cells_land_use_areas) {
+intensifyOneLandUse <- function() {
 
-  land_use_area <- sum(matched_fine_scale_cells_land_use_areas,
-                       na.rm = TRUE)
+  # Get data frame with cells for intensification and corresponding kernel densities
 
-  return(land_use_area)
+  # Calculate tentative conversion for each cell
+
+  # Calculate actual conversion for each cell
+
+  # Return new areas and remaining
+
 }
