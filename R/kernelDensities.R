@@ -40,6 +40,7 @@ calculateKernelDensities <- function(ref_map_df_with_IDs,
                                                   cell_y_dist = cell_y_dist))
 
   # Add coarse-scale cell IDs to kernel density data frame
+  kernel_density_df$ref_ID <- ref_map_df_with_IDs$ref_ID
   kernel_density_df$coarse_ID <- ref_map_df_with_IDs$coarse_ID
 
   end_time <- Sys.time()

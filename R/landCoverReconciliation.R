@@ -26,8 +26,9 @@ processLCDeltas <- function(LC_deltas,
                             ref_map_cell_area,
                             final_LC_types) {
 
-  # Add cell ID column to LC deltas df
+  # Add cell ID columns
   LC_deltas$coarse_ID <- seq(1:nrow(LC_deltas))
+  ref_map_df$ref_ID <- seq(1:nrow(ref_map_df))
 
   # Set land cover types
   coarse_LC_types <- rownames(final_LC_types)
