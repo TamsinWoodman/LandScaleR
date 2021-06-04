@@ -30,7 +30,7 @@ runLCAllocation <- function(ref_map_with_IDs,
   # that were not allocated in either the intensification or expansion round
 
   # Run second round of intensification
-  final_LCs <- allocateLCs(ref_map_with_IDs,
+  final_LCs <- allocateLCs(expanded_LCs@ref_map_with_IDs,
                            kernel_density_df,
                            LC_deltas = expanded_LCs@LC_deltas,
                            transition_priorities,
@@ -94,12 +94,16 @@ allocateLCs <- function(ref_map_with_IDs,
                                                                          LC_dec_delta,
                                                                          cells_for_allocation[ , LC_dec_name])
 
+            ### Need something in here to update the LC areas of the reference
+            ### map cells
+            updated_ref_map_with_IDs <- updateRefMapWithLCConversions(updated_ref_map_with_IDs,
+                                                                      LC_conversion_df,
+                                                                      LC_dec_name,
+                                                                      LC_inc_name)
+
             # Calculate total conversion value
             total_conversion <- sum(LC_conversion_df$actual_conversion)
             print(total_conversion)
-
-            ### Need something in here to update the LC areas of the reference
-            ### map cells
 
             ### Update the LC_deltas so that you don't take away LC from LC
             ### types that have already lost their delta value
@@ -124,7 +128,8 @@ allocateLCs <- function(ref_map_with_IDs,
 
     }
   }
-  return(LC_deltas)
+  #return(LC_deltas)
+  return(updated_ref_map_with_IDs)
 }
 
 #' Get a sorted list of transition priorities for land-use allocation
@@ -228,16 +233,47 @@ calculateActualConversion <- function(LC_dec_values,
   return(actual_conversion)
 }
 
-#' Intensify one land-use
-#'
-intensifyOneLandUse <- function() {
+#' Update reference map with land cover conversion values
+updateRefMapWithLCConversions <- function(updated_ref_map_with_IDs,
+                                          LC_conversion_df,
+                                          LC_dec_name,
+                                          LC_inc_name) {
 
-  # Get data frame with cells for intensification and corresponding kernel densities
+  newly_updated_ref_map_with_IDs <- updated_ref_map_with_IDs
 
-  # Calculate tentative conversion for each cell
+  for (i in 1:nrow(LC_conversion_df)) {
+    ref_ID <- LC_conversion_df[i, "ref_ID"]
+    actual_conversion <- LC_conversion_df[i, "actual_conversion"]
 
-  # Calculate actual conversion for each cell
+    # Update LCs in this cell
+    newly_updated_ref_map_with_IDs <- updateOneRefMapCellWithLCConversions(newly_updated_ref_map_with_IDs,
+                                                                           ref_ID,
+                                                                           LC_inc_name,
+                                                                           LC_dec_name,
+                                                                           actual_conversion)
+  }
 
-  # Return new areas and remaining
+  return(newly_updated_ref_map_with_IDs)
+}
 
+#' Update one reference map cells with land cover conversion balues
+updateOneRefMapCellWithLCConversions <- function(updated_ref_map_with_IDs,
+                                                 ref_ID,
+                                                 LC_inc_name,
+                                                 LC_dec_name,
+                                                 actual_conversion) {
+
+  newly_updated_ref_map_with_IDs <- updated_ref_map_with_IDs
+
+  # Update area of the increasing LC
+  current_LC_inc_area <-  newly_updated_ref_map_with_IDs[newly_updated_ref_map_with_IDs$ref_ID == ref_ID, LC_inc_name]
+  new_LC_inc_area <- current_LC_inc_area + actual_conversion
+  newly_updated_ref_map_with_IDs[newly_updated_ref_map_with_IDs$ref_ID == ref_ID, LC_inc_name] <- new_LC_inc_area
+
+  # Update area of the decreasing LC
+  current_LC_dec_area <-  newly_updated_ref_map_with_IDs[newly_updated_ref_map_with_IDs$ref_ID == ref_ID, LC_dec_name]
+  new_LC_dec_area <- current_LC_dec_area - actual_conversion
+  newly_updated_ref_map_with_IDs[newly_updated_ref_map_with_IDs$ref_ID == ref_ID, LC_dec_name] <- new_LC_dec_area
+
+  return(newly_updated_ref_map_with_IDs)
 }
