@@ -31,9 +31,9 @@ the coarse-scale land cover type that contributes to the fine-scale type in
 the output map.}
 }
 \value{
-ReconciledLandUses class containing a data frame of reference map
-  cells assigned to coarse-scale cells, and a second data frame of
-  coarse-scale cells with adjusted and aggregated land-use areas.
+LCDataClass class containing a data frame of reference map cells
+  assigned to coarse-scale cells, and a second data frame of coarse-scale
+  cells with adjusted and aggregated land-use areas.
 }
 \description{
 Performs the following actions: assigns fine-scale cells to coarse-scale

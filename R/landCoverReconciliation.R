@@ -17,9 +17,9 @@
 #'   the coarse-scale land cover type that contributes to the fine-scale type in
 #'   the output map.
 #'
-#' @return ReconciledLandUses class containing a data frame of reference map
-#'   cells assigned to coarse-scale cells, and a second data frame of
-#'   coarse-scale cells with adjusted and aggregated land-use areas.
+#' @return LCDataClass class containing a data frame of reference map cells
+#'   assigned to coarse-scale cells, and a second data frame of coarse-scale
+#'   cells with adjusted and aggregated land-use areas.
 processLCDeltas <- function(LC_deltas,
                             ref_map_df,
                             coarse_cell_area,
@@ -49,7 +49,7 @@ processLCDeltas <- function(LC_deltas,
   agg_adj_LC_deltas <- aggregateToFinalLCTypes(final_LC_types,
                                                adj_LC_deltas)
 
-  processed_LC_deltas <- new("ProcessedLCDeltas",
+  processed_LC_deltas <- new("LCDataClass",
                               ref_map_df = ref_map_df_with_IDs,
                               LC_deltas = agg_adj_LC_deltas,
                               LC_types = ref_map_LC_types)
