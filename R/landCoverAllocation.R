@@ -26,7 +26,7 @@ runLCAllocation <- function(ref_map_with_IDs,
                               transition_priorities,
                               allocationType = "expand")
 
-  # LC deltas for scond round of intensification are the remaining LC delta
+  # LC deltas for second round of intensification are the remaining LC delta
   # that were not allocated in either the intensification or expansion round
 
   # Run second round of intensification
@@ -48,19 +48,18 @@ allocateLCs <- function(ref_map_with_IDs,
                         allocationType = "intensify") {
 
   updated_ref_map_with_IDs <- ref_map_with_IDs
+  updated_LC_deltas <- LC_deltas
 
-  # for each coarse-scale grid cell
-    # loop through transition priorities
-      # intensify land-use if delta > 0 for a land-use type
-  for (i in 1:nrow(LC_deltas)) {
-    coarse_ID <- LC_deltas$coarse_ID[i]
+  # Loop through the rows in the updated_LC_deltas data frame
+  for (i in 1:nrow(updated_LC_deltas)) {
+    coarse_ID <- updated_LC_deltas$coarse_ID[i]
 
     # Loop through the land-uses
     for (j in 1:nrow(transition_priorities)) {
       LC_inc_name <- row.names(transition_priorities)[j]
-      LC_inc_delta <- LC_deltas[i, LC_inc_name]
+      LC_inc_delta <- updated_LC_deltas[i, LC_inc_name]
 
-      # Intensify land-use if it increases in the cell
+      # Allocate the land cover if it increases in the cell
       if (LC_inc_delta > 0) {
         print(paste(i, LC_inc_name, LC_inc_delta))
 
@@ -68,10 +67,10 @@ allocateLCs <- function(ref_map_with_IDs,
         sorted_priority_LCs <- getSortedTransitionPriorities(transition_priorities,
                                                              j)
 
-        # Loop through the other land-uses in priority order
+        # Loop through the other land covers in priority order
         for (k in 1:length(sorted_priority_LCs)) {
           LC_dec_name <- sorted_priority_LCs[k]
-          LC_dec_delta <- LC_deltas[i, LC_dec_name]
+          LC_dec_delta <- updated_LC_deltas[i, LC_dec_name]
 
           if (LC_dec_delta < 0) {
 
@@ -94,8 +93,7 @@ allocateLCs <- function(ref_map_with_IDs,
                                                                          LC_dec_delta,
                                                                          cells_for_allocation[ , LC_dec_name])
 
-            ### Need something in here to update the LC areas of the reference
-            ### map cells
+            # Update the reference map with new land cover areas
             updated_ref_map_with_IDs <- updateRefMapWithLCConversions(updated_ref_map_with_IDs,
                                                                       LC_conversion_df,
                                                                       LC_dec_name,
@@ -105,22 +103,14 @@ allocateLCs <- function(ref_map_with_IDs,
             total_conversion <- sum(LC_conversion_df$actual_conversion)
             print(total_conversion)
 
-            ### Update the LC_deltas so that you don't take away LC from LC
-            ### types that have already lost their delta value
             # Update LC_inc_delta in this for loop and in data frame
-            LC_inc_delta <- LC_inc_delta - total_conversion
-            LC_deltas[i, LC_inc_name] <- LC_inc_delta
+            LC_inc_delta <- updateLCIncDelta(LC_inc_delta,
+                                             total_conversion)
+            updated_LC_deltas[i, LC_inc_name] <- LC_inc_delta
 
             # Update LC_dec_delta in data frame
-            LC_deltas[i, LC_dec_name] <- LC_dec_delta + total_conversion
-
-            # I don't think we need to break the for loop now because LC_inc_delta
-            # is being reset within this loop
-            # Break the for loop if the total_conversion value is equal to
-            # LC_inc_delta
-            # if (total_conversion == LC_inc_delta) {
-            #   break
-            # }
+            updated_LC_deltas[i, LC_dec_name] <- updateLCDecDelta(LC_dec_delta,
+                                                                  total_conversion)
           }
         }
 
@@ -128,8 +118,13 @@ allocateLCs <- function(ref_map_with_IDs,
 
     }
   }
-  #return(LC_deltas)
-  return(updated_ref_map_with_IDs)
+
+  allocated_LCs <- new("LCDataClass",
+                       ref_map_df = updated_ref_map_with_IDs,
+                       LC_deltas = updated_LC_deltas,
+                       LC_types = row.names(transition_priorities))
+
+  return(allocated_LCs)
 }
 
 #' Get a sorted list of transition priorities for land-use allocation
@@ -276,4 +271,22 @@ updateOneRefMapCellWithLCConversions <- function(updated_ref_map_with_IDs,
   newly_updated_ref_map_with_IDs[newly_updated_ref_map_with_IDs$ref_ID == ref_ID, LC_dec_name] <- new_LC_dec_area
 
   return(newly_updated_ref_map_with_IDs)
+}
+
+# Update LC increasing delta value
+updateLCIncDelta <- function(LC_inc_delta,
+                             total_conversion) {
+
+  LC_inc_delta_updated <- LC_inc_delta - total_conversion
+
+  return(LC_inc_delta_updated)
+}
+
+# Update LC decreasing delta value
+updateLCDecDelta <- function(LC_dec_delta,
+                             total_conversion) {
+
+  LC_dec_delta_updated <- LC_dec_delta + total_conversion
+
+  return(LC_dec_delta_updated)
 }
