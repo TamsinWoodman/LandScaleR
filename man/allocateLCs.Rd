@@ -9,7 +9,7 @@ allocateLCs(
   kernel_density_df,
   LC_deltas,
   transition_priorities,
-  allocationType = "intensify"
+  allocation_type = "intensify"
 )
 }
 \arguments{
@@ -29,7 +29,7 @@ cover type.}
 cover allocation. Each row of the matrix should give the order in which one
 land cover type is converted to others.}
 
-\item{allocationType}{The type of land cover allocation. Can be one of
+\item{allocation_type}{The type of land cover allocation. Can be one of
 `intensify` or `expand`, which mean that land covers will be allocated to
 cells where they do or do not already occur, respectively.}
 }
@@ -42,5 +42,5 @@ cells where they do or do not already occur, respectively.}
 Allocates land cover change (delta) values to the given reference map. Land
   cover types can be allocated to cells where they already exist
   (intensified) or to cells where they do not exist (expanded). The type of
-  land cover allocation can be set with the `allocationType` argument.
+  land cover allocation can be set with the `allocation_type` argument.
 }

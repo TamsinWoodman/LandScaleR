@@ -49,7 +49,7 @@ runLCAllocation <- function(ref_map_df_with_IDs,
                                  kernel_density_df,
                                  LC_deltas = LC_deltas_intensify,
                                  transition_priorities,
-                                 allocationType = "intensify")
+                                 allocation_type = "intensify")
 
   # Calculate expansion LC deltas
   # Should be LC_deltas multiplied by intensification_ratio
@@ -59,7 +59,7 @@ runLCAllocation <- function(ref_map_df_with_IDs,
                               kernel_density_df,
                               LC_deltas = LC_deltas_expand,
                               transition_priorities,
-                              allocationType = "expand")
+                              allocation_type = "expand")
 
   # LC deltas for second round of intensification are the remaining LC delta
   # that were not allocated in either the intensification or expansion round
@@ -69,7 +69,7 @@ runLCAllocation <- function(ref_map_df_with_IDs,
                            kernel_density_df,
                            LC_deltas = expanded_LCs@LC_deltas,
                            transition_priorities,
-                           allocationType = "intensify")
+                           allocation_type = "intensify")
 
   return(final_LCs)
 }
@@ -79,10 +79,10 @@ runLCAllocation <- function(ref_map_df_with_IDs,
 #' Allocates land cover change (delta) values to the given reference map. Land
 #'   cover types can be allocated to cells where they already exist
 #'   (intensified) or to cells where they do not exist (expanded). The type of
-#'   land cover allocation can be set with the `allocationType` argument.
+#'   land cover allocation can be set with the `allocation_type` argument.
 #'
 #' @inheritParams runLCAllocation
-#' @param allocationType The type of land cover allocation. Can be one of
+#' @param allocation_type The type of land cover allocation. Can be one of
 #'   `intensify` or `expand`, which mean that land covers will be allocated to
 #'   cells where they do or do not already occur, respectively.
 #'
@@ -93,7 +93,7 @@ allocateLCs <- function(ref_map_df_with_IDs,
                         kernel_density_df,
                         LC_deltas,
                         transition_priorities,
-                        allocationType = "intensify") {
+                        allocation_type = "intensify") {
 
   updated_ref_map_df_with_IDs <- ref_map_df_with_IDs
   updated_LC_deltas <- LC_deltas
@@ -128,37 +128,47 @@ allocateLCs <- function(ref_map_df_with_IDs,
             ### Getting the cells in which to expand/intensify LCs will be a
             ### switch statement --> then the rest of the function is the same
             ### irrespective of whether you're intensifying or expanding LCs
-            cells_for_allocation <- getCellsToIntensifyLC(updated_ref_map_df_with_IDs,
-                                                         LC_inc_name,
-                                                         LC_dec_name,
-                                                         coarse_ID)
+            cells_for_allocation <- switch(allocation_type,
+                                           "intensify" = getCellsToIntensifyLC(updated_ref_map_df_with_IDs,
+                                                                 LC_inc_name,
+                                                                 LC_dec_name,
+                                                                 coarse_ID),
+                                           "expand" = getCellsToExpandLC(updated_ref_map_df_with_IDs,
+                                                              LC_inc_name,
+                                                              LC_dec_name,
+                                                              coarse_ID))
+            #print(cells_for_allocation)
 
-            # Get LC increasing to LC decreasing conversions
-            LC_conversion_df <- getLCConversions(kernel_density_df,
-                                                 LC_inc_name,
-                                                 cells_for_allocation[ , "ref_ID"],
-                                                 LC_inc_delta,
-                                                 LC_dec_delta,
-                                                 cells_for_allocation[ , LC_dec_name])
+            if (nrow(cells_for_allocation) >= 1) {
 
-            # Update the reference map with new land cover areas
-            updated_ref_map_df_with_IDs <- updateRefMapWithLCConversions(updated_ref_map_df_with_IDs,
-                                                                      LC_conversion_df,
-                                                                      LC_dec_name,
-                                                                      LC_inc_name)
+              # Get LC increasing to LC decreasing conversions
+              LC_conversion_df <- getLCConversions(kernel_density_df,
+                                                   LC_inc_name,
+                                                   cells_for_allocation[ , "ref_ID"],
+                                                   LC_inc_delta,
+                                                   LC_dec_delta,
+                                                   cells_for_allocation[ , LC_dec_name])
 
-            # Calculate total conversion value
-            total_conversion <- sum(LC_conversion_df$actual_conversion)
-            print(total_conversion)
+              #print(LC_conversion_df)
+              # Update the reference map with new land cover areas
+              updated_ref_map_df_with_IDs <- updateRefMapWithLCConversions(updated_ref_map_df_with_IDs,
+                                                                           LC_conversion_df,
+                                                                           LC_dec_name,
+                                                                           LC_inc_name)
 
-            # Update LC_inc_delta in this for loop and in data frame
-            LC_inc_delta <- updateLCIncDelta(LC_inc_delta,
-                                             total_conversion)
-            updated_LC_deltas[i, LC_inc_name] <- LC_inc_delta
+              # Calculate total conversion value
+              total_conversion <- sum(LC_conversion_df$actual_conversion)
+              print(total_conversion)
 
-            # Update LC_dec_delta in data frame
-            updated_LC_deltas[i, LC_dec_name] <- updateLCDecDelta(LC_dec_delta,
-                                                                  total_conversion)
+              # Update LC_inc_delta in this for loop and in data frame
+              LC_inc_delta <- updateLCIncDelta(LC_inc_delta,
+                                               total_conversion)
+              updated_LC_deltas[i, LC_inc_name] <- LC_inc_delta
+
+              # Update LC_dec_delta in data frame
+              updated_LC_deltas[i, LC_dec_name] <- updateLCDecDelta(LC_dec_delta,
+                                                                    total_conversion)
+            }
           }
         }
 
@@ -204,9 +214,7 @@ getSortedTransitionPriorities <- function(transition_priorities,
 #'   into a second. Cells meet the criteria for intensification if both land
 #'   cover types are greater than 0 within the cell.
 #'
-#' @param updated_ref_map_df_with_IDs Reference map data frame with a column
-#'   containing the ID of the coarse grid cell to which each reference map cell
-#'   was assigned to.
+#' @inheritParams reconcileLCDeltas
 #' @param LC_inc_name Name of the land cover that is increasing.
 #' @param LC_dec_name Name of the land cover that `LC_inc_name` is being
 #'   converted to.
@@ -215,16 +223,39 @@ getSortedTransitionPriorities <- function(transition_priorities,
 #'
 #' @return Data frame of cells from the reference map that meet the criteria for
 #'   intensification of one land cover type into another.
-getCellsToIntensifyLC <- function(updated_ref_map_df_with_IDs,
+getCellsToIntensifyLC <- function(ref_map_df_with_IDs,
                                   LC_inc_name,
                                   LC_dec_name,
                                   coarse_ID) {
 
-  cells_to_intensify <- updated_ref_map_df_with_IDs[which(updated_ref_map_df_with_IDs[ , LC_inc_name] > 0 &
-                                                         updated_ref_map_df_with_IDs[ , LC_dec_name] > 0 &
-                                                         updated_ref_map_df_with_IDs[ , "coarse_ID"] == coarse_ID), ]
+  cells_to_intensify <- ref_map_df_with_IDs[which(ref_map_df_with_IDs[ , LC_inc_name] > 0 &
+                                                    ref_map_df_with_IDs[ , LC_dec_name] > 0 &
+                                                    ref_map_df_with_IDs[ , "coarse_ID"] == coarse_ID), ]
 
   return(cells_to_intensify)
+}
+
+#' Get cells in which to expand one land cover type
+#'
+#' Find cells which match the conditions for expanding one land cover type into
+#'   a second. Cells meet the criteria for expansion if the increasing land
+#'   cover is 0 and the decreasing land cover is greater than 0 within the cell.
+#'
+#' @inheritParams reconcileLCDeltas
+#' @inheritParams getCellsToIntensifyLC
+#'
+#' @return Data frame of cells from the reference map that meet the criteria for
+#'   expansion of one land cover type into another.
+getCellsToExpandLC <- function(ref_map_df_with_IDs,
+                               LC_inc_name,
+                               LC_dec_name,
+                               coarse_ID) {
+
+  cells_to_expand <- ref_map_df_with_IDs[which(ref_map_df_with_IDs[ , LC_inc_name] == 0 &
+                                                 ref_map_df_with_IDs[ , LC_dec_name] > 0 &
+                                                 ref_map_df_with_IDs[ , "coarse_ID"] == coarse_ID), ]
+
+  return(cells_to_expand)
 }
 
 #' Get amount of one land cover type converted into another
