@@ -11,8 +11,8 @@
 #'
 #'   The amount of land cover change that is allocated by intensification versus
 #'   expansion is determined by the `intensification_ratio` parameter. An
-#'   intensification ratio of 1 means that all land cover change is allocated
-#'   via intensification.
+#'   intensification ratio of 0.8 gives a target of 80 percent of land cover to
+#'   be allocated via intensification and 20 percent by expansion.
 #'
 #'   The amount of land cover change for a single land cover type that is
 #'   allocated to a fine-scale reference cell is currently determined by the
@@ -41,8 +41,12 @@ runLCAllocation <- function(ref_map_df_with_IDs,
                             transition_priorities,
                             intensification_ratio) {
 
+  LC_types <- row.names(transition_priorities)
+
   # Calculate intensification LC deltas
-  # Should be LC_deltas multiplied by 1 - intensification_ratio
+  LC_deltas_intensify <- multiplyLCDeltas(LC_deltas,
+                                          LC_types,
+                                          intensification_ratio)
 
   # Run first round of intensification
   intensified_LCs <- allocateLCs(ref_map_df_with_IDs,
@@ -52,10 +56,13 @@ runLCAllocation <- function(ref_map_df_with_IDs,
                                  allocation_type = "intensify")
 
   # Calculate expansion LC deltas
-  # Should be LC_deltas multiplied by intensification_ratio
+  expansion_factor <- 1 - intensification_ratio
+  LC_deltas_expand <- multiplyLCDeltas(LC_deltas,
+                                       LC_types,
+                                       expansion_factor)
 
   # Run expansion
-  expanded_LCs <- allocateLCs(intensified_LCs@ref_map_df_with_IDs,
+  expanded_LCs <- allocateLCs(intensified_LCs@ref_map_df,
                               kernel_density_df,
                               LC_deltas = LC_deltas_expand,
                               transition_priorities,
@@ -63,15 +70,65 @@ runLCAllocation <- function(ref_map_df_with_IDs,
 
   # LC deltas for second round of intensification are the remaining LC delta
   # that were not allocated in either the intensification or expansion round
+  LC_deltas_intensify_two <- sumLCDeltas(intensified_LCs@LC_deltas,
+                                         expanded_LCs@LC_deltas,
+                                         LC_types)
 
   # Run second round of intensification
-  final_LCs <- allocateLCs(expanded_LCs@ref_map_df_with_IDs,
+  final_LCs <- allocateLCs(expanded_LCs@ref_map_df,
                            kernel_density_df,
-                           LC_deltas = expanded_LCs@LC_deltas,
+                           LC_deltas = LC_deltas_intensify_two,
                            transition_priorities,
                            allocation_type = "intensify")
 
   return(final_LCs)
+}
+
+#' Multiply land cover change values
+#'
+#' Multiples land cover change (delta) values by a user-specified multiplication
+#'   factor. This allows the implementation of an intensification versus
+#'   expansion factor that determines the amount of land cover which is
+#'   intensified versus expanded during land cover allocation.
+#'
+#' @inheritParams runLCAllocation
+#' @param LC_types Vector of land cover types in the `LC_deltas` data frame.
+#' @param multiplication_factor Factor by which to multiply the land cover
+#'   change values in the `LC_deltas` data frame.
+#'
+#' @return Data frame containing land cover change values multiplied by the
+#'   user-specified `multiplication_factor` parameter.
+multiplyLCDeltas <- function(LC_deltas,
+                             LC_types,
+                             multiplication_factor) {
+
+  multiplied_LC_deltas <- LC_deltas
+  multiplied_LC_deltas[ , LC_types] <- LC_deltas[ , LC_types] * multiplication_factor
+
+  return(multiplied_LC_deltas)
+}
+
+#' Sum land cover change values
+#'
+#' Sums the land cover change values in two data frames. The land cover types
+#'   and grid cells must be the same in each data frame.
+#'
+#' @param LC_deltas_one Data frame of land cover change values from a
+#'   coarse-scale map.
+#' @param LC_deltas_two Second data frame of land cover change values from a
+#'   coarse-scale map.
+#' @inheritParams multiplyLCDeltas
+#'
+#' @return Data frame containing the sum of land cover change from the two input
+#'   land cover change data frames.
+sumLCDeltas <- function(LC_deltas_one,
+                        LC_deltas_two,
+                        LC_types) {
+
+  summed_LC_deltas <- LC_deltas_one
+  summed_LC_deltas[ , LC_types] <- LC_deltas_one[ , LC_types] + LC_deltas_two[ , LC_types]
+
+  return(summed_LC_deltas)
 }
 
 #' Allocate land cover change to reference map

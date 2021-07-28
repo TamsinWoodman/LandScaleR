@@ -50,8 +50,8 @@ This function will run the allocation of all land cover change (delta) values
 \details{
 The amount of land cover change that is allocated by intensification versus
   expansion is determined by the `intensification_ratio` parameter. An
-  intensification ratio of 1 means that all land cover change is allocated
-  via intensification.
+  intensification ratio of 0.8 gives a target of 80 percent of land cover to
+  be allocated via intensification and 20 percent by expansion.
 
   The amount of land cover change for a single land cover type that is
   allocated to a fine-scale reference cell is currently determined by the
