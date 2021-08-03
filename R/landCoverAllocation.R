@@ -540,8 +540,10 @@ updateLCIncDelta <- function(LC_inc_delta,
                              total_conversion) {
 
   LC_inc_delta_updated <- LC_inc_delta - total_conversion
+  LC_inc_delta_updated_rounded <- round(LC_inc_delta_updated,
+                                        8)
 
-  return(LC_inc_delta_updated)
+  return(LC_inc_delta_updated_rounded)
 }
 
 #' Update land cover change (delta) area of a decreasing land cover type
@@ -559,6 +561,8 @@ updateLCDecDelta <- function(LC_dec_delta,
                              total_conversion) {
 
   LC_dec_delta_updated <- LC_dec_delta + total_conversion
+  LC_dec_delta_updated_rounded <- round(LC_dec_delta_updated,
+                                        8)
 
-  return(LC_dec_delta_updated)
+  return(LC_dec_delta_updated_rounded)
 }
