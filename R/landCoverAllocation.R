@@ -39,7 +39,8 @@ runLCAllocation <- function(ref_map_df_with_IDs,
                             kernel_density_df,
                             LC_deltas,
                             transition_priorities,
-                            intensification_ratio) {
+                            intensification_ratio,
+                            ref_map_cell_area) {
 
   LC_types <- row.names(transition_priorities)
 
@@ -80,6 +81,13 @@ runLCAllocation <- function(ref_map_df_with_IDs,
                            LC_deltas = LC_deltas_intensify_two,
                            transition_priorities,
                            allocation_type = "intensify")
+
+  # Check land cover areas in the fine-scale map
+  apply(final_LCs@ref_map_df,
+        1,
+        checkLandCoverAreasInOneCell,
+        total_area = ref_map_cell_area,
+        LC_types = LC_types)
 
   return(final_LCs)
 }

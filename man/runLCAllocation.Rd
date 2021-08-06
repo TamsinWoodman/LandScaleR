@@ -10,7 +10,8 @@ runLCAllocation(
   kernel_density_df,
   LC_deltas,
   transition_priorities,
-  intensification_ratio
+  intensification_ratio,
+  ref_map_cell_area
 )
 }
 \arguments{
@@ -32,6 +33,8 @@ land cover type is converted to others.}
 
 \item{intensification_ratio}{Ratio of land intensification versus land
 expansion for the allocation algorithm.}
+
+\item{ref_map_cell_area}{Area of a reference map grid cell.}
 }
 \value{
 `LCDataClass` with a new reference map with land cover change
