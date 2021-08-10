@@ -1,3 +1,33 @@
+#' Save land cover maps as .txt files
+#'
+#' Saves output land cover maps as tab-delimited text files with the `.txt` file
+#'   extension.
+#'
+#' @param LC_map Land cover map data frame.
+#' @param file_prefix Prefix for land cover map output file.
+#' @param dir_path Path to directory in which to save the output file.
+#' @param time_step Time step for the land cover map.
+#'
+#' @return Tab-delimited text file of the given land cover map.
+saveLandCoverMapAsTable <- function(LC_map,
+                                    file_prefix = "",
+                                    dir_path = "",
+                                    time_step) {
+
+  file_path <- paste0(dir_path,
+                      file_prefix,
+                      "_Time",
+                      time_step,
+                      "_LandCover",
+                      ".txt")
+
+  write.table(LC_map,
+              file = file_path,
+              sep = "\t",
+              row.names = FALSE,
+              quote = FALSE)
+}
+
 #' Simulate land cover data
 #'
 #' Simulates land cover data of a given resolution and size using random
