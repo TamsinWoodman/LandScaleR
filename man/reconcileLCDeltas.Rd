@@ -6,24 +6,25 @@
 \usage{
 reconcileLCDeltas(
   LC_deltas,
-  ref_map_df_with_IDs,
-  coarse_LC_types,
-  coarse_cell_area,
+  assigned_ref_map,
+  LC_delta_types,
+  LC_deltas_cell_area,
   ref_map_cell_area
 )
 }
 \arguments{
 \item{LC_deltas}{Data frame of land cover changes between two coarse-scale
-timesteps. Must be the same projection as `ref_map_df`.}
+timesteps. Must be the same projection as `assigned_ref_map`.}
 
-\item{ref_map_df_with_IDs}{Reference map data frame with a column containing
-the ID of the coarse grid cell to which each reference map cell was
-assigned to. This is output from the `assignFineScaleCells` function.}
+\item{assigned_ref_map}{Data frame of the reference map which should be the
+scale at which you want to downscale the land cover data. The data frame
+must have a column called `coarse_ID` which assigns each cell in the
+reference map to the nearest coarse-scale cell.}
 
-\item{coarse_LC_types}{Vector of land cover types in the land cover deltas
-data frame.}
+\item{LC_delta_types}{Column names of land cover types in the land cover
+change data frame `LC_deltas`.}
 
-\item{coarse_cell_area}{Area of a coarse-scale grid cell.}
+\item{LC_deltas_cell_area}{Area of a coarse-scale grid cell.}
 
 \item{ref_map_cell_area}{Area of a reference map grid cell.}
 }

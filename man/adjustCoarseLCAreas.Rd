@@ -8,7 +8,7 @@
 adjustCoarseLCAreas(
   coarse_scale_land_use_areas,
   ref_map_areas,
-  coarse_cell_area
+  LC_deltas_cell_area
 )
 }
 \arguments{
@@ -18,7 +18,7 @@ cover type in all coarse-scale grid cells.}
 \item{ref_map_areas}{Vector containing the area of reference map cells within
 each coarse-scale grid cell.}
 
-\item{coarse_cell_area}{Area of a coarse-scale grid cell.}
+\item{LC_deltas_cell_area}{Area of a coarse-scale grid cell.}
 }
 \value{
 Vector of adjusted land cover deltas.

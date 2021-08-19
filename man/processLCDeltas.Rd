@@ -6,22 +6,28 @@
 \usage{
 processLCDeltas(
   LC_deltas,
-  ref_map_df,
-  coarse_cell_area,
+  assigned_ref_map,
+  LC_deltas_cell_area,
   ref_map_cell_area,
+  LC_delta_types,
   final_LC_types
 )
 }
 \arguments{
 \item{LC_deltas}{Data frame of land cover changes between two coarse-scale
-timesteps. Must be the same projection as `ref_map_df`.}
+timesteps. Must be the same projection as `assigned_ref_map`.}
 
-\item{ref_map_df}{Data frame of the reference map, which is the scale at
-which you want to downscale the land cover data.}
+\item{assigned_ref_map}{Data frame of the reference map which should be the
+scale at which you want to downscale the land cover data. The data frame
+must have a column called `coarse_ID` which assigns each cell in the
+reference map to the nearest coarse-scale cell.}
 
-\item{coarse_cell_area}{Area of a coarse-scale grid cell.}
+\item{LC_deltas_cell_area}{Area of a coarse-scale grid cell.}
 
 \item{ref_map_cell_area}{Area of a reference map grid cell.}
+
+\item{LC_delta_types}{Column names of land cover types in the land cover
+change data frame `LC_deltas`.}
 
 \item{final_LC_types}{A matrix containing the fraction of each coarse-scale
 land cover type that contributes to each reference map land cover type.
@@ -31,12 +37,11 @@ the coarse-scale land cover type that contributes to the fine-scale type in
 the output map.}
 }
 \value{
-LCDataClass class containing a data frame of reference map cells
-  assigned to coarse-scale cells, and a second data frame of coarse-scale
-  cells with adjusted and aggregated land-use areas.
+Data frame of coarse-scale cells with adjusted land cover changes
+  aggregated to final land cover types.
 }
 \description{
-Performs the following actions: assigns fine-scale cells to coarse-scale
-  cells, reconciles the land cover change values for each coarse-scale cell
-  with fine-scale areas, and aggregates land cover types.
+Reconciles the land cover change values for each coarse-scale cell
+  with fine-scale areas and aggregates land cover types to specified final
+  land cover types.
 }

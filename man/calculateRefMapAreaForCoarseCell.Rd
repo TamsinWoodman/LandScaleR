@@ -6,7 +6,7 @@
 \usage{
 calculateRefMapAreaForCoarseCell(
   coarse_cell,
-  ref_map_df_with_IDs,
+  assigned_ref_map,
   ref_map_cell_area
 )
 }
@@ -14,9 +14,10 @@ calculateRefMapAreaForCoarseCell(
 \item{coarse_cell}{A row containing land-use areas and ID number for a single
 coarse grid cell.}
 
-\item{ref_map_df_with_IDs}{Reference map data frame with a column containing
-the ID of the coarse grid cell to which each reference map cell was
-assigned to. This is output from the `assignFineScaleCells` function.}
+\item{assigned_ref_map}{Data frame of the reference map which should be the
+scale at which you want to downscale the land cover data. The data frame
+must have a column called `coarse_ID` which assigns each cell in the
+reference map to the nearest coarse-scale cell.}
 
 \item{ref_map_cell_area}{Area of a reference map grid cell.}
 }
