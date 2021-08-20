@@ -3,45 +3,46 @@
 #' Calculates kernel densities for all cell and land cover types in a reference
 #'   map data frame.
 #'
-#' @inheritParams reconcileLCDeltas
-#' @param ref_map_LC_types Vector of land cover types in the reference map.
+#' @inheritParams processLCDeltas
+#' @param ref_map_LC_types Vector of land cover types in the reference map. All
+#'   land cover types should be column names in the reference map.
 #' @param cell_resolution Resolution of one cell in the map, in the form
 #'   `c(x, y)`.
-#' @param moving_window Radius of cells to include in the kernel density
+#' @param kernel_radius Radius of cells to include in the kernel density
 #'   calculation. A value of 1 means that the neighbour cells used to calculate
 #'   kernel density will be 1 cell in every direction around the focal cell.
 #'   Defaults to 1.
 #'
 #' @return Data frame with the kernel density value for each land cover type in
 #'   each cell.
-calculateKernelDensities <- function(ref_map_df_with_IDs,
+calculateKernelDensities <- function(assigned_ref_map,
                                      ref_map_LC_types,
                                      cell_resolution,
-                                     moving_window = 1) {
+                                     kernel_radius = 1) {
 
   start_time <- Sys.time()
 
   # Set up the radius in the x and y directions
   x_size <- cell_resolution[1]
   y_size <- cell_resolution[2]
-  cell_x_dist <- moving_window * x_size
-  cell_y_dist <- moving_window * y_size
+  cell_x_dist <- kernel_radius * x_size
+  cell_y_dist <- kernel_radius * y_size
 
   # Set up new data frame containing kernel densities
-  kernel_density_df <- ref_map_df_with_IDs[ , c("x", "y")]
+  kernel_density_df <- assigned_ref_map[ , c("x", "y")]
 
   # Fill kernel density data frame
-  kernel_density_df[ , ref_map_LC_types] <- t(apply(ref_map_df_with_IDs,
+  kernel_density_df[ , ref_map_LC_types] <- t(apply(assigned_ref_map,
                                                   1,
                                                   calculateKernelDensitiesForOneCell,
-                                                  ref_map_df_with_IDs = ref_map_df_with_IDs,
+                                                  assigned_ref_map = assigned_ref_map,
                                                   ref_map_LC_types = ref_map_LC_types,
                                                   cell_x_dist = cell_x_dist,
                                                   cell_y_dist = cell_y_dist))
 
   # Add coarse-scale cell IDs to kernel density data frame
-  kernel_density_df$ref_ID <- ref_map_df_with_IDs$ref_ID
-  kernel_density_df$coarse_ID <- ref_map_df_with_IDs$coarse_ID
+  kernel_density_df$ref_ID <- assigned_ref_map$ref_ID
+  kernel_density_df$coarse_ID <- assigned_ref_map$coarse_ID
 
   end_time <- Sys.time()
 
@@ -65,7 +66,7 @@ calculateKernelDensities <- function(ref_map_df_with_IDs,
 #' @return Named vector of the kernel density for each land-use within the
 #'   grid cell.
 calculateKernelDensitiesForOneCell <- function(grid_cell,
-                                               ref_map_df_with_IDs,
+                                               assigned_ref_map,
                                                ref_map_LC_types,
                                                cell_x_dist,
                                                cell_y_dist) {
@@ -76,10 +77,10 @@ calculateKernelDensitiesForOneCell <- function(grid_cell,
   cell_coords <- c(cell_x_coord, cell_y_coord)
 
   # Find neighbour cells
-  neighbour_cells <- ref_map_df_with_IDs[which(ref_map_df_with_IDs["x"] >= (cell_x_coord - cell_x_dist) &
-                                                    ref_map_df_with_IDs["x"] <= (cell_x_coord + cell_x_dist) &
-                                                    ref_map_df_with_IDs["y"] >= (cell_y_coord - cell_y_dist) &
-                                                    ref_map_df_with_IDs["y"] <= (cell_y_coord + cell_y_dist)), ]
+  neighbour_cells <- assigned_ref_map[which(assigned_ref_map["x"] >= (cell_x_coord - cell_x_dist) &
+                                                    assigned_ref_map["x"] <= (cell_x_coord + cell_x_dist) &
+                                                    assigned_ref_map["y"] >= (cell_y_coord - cell_y_dist) &
+                                                    assigned_ref_map["y"] <= (cell_y_coord + cell_y_dist)), ]
 
   # Remove focal cell from neighbour cells df
   neighbour_cells <- neighbour_cells[-which(neighbour_cells["x"] == cell_x_coord &

@@ -5,23 +5,25 @@
 \title{Calculate kernel densities}
 \usage{
 calculateKernelDensities(
-  ref_map_df_with_IDs,
+  assigned_ref_map,
   ref_map_LC_types,
   cell_resolution,
-  moving_window = 1
+  kernel_radius = 1
 )
 }
 \arguments{
-\item{ref_map_df_with_IDs}{Reference map data frame with a column containing
-the ID of the coarse grid cell to which each reference map cell was
-assigned to. This is output from the `assignFineScaleCells` function.}
+\item{assigned_ref_map}{Data frame of the reference map which should be the
+scale at which you want to downscale the land cover data. The data frame
+must have a column called `coarse_ID` which assigns each cell in the
+reference map to the nearest coarse-scale cell.}
 
-\item{ref_map_LC_types}{Vector of land cover types in the reference map.}
+\item{ref_map_LC_types}{Vector of land cover types in the reference map. All
+land cover types should be column names in the reference map.}
 
 \item{cell_resolution}{Resolution of one cell in the map, in the form
 `c(x, y)`.}
 
-\item{moving_window}{Radius of cells to include in the kernel density
+\item{kernel_radius}{Radius of cells to include in the kernel density
 calculation. A value of 1 means that the neighbour cells used to calculate
 kernel density will be 1 cell in every direction around the focal cell.
 Defaults to 1.}

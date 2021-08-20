@@ -6,7 +6,7 @@
 \usage{
 calculateKernelDensitiesForOneCell(
   grid_cell,
-  ref_map_df_with_IDs,
+  assigned_ref_map,
   ref_map_LC_types,
   cell_x_dist,
   cell_y_dist
@@ -16,11 +16,13 @@ calculateKernelDensitiesForOneCell(
 \item{grid_cell}{Single row from reference map data frame with x and y values
 and the area of each land cover type in that cell.}
 
-\item{ref_map_df_with_IDs}{Reference map data frame with a column containing
-the ID of the coarse grid cell to which each reference map cell was
-assigned to. This is output from the `assignFineScaleCells` function.}
+\item{assigned_ref_map}{Data frame of the reference map which should be the
+scale at which you want to downscale the land cover data. The data frame
+must have a column called `coarse_ID` which assigns each cell in the
+reference map to the nearest coarse-scale cell.}
 
-\item{ref_map_LC_types}{Vector of land cover types in the reference map.}
+\item{ref_map_LC_types}{Vector of land cover types in the reference map. All
+land cover types should be column names in the reference map.}
 
 \item{cell_x_dist}{Radius of the cell neighbourhood in the x-direction.}
 
