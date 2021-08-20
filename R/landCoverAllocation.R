@@ -3,11 +3,13 @@
 #'
 #' This function will run the allocation of all land cover change (delta) values
 #'   from a coarse-scale map, such as the output from one timestep of a global
-#'   land-use model, to a fine-scale reference map. Land will be allocated in
-#'   three steps: a first round of intensification, meaning land cover is
-#'   allocated to cells where it already occurs; a round of expansion, where
-#'   land cover is allocated to cells where it does not exist; and a final round
-#'   of intensification to make sure all land cover change has been allocated.
+#'   land-use model, to a fine-scale reference map. The method employed is from
+#'   West et al. (2014) and Le Page et al. (2016). Land cover change is
+#'   allocated in three steps: a first round of intensification, meaning land
+#'   cover is allocated to cells where it already occurs; a round of expansion,
+#'   where land cover is allocated to cells where it does not exist; and a final
+#'   round of intensification to make sure all land cover change has been
+#'   allocated.
 #'
 #'   The amount of land cover change that is allocated by intensification versus
 #'   expansion is determined by the `intensification_ratio` parameter. An
@@ -32,10 +34,8 @@
 #' @param intensification_ratio Ratio of land intensification versus land
 #'   expansion for the allocation algorithm.
 #'
-#' @return `LCDataClass` with a new reference map with land cover change
-#'   allocated, data frame with land cover delta values, and the final land
-#'   cover types in the reference map.
-runLCAllocation <- function(ref_map_df_with_IDs,
+#' @return New land cover data frame with the given land cover change allocated.
+runLCAllocation <- function(assigned_ref_map,
                             kernel_density_df,
                             LC_deltas,
                             transition_priorities,
@@ -50,7 +50,7 @@ runLCAllocation <- function(ref_map_df_with_IDs,
                                           intensification_ratio)
 
   # Run first round of intensification
-  intensified_LCs <- allocateLCs(ref_map_df_with_IDs,
+  intensified_LCs <- allocateLCs(assigned_ref_map,
                                  kernel_density_df,
                                  LC_deltas = LC_deltas_intensify,
                                  transition_priorities,
@@ -89,7 +89,7 @@ runLCAllocation <- function(ref_map_df_with_IDs,
         total_area = ref_map_cell_area,
         LC_types = LC_types)
 
-  return(final_LCs)
+  return(final_LCs@ref_map_df)
 }
 
 #' Multiply land cover change values
@@ -154,13 +154,13 @@ sumLCDeltas <- function(LC_deltas_one,
 #' @return `LCDataClass` with a new reference map with land cover change
 #'   allocated, data frame with land cover delta values, and the final land
 #'   cover types in the reference map.
-allocateLCs <- function(ref_map_df_with_IDs,
+allocateLCs <- function(assigned_ref_map,
                         kernel_density_df,
                         LC_deltas,
                         transition_priorities,
                         allocation_type = "intensify") {
 
-  updated_ref_map_df_with_IDs <- ref_map_df_with_IDs
+  updated_assigned_ref_map <- assigned_ref_map
   updated_LC_deltas <- LC_deltas
 
   # Loop through the rows in the updated_LC_deltas data frame
@@ -169,12 +169,12 @@ allocateLCs <- function(ref_map_df_with_IDs,
 
     # Loop through the land-uses
     for (j in 1:nrow(transition_priorities)) {
-      LC_inc_name <- row.names(transition_priorities)[j]
-      LC_inc_delta <- updated_LC_deltas[i, LC_inc_name]
+      LC_to_name <- row.names(transition_priorities)[j]
+      LC_to_delta <- updated_LC_deltas[i, LC_to_name]
 
       # Allocate the land cover if it increases in the cell
-      if (LC_inc_delta > 0) {
-        print(paste(i, LC_inc_name, LC_inc_delta))
+      if (LC_to_delta > 0) {
+        print(paste(i, LC_to_name, LC_to_delta))
 
         # Get sorted list of priorities
         sorted_priority_LCs <- getSortedTransitionPriorities(transition_priorities,
@@ -182,25 +182,25 @@ allocateLCs <- function(ref_map_df_with_IDs,
 
         # Loop through the other land covers in priority order
         for (k in 1:length(sorted_priority_LCs)) {
-          LC_dec_name <- sorted_priority_LCs[k]
-          LC_dec_delta <- updated_LC_deltas[i, LC_dec_name]
+          LC_from_name <- sorted_priority_LCs[k]
+          LC_from_delta <- updated_LC_deltas[i, LC_from_name]
 
-          if (LC_dec_delta < 0) {
+          if (LC_from_delta < 0) {
 
-            print(paste0(i, " negative ", LC_dec_name, LC_dec_delta))
+            print(paste0(i, " negative ", LC_from_name, LC_from_delta))
 
             # Get cells to intensify land-use one in
             ### Getting the cells in which to expand/intensify LCs will be a
             ### switch statement --> then the rest of the function is the same
             ### irrespective of whether you're intensifying or expanding LCs
             cells_for_allocation <- switch(allocation_type,
-                                           "intensify" = getCellsToIntensifyLC(updated_ref_map_df_with_IDs,
-                                                                 LC_inc_name,
-                                                                 LC_dec_name,
+                                           "intensify" = getCellsToIntensifyLC(updated_assigned_ref_map,
+                                                                 LC_to_name,
+                                                                 LC_from_name,
                                                                  coarse_ID),
-                                           "expand" = getCellsToExpandLC(updated_ref_map_df_with_IDs,
-                                                              LC_inc_name,
-                                                              LC_dec_name,
+                                           "expand" = getCellsToExpandLC(updated_assigned_ref_map,
+                                                              LC_to_name,
+                                                              LC_from_name,
                                                               coarse_ID))
             #print(cells_for_allocation)
 
@@ -208,30 +208,30 @@ allocateLCs <- function(ref_map_df_with_IDs,
 
               # Get LC increasing to LC decreasing conversions
               LC_conversion_df <- getLCConversions(kernel_density_df,
-                                                   LC_inc_name,
+                                                   LC_to_name,
                                                    cells_for_allocation[ , "ref_ID"],
-                                                   LC_inc_delta,
-                                                   LC_dec_delta,
-                                                   cells_for_allocation[ , LC_dec_name])
+                                                   LC_to_delta,
+                                                   LC_from_delta,
+                                                   cells_for_allocation[ , LC_from_name])
 
               #print(LC_conversion_df)
               # Update the reference map with new land cover areas
-              updated_ref_map_df_with_IDs <- updateRefMapWithLCConversions(updated_ref_map_df_with_IDs,
+              updated_assigned_ref_map <- updateRefMapWithLCConversions(updated_assigned_ref_map,
                                                                            LC_conversion_df,
-                                                                           LC_dec_name,
-                                                                           LC_inc_name)
+                                                                           LC_from_name,
+                                                                           LC_to_name)
 
               # Calculate total conversion value
               total_conversion <- sum(LC_conversion_df$actual_conversion)
               print(total_conversion)
 
-              # Update LC_inc_delta in this for loop and in data frame
-              LC_inc_delta <- updateLCIncDelta(LC_inc_delta,
+              # Update LC_to_delta in this for loop and in data frame
+              LC_to_delta <- updateLCToDelta(LC_to_delta,
                                                total_conversion)
-              updated_LC_deltas[i, LC_inc_name] <- LC_inc_delta
+              updated_LC_deltas[i, LC_to_name] <- LC_to_delta
 
-              # Update LC_dec_delta in data frame
-              updated_LC_deltas[i, LC_dec_name] <- updateLCDecDelta(LC_dec_delta,
+              # Update LC_from_delta in data frame
+              updated_LC_deltas[i, LC_from_name] <- updateLCFromDelta(LC_from_delta,
                                                                     total_conversion)
             }
           }
@@ -243,7 +243,7 @@ allocateLCs <- function(ref_map_df_with_IDs,
   }
 
   allocated_LCs <- new("LCDataClass",
-                       ref_map_df = updated_ref_map_df_with_IDs,
+                       ref_map_df = updated_assigned_ref_map,
                        LC_deltas = updated_LC_deltas,
                        LC_types = row.names(transition_priorities))
 
@@ -280,22 +280,22 @@ getSortedTransitionPriorities <- function(transition_priorities,
 #'   cover types are greater than 0 within the cell.
 #'
 #' @inheritParams reconcileLCDeltas
-#' @param LC_inc_name Name of the land cover that is increasing.
-#' @param LC_dec_name Name of the land cover that `LC_inc_name` is being
-#'   converted to.
+#' @param LC_to_name Name of the land cover that is increasing.
+#' @param LC_from_name Name of the land cover that is being converted to
+#'   `LC_to_name`.
 #' @param coarse_ID Identification number of the coarse-scale cell within which
-#'   `LC_inc_name` has increased.
+#'   `LC_to_name` has increased.
 #'
 #' @return Data frame of cells from the reference map that meet the criteria for
 #'   intensification of one land cover type into another.
-getCellsToIntensifyLC <- function(ref_map_df_with_IDs,
-                                  LC_inc_name,
-                                  LC_dec_name,
+getCellsToIntensifyLC <- function(assigned_ref_map,
+                                  LC_to_name,
+                                  LC_from_name,
                                   coarse_ID) {
 
-  cells_to_intensify <- ref_map_df_with_IDs[which(ref_map_df_with_IDs[ , LC_inc_name] > 0 &
-                                                    ref_map_df_with_IDs[ , LC_dec_name] > 0 &
-                                                    ref_map_df_with_IDs[ , "coarse_ID"] == coarse_ID), ]
+  cells_to_intensify <- assigned_ref_map[which(assigned_ref_map[ , LC_to_name] > 0 &
+                                                    assigned_ref_map[ , LC_from_name] > 0 &
+                                                    assigned_ref_map[ , "coarse_ID"] == coarse_ID), ]
 
   return(cells_to_intensify)
 }
@@ -311,65 +311,65 @@ getCellsToIntensifyLC <- function(ref_map_df_with_IDs,
 #'
 #' @return Data frame of cells from the reference map that meet the criteria for
 #'   expansion of one land cover type into another.
-getCellsToExpandLC <- function(ref_map_df_with_IDs,
-                               LC_inc_name,
-                               LC_dec_name,
+getCellsToExpandLC <- function(assigned_ref_map,
+                               LC_to_name,
+                               LC_from_name,
                                coarse_ID) {
 
-  cells_to_expand <- ref_map_df_with_IDs[which(ref_map_df_with_IDs[ , LC_inc_name] == 0 &
-                                                 ref_map_df_with_IDs[ , LC_dec_name] > 0 &
-                                                 ref_map_df_with_IDs[ , "coarse_ID"] == coarse_ID), ]
+  cells_to_expand <- assigned_ref_map[which(assigned_ref_map[ , LC_to_name] == 0 &
+                                                 assigned_ref_map[ , LC_from_name] > 0 &
+                                                 assigned_ref_map[ , "coarse_ID"] == coarse_ID), ]
 
   return(cells_to_expand)
 }
 
 #' Get amount of one land cover type converted into another
 #'
-#' Calculates the amount of an increasing land cover type that is converted into
-#'   a decreasing land cover type for each reference map cell assigned to a
-#'   coarse-scale cell.
+#' Calculates the amount of one land cover type that is converted into a second
+#'   land cover type for each reference map cell assigned to a coarse-scale
+#'   cell.
 #'
 #' @inheritParams runLCAllocation
 #' @inheritParams getCellsToIntensifyLC
 #' @param cells_for_allocation_ref_IDs Vector of ID numbers of reference cells
 #'   to which the increasing land cover type will be allocated.
-#' @param LC_inc_delta The land cover change amount (delta) for the increasing
+#' @param LC_to_delta The land cover change amount (delta) for the increasing
 #'   land cover type, which is equivalent to the amount that this land cover
 #'   type increased in the coarse-scale cell during one timestep.
-#' @param LC_dec_delta The land cover delta value for the decreasing land cover
+#' @param LC_from_delta The land cover delta value for the decreasing land cover
 #'   type, which is the amount that this land cover type decreased in the
 #'   coarse-scale cell during one timestep.
-#' @param LC_dec_values The area of the decreasing land cover type within each
+#' @param LC_from_values The area of the decreasing land cover type within each
 #'   reference map cell specified in `cells_for_allocation_ref_IDs`.
 #'
 #' @return Two column data frame. First column contains IDs of reference map
 #'   cells, second column is the amount of the increasing land cover type
 #'   allocated to each cell.
 getLCConversions <- function(kernel_density_df,
-                             LC_inc_name,
+                             LC_to_name,
                              cells_for_allocation_ref_IDs,
-                             LC_inc_delta,
-                             LC_dec_delta,
-                             LC_dec_values) {
+                             LC_to_delta,
+                             LC_from_delta,
+                             LC_from_values) {
 
   # Get kernel densities for cells to allocate LC conversion to
   LC_conversion_df_tmp <- getKernelDensitiesForAllocation(kernel_density_df,
-                                                          LC_inc_name,
+                                                          LC_to_name,
                                                           cells_for_allocation_ref_IDs)
 
   # Calculate tentative conversion values
   # Max amount of LC change used for tentative conversion is the min
-  # out of LC_inc_delta and LC_inc_delta
-  LC_delta_for_tc <- getLCDeltaForTentativeConversion(LC_inc_delta,
-                                                      LC_dec_delta)
+  # out of LC_to_delta and LC_to_delta
+  LC_delta_for_tc <- getLCDeltaForTentativeConversion(LC_to_delta,
+                                                      LC_from_delta)
 
   # Calculate tentative conversion values
   LC_conversion_df_tmp$tentative_conversion <- calculateTentativeConversionValues(LC_delta_for_tc,
-                                                                                  LC_conversion_df_tmp[ , LC_inc_name])
+                                                                                  LC_conversion_df_tmp[ , LC_to_name])
                                                                                   #sum_of_kernel_densities)
 
   # Calculate the actual conversion values
-  LC_conversion_df_tmp$actual_conversion <- calculateActualConversion(LC_dec_values,
+  LC_conversion_df_tmp$actual_conversion <- calculateActualConversion(LC_from_values,
                                                                       LC_conversion_df_tmp$tentative_conversion)
 
   LC_conversion_df <- LC_conversion_df_tmp[ , c("ref_ID", "actual_conversion")]
@@ -409,10 +409,10 @@ getKernelDensitiesForAllocation <- function(kernel_density_df,
 #'
 #' @return Value of land cover delta to be used in tentative land cover
 #'   conversions.
-getLCDeltaForTentativeConversion <- function(LC_inc_delta,
-                                             LC_dec_delta) {
+getLCDeltaForTentativeConversion <- function(LC_to_delta,
+                                             LC_from_delta) {
 
-  LC_delta_for_tc <- min(abs(LC_inc_delta), abs(LC_dec_delta))
+  LC_delta_for_tc <- min(abs(LC_to_delta), abs(LC_from_delta))
 
   return(LC_delta_for_tc)
 }
@@ -446,17 +446,17 @@ calculateTentativeConversionValues <- function(LC_delta_for_tc,
 #'   which is the minimum of the tentative conversion value for a cell and the
 #'   amount of the decreasing land cover currently in that cell.
 #'
-#' @param LC_dec_values Vector of the area of the land cover type to be
+#' @param LC_from_values Vector of the area of the land cover type to be
 #'   decreased that is currently in a set of reference map cells.
 #' @param tentative_conversion Vector with the tentative land cover conversion
 #'   value for each reference map cell.
 #'
 #' @return Vector with the actual land cover conversion area for the given set
 #'   of reference map cells.
-calculateActualConversion <- function(LC_dec_values,
+calculateActualConversion <- function(LC_from_values,
                                       tentative_conversion) {
 
-  actual_conversion <- pmin(LC_dec_values,
+  actual_conversion <- pmin(LC_from_values,
                             tentative_conversion)
 
   return(actual_conversion)
@@ -475,26 +475,26 @@ calculateActualConversion <- function(LC_dec_values,
 #'
 #' @return Reference map data frame with updated land cover areas in the cells
 #'   specified in the `LC_conversion_df` data frame.
-updateRefMapWithLCConversions <- function(ref_map_df_with_IDs,
+updateRefMapWithLCConversions <- function(assigned_ref_map,
                                           LC_conversion_df,
-                                          LC_dec_name,
-                                          LC_inc_name) {
+                                          LC_from_name,
+                                          LC_to_name) {
 
-  updated_ref_map_df_with_IDs <- ref_map_df_with_IDs
+  updated_assigned_ref_map <- assigned_ref_map
 
   for (i in 1:nrow(LC_conversion_df)) {
     ref_ID <- LC_conversion_df[i, "ref_ID"]
     actual_conversion <- LC_conversion_df[i, "actual_conversion"]
-    ref_map_cell <- updated_ref_map_df_with_IDs[updated_ref_map_df_with_IDs$ref_ID == ref_ID, ]
+    ref_map_cell <- updated_assigned_ref_map[updated_assigned_ref_map$ref_ID == ref_ID, ]
 
     # Update LCs in this cell
-    updated_ref_map_df_with_IDs[updated_ref_map_df_with_IDs$ref_ID == ref_ID, ] <- updateOneRefMapCellWithLCConversions(ref_map_cell,
-                                                                                              LC_inc_name,
-                                                                                              LC_dec_name,
+    updated_assigned_ref_map[updated_assigned_ref_map$ref_ID == ref_ID, ] <- updateOneRefMapCellWithLCConversions(ref_map_cell,
+                                                                                              LC_to_name,
+                                                                                              LC_from_name,
                                                                                               actual_conversion)
   }
 
-  return(updated_ref_map_df_with_IDs)
+  return(updated_assigned_ref_map)
 }
 
 #' Update one reference map cell with land cover conversion areas
@@ -506,26 +506,26 @@ updateRefMapWithLCConversions <- function(ref_map_df_with_IDs,
 #'   equivalent to one grid cell.
 #' @inheritParams getCellsToIntensifyLC
 #' @param actual_conversion The actual area of land cover to be converted from
-#'   the increasing land cover (`LC_inc_name`) to the decreasing land cover
-#'   (`LC_dec_name`) in this reference map cell.
+#'   the decreasing land cover (`LC_from_name`) to the increasing land cover
+#'   (`LC_to_name`) in this reference map cell.
 #'
 #' @return A one row data frame with updated land cover areas.
 updateOneRefMapCellWithLCConversions <- function(ref_map_cell,
-                                                 LC_inc_name,
-                                                 LC_dec_name,
+                                                 LC_to_name,
+                                                 LC_from_name,
                                                  actual_conversion) {
 
   updated_ref_map_cell <- ref_map_cell
 
   # Update area of the increasing LC
-  current_LC_inc_area <-  updated_ref_map_cell[ , LC_inc_name]
-  new_LC_inc_area <- current_LC_inc_area + actual_conversion
-  updated_ref_map_cell[, LC_inc_name] <- new_LC_inc_area
+  current_LC_to_area <-  updated_ref_map_cell[ , LC_to_name]
+  new_LC_to_area <- current_LC_to_area + actual_conversion
+  updated_ref_map_cell[, LC_to_name] <- new_LC_to_area
 
   # Update area of the decreasing LC
-  current_LC_dec_area <-  updated_ref_map_cell[ , LC_dec_name]
-  new_LC_dec_area <- current_LC_dec_area - actual_conversion
-  updated_ref_map_cell[ , LC_dec_name] <- new_LC_dec_area
+  current_LC_from_area <-  updated_ref_map_cell[ , LC_from_name]
+  new_LC_from_area <- current_LC_from_area - actual_conversion
+  updated_ref_map_cell[ , LC_from_name] <- new_LC_from_area
 
   # print(ref_map_cell)
   # print(updated_ref_map_cell)
@@ -544,14 +544,14 @@ updateOneRefMapCellWithLCConversions <- function(ref_map_cell,
 #'   cover type.
 #'
 #' @return The new land cover delta value for one land cover type.
-updateLCIncDelta <- function(LC_inc_delta,
+updateLCToDelta <- function(LC_to_delta,
                              total_conversion) {
 
-  LC_inc_delta_updated <- LC_inc_delta - total_conversion
-  LC_inc_delta_updated_rounded <- round(LC_inc_delta_updated,
+  LC_to_delta_updated <- LC_to_delta - total_conversion
+  LC_to_delta_updated_rounded <- round(LC_to_delta_updated,
                                         8)
 
-  return(LC_inc_delta_updated_rounded)
+  return(LC_to_delta_updated_rounded)
 }
 
 #' Update land cover change (delta) area of a decreasing land cover type
@@ -565,12 +565,12 @@ updateLCIncDelta <- function(LC_inc_delta,
 #'   cover type.
 #'
 #' @return The new land cover delta value for one land cover type.
-updateLCDecDelta <- function(LC_dec_delta,
+updateLCFromDelta <- function(LC_from_delta,
                              total_conversion) {
 
-  LC_dec_delta_updated <- LC_dec_delta + total_conversion
-  LC_dec_delta_updated_rounded <- round(LC_dec_delta_updated,
+  LC_from_delta_updated <- LC_from_delta + total_conversion
+  LC_from_delta_updated_rounded <- round(LC_from_delta_updated,
                                         8)
 
-  return(LC_dec_delta_updated_rounded)
+  return(LC_from_delta_updated_rounded)
 }

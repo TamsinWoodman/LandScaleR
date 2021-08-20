@@ -6,11 +6,11 @@
 \usage{
 getLCConversions(
   kernel_density_df,
-  LC_inc_name,
+  LC_to_name,
   cells_for_allocation_ref_IDs,
-  LC_inc_delta,
-  LC_dec_delta,
-  LC_dec_values
+  LC_to_delta,
+  LC_from_delta,
+  LC_from_values
 )
 }
 \arguments{
@@ -18,20 +18,20 @@ getLCConversions(
 and land cover type in the reference map. The kernel density data frame
 should have the same dimensions as the reference map data frame.}
 
-\item{LC_inc_name}{Name of the land cover that is increasing.}
+\item{LC_to_name}{Name of the land cover that is increasing.}
 
 \item{cells_for_allocation_ref_IDs}{Vector of ID numbers of reference cells
 to which the increasing land cover type will be allocated.}
 
-\item{LC_inc_delta}{The land cover change amount (delta) for the increasing
+\item{LC_to_delta}{The land cover change amount (delta) for the increasing
 land cover type, which is equivalent to the amount that this land cover
 type increased in the coarse-scale cell during one timestep.}
 
-\item{LC_dec_delta}{The land cover delta value for the decreasing land cover
+\item{LC_from_delta}{The land cover delta value for the decreasing land cover
 type, which is the amount that this land cover type decreased in the
 coarse-scale cell during one timestep.}
 
-\item{LC_dec_values}{The area of the decreasing land cover type within each
+\item{LC_from_values}{The area of the decreasing land cover type within each
 reference map cell specified in `cells_for_allocation_ref_IDs`.}
 }
 \value{
@@ -40,7 +40,7 @@ Two column data frame. First column contains IDs of reference map
   allocated to each cell.
 }
 \description{
-Calculates the amount of an increasing land cover type that is converted into
-  a decreasing land cover type for each reference map cell assigned to a
-  coarse-scale cell.
+Calculates the amount of one land cover type that is converted into a second
+  land cover type for each reference map cell assigned to a coarse-scale
+  cell.
 }

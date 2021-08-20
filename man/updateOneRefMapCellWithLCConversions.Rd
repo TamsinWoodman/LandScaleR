@@ -6,8 +6,8 @@
 \usage{
 updateOneRefMapCellWithLCConversions(
   ref_map_cell,
-  LC_inc_name,
-  LC_dec_name,
+  LC_to_name,
+  LC_from_name,
   actual_conversion
 )
 }
@@ -15,14 +15,14 @@ updateOneRefMapCellWithLCConversions(
 \item{ref_map_cell}{One row from a reference map data frame, which is
 equivalent to one grid cell.}
 
-\item{LC_inc_name}{Name of the land cover that is increasing.}
+\item{LC_to_name}{Name of the land cover that is increasing.}
 
-\item{LC_dec_name}{Name of the land cover that `LC_inc_name` is being
-converted to.}
+\item{LC_from_name}{Name of the land cover that is being converted to
+`LC_to_name`.}
 
 \item{actual_conversion}{The actual area of land cover to be converted from
-the increasing land cover (`LC_inc_name`) to the decreasing land cover
-(`LC_dec_name`) in this reference map cell.}
+the decreasing land cover (`LC_from_name`) to the increasing land cover
+(`LC_to_name`) in this reference map cell.}
 }
 \value{
 A one row data frame with updated land cover areas.

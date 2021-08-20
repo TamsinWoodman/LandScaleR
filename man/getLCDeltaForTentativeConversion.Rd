@@ -4,14 +4,14 @@
 \alias{getLCDeltaForTentativeConversion}
 \title{Get land cover delta area for tentative land cover conversions}
 \usage{
-getLCDeltaForTentativeConversion(LC_inc_delta, LC_dec_delta)
+getLCDeltaForTentativeConversion(LC_to_delta, LC_from_delta)
 }
 \arguments{
-\item{LC_inc_delta}{The land cover change amount (delta) for the increasing
+\item{LC_to_delta}{The land cover change amount (delta) for the increasing
 land cover type, which is equivalent to the amount that this land cover
 type increased in the coarse-scale cell during one timestep.}
 
-\item{LC_dec_delta}{The land cover delta value for the decreasing land cover
+\item{LC_from_delta}{The land cover delta value for the decreasing land cover
 type, which is the amount that this land cover type decreased in the
 coarse-scale cell during one timestep.}
 }

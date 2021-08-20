@@ -6,7 +6,7 @@
   expansion}
 \usage{
 runLCAllocation(
-  ref_map_df_with_IDs,
+  assigned_ref_map,
   kernel_density_df,
   LC_deltas,
   transition_priorities,
@@ -15,9 +15,10 @@ runLCAllocation(
 )
 }
 \arguments{
-\item{ref_map_df_with_IDs}{Reference map data frame with a column containing
-the ID of the coarse grid cell to which each reference map cell was
-assigned to. This is output from the `assignFineScaleCells` function.}
+\item{assigned_ref_map}{Data frame of the reference map which should be the
+scale at which you want to downscale the land cover data. The data frame
+must have a column called `coarse_ID` which assigns each cell in the
+reference map to the nearest coarse-scale cell.}
 
 \item{kernel_density_df}{Data frame of kernel density values for every cell
 and land cover type in the reference map. The kernel density data frame
@@ -37,18 +38,18 @@ expansion for the allocation algorithm.}
 \item{ref_map_cell_area}{Area of a reference map grid cell.}
 }
 \value{
-`LCDataClass` with a new reference map with land cover change
-  allocated, data frame with land cover delta values, and the final land
-  cover types in the reference map.
+New land cover data frame with the given land cover change allocated.
 }
 \description{
 This function will run the allocation of all land cover change (delta) values
   from a coarse-scale map, such as the output from one timestep of a global
-  land-use model, to a fine-scale reference map. Land will be allocated in
-  three steps: a first round of intensification, meaning land cover is
-  allocated to cells where it already occurs; a round of expansion, where
-  land cover is allocated to cells where it does not exist; and a final round
-  of intensification to make sure all land cover change has been allocated.
+  land-use model, to a fine-scale reference map. The method employed is from
+  West et al. (2014) and Le Page et al. (2016). Land cover change is
+  allocated in three steps: a first round of intensification, meaning land
+  cover is allocated to cells where it already occurs; a round of expansion,
+  where land cover is allocated to cells where it does not exist; and a final
+  round of intensification to make sure all land cover change has been
+  allocated.
 }
 \details{
 The amount of land cover change that is allocated by intensification versus

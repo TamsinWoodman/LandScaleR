@@ -4,10 +4,10 @@
 \alias{calculateActualConversion}
 \title{Calculate actual conversion values}
 \usage{
-calculateActualConversion(LC_dec_values, tentative_conversion)
+calculateActualConversion(LC_from_values, tentative_conversion)
 }
 \arguments{
-\item{LC_dec_values}{Vector of the area of the land cover type to be
+\item{LC_from_values}{Vector of the area of the land cover type to be
 decreased that is currently in a set of reference map cells.}
 
 \item{tentative_conversion}{Vector with the tentative land cover conversion

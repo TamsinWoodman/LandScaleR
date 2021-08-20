@@ -5,7 +5,7 @@
 \title{Allocate land cover change to reference map}
 \usage{
 allocateLCs(
-  ref_map_df_with_IDs,
+  assigned_ref_map,
   kernel_density_df,
   LC_deltas,
   transition_priorities,
@@ -13,9 +13,10 @@ allocateLCs(
 )
 }
 \arguments{
-\item{ref_map_df_with_IDs}{Reference map data frame with a column containing
-the ID of the coarse grid cell to which each reference map cell was
-assigned to. This is output from the `assignFineScaleCells` function.}
+\item{assigned_ref_map}{Data frame of the reference map which should be the
+scale at which you want to downscale the land cover data. The data frame
+must have a column called `coarse_ID` which assigns each cell in the
+reference map to the nearest coarse-scale cell.}
 
 \item{kernel_density_df}{Data frame of kernel density values for every cell
 and land cover type in the reference map. The kernel density data frame

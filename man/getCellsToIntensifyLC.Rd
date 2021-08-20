@@ -4,20 +4,21 @@
 \alias{getCellsToIntensifyLC}
 \title{Get cells in which to intensify one land cover type}
 \usage{
-getCellsToIntensifyLC(ref_map_df_with_IDs, LC_inc_name, LC_dec_name, coarse_ID)
+getCellsToIntensifyLC(assigned_ref_map, LC_to_name, LC_from_name, coarse_ID)
 }
 \arguments{
-\item{ref_map_df_with_IDs}{Reference map data frame with a column containing
-the ID of the coarse grid cell to which each reference map cell was
-assigned to. This is output from the `assignFineScaleCells` function.}
+\item{assigned_ref_map}{Data frame of the reference map which should be the
+scale at which you want to downscale the land cover data. The data frame
+must have a column called `coarse_ID` which assigns each cell in the
+reference map to the nearest coarse-scale cell.}
 
-\item{LC_inc_name}{Name of the land cover that is increasing.}
+\item{LC_to_name}{Name of the land cover that is increasing.}
 
-\item{LC_dec_name}{Name of the land cover that `LC_inc_name` is being
-converted to.}
+\item{LC_from_name}{Name of the land cover that is being converted to
+`LC_to_name`.}
 
 \item{coarse_ID}{Identification number of the coarse-scale cell within which
-`LC_inc_name` has increased.}
+`LC_to_name` has increased.}
 }
 \value{
 Data frame of cells from the reference map that meet the criteria for
