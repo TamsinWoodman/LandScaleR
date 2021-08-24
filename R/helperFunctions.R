@@ -14,18 +14,35 @@ saveLandCoverMapAsTable <- function(LC_map,
                                     dir_path = "",
                                     time_step) {
 
-  file_path <- paste0(dir_path,
-                      file_prefix,
-                      "_Time",
-                      time_step,
-                      "_LandCover",
-                      ".txt")
+  file_path <- generateOutputFilePath(dir_path = dir_path,
+                                      file_prefix = file_prefix,
+                                      time_step = time_step)
 
   write.table(LC_map,
               file = file_path,
               sep = "\t",
               row.names = FALSE,
               quote = FALSE)
+}
+
+#' Get output file path string
+#'
+#' @inheritParams saveLandCoverMapAsTable
+#'
+#' @return String giving the path to an output file. The path is made up of the
+#'   directory path, file prefix, timestep, and the suffix 'DownscaledLC.txt'.
+generateOutputFilePath <- function(dir_path,
+                                   file_prefix,
+                                   time_step) {
+
+  LC_file_path <- paste0(dir_path,
+                        file_prefix,
+                        "_Time",
+                        time_step,
+                        "_DownscaledLC",
+                        ".txt")
+
+  return(LC_file_path)
 }
 
 #' Simulate land cover data
