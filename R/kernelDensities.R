@@ -6,8 +6,8 @@
 #' @inheritParams processLCDeltas
 #' @param ref_map_LC_types Vector of land cover types in the reference map. All
 #'   land cover types should be column names in the reference map.
-#' @param cell_resolution Resolution of one cell in the map, in the form
-#'   `c(x, y)`.
+#' @param ref_map_cell_resolution Resolution of one cell in the reference map,
+#'   in the form `c(x, y)`.
 #' @param kernel_radius Radius of cells to include in the kernel density
 #'   calculation. A value of 1 means that the neighbour cells used to calculate
 #'   kernel density will be 1 cell in every direction around the focal cell.
@@ -17,14 +17,14 @@
 #'   each cell.
 calculateKernelDensities <- function(assigned_ref_map,
                                      ref_map_LC_types,
-                                     cell_resolution,
+                                     ref_map_cell_resolution,
                                      kernel_radius = 1) {
 
   start_time <- Sys.time()
 
   # Set up the radius in the x and y directions
-  x_size <- cell_resolution[1]
-  y_size <- cell_resolution[2]
+  x_size <- ref_map_cell_resolution[1]
+  y_size <- ref_map_cell_resolution[2]
   cell_x_dist <- kernel_radius * x_size
   cell_y_dist <- kernel_radius * y_size
 

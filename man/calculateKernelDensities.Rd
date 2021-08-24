@@ -7,7 +7,7 @@
 calculateKernelDensities(
   assigned_ref_map,
   ref_map_LC_types,
-  cell_resolution,
+  ref_map_cell_resolution,
   kernel_radius = 1
 )
 }
@@ -20,8 +20,8 @@ reference map to the nearest coarse-scale cell.}
 \item{ref_map_LC_types}{Vector of land cover types in the reference map. All
 land cover types should be column names in the reference map.}
 
-\item{cell_resolution}{Resolution of one cell in the map, in the form
-`c(x, y)`.}
+\item{ref_map_cell_resolution}{Resolution of one cell in the reference map,
+in the form `c(x, y)`.}
 
 \item{kernel_radius}{Radius of cells to include in the kernel density
 calculation. A value of 1 means that the neighbour cells used to calculate
