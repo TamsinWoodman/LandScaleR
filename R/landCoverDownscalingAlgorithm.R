@@ -58,6 +58,7 @@ downscaleLC <- function(ref_map_file_name,
                         ref_map_LC_types,
                         ref_map_cell_area,
                         ref_map_cell_resolution,
+                        final_LC_types,
                         kernel_radius,
                         transition_priorities,
                         intensification_ratio,
@@ -122,7 +123,7 @@ downscaleLC <- function(ref_map_file_name,
     ## other method for calculating cell suitability for each land cover type
     ref_map_suitability <- calculateKernelDensities(assigned_ref_map = assigned_ref_map,
                                                     ref_map_LC_types = ref_map_LC_types,
-                                                    cell_resolution = ref_map_cell_resolution,
+                                                    ref_map_cell_resolution = ref_map_cell_resolution,
                                                     kernel_radius = kernel_radius)
 
     # Allocate land cover change
@@ -183,7 +184,8 @@ assignRefMapCells <- function(ref_map,
   # Calculate nearest neighbours
   nearest_neighbours <- FNN::get.knnx(LC_deltas[ , 1:2],
                                       ref_map[ , 1:2],
-                                      1)
+                                      1,
+                                      algorithm = "kd_tree")
 
   # Add nearest neighbours to fine-scale cell df
   ref_map_with_nn <- ref_map

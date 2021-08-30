@@ -12,6 +12,7 @@ downscaleLC(
   ref_map_LC_types,
   ref_map_cell_area,
   ref_map_cell_resolution,
+  final_LC_types,
   kernel_radius,
   transition_priorities,
   intensification_ratio,
@@ -45,6 +46,13 @@ land cover types should be column names in the reference map.}
 
 \item{ref_map_cell_resolution}{Resolution of one cell in the reference map,
 in the form `c(x, y)`.}
+
+\item{final_LC_types}{A matrix containing the fraction of each coarse-scale
+land cover type that contributes to each reference map land cover type.
+Columns should contain reference map land cover types, and rows are the
+coarse-scale land cover types. Each cell should contain the proportion of
+the coarse-scale land cover type that contributes to the fine-scale type in
+the output map.}
 
 \item{kernel_radius}{Radius of cells to include in the kernel density
 calculation. A value of 1 means that the neighbour cells used to calculate
