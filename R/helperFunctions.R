@@ -66,26 +66,20 @@ simulateLandCoverData <- function(LC_types,
                                   res_x,
                                   res_y,
                                   number_cells_x,
-                                  number_cells_y) {
+                                  number_cells_y,
+                                  map_type = "fractional") {
 
   number_LC_types <- length(LC_types)
   cell_size <- res_x * res_y
   number_cells <- number_cells_x * number_cells_y
 
   ## Set up land cover data
-  simulated_LC <- c()
-  for (i in 1:number_cells) {
-    simulated_LC <- c(simulated_LC,
-                      as.vector(table(factor(sample(1:number_LC_types,
-                                             size = cell_size,
-                                             replace = TRUE),
-                                             levels = 1:number_LC_types))))
-  }
-
-  simulated_LC_matrix <- matrix(data = simulated_LC,
-                                nrow = number_cells,
-                                ncol = number_LC_types,
-                                byrow = TRUE)
+  simulated_LC_matrix <- switch(map_type,
+                                "fractional" = simulateFractionalLC(number_cells = number_cells,
+                                                                    number_LC_types = number_LC_types,
+                                                                    cell_size = cell_size),
+                                "discrete" = simulateDiscreteLC(number_cells = number_cells,
+                                                              LC_types = LC_types))
 
   ## Set up x and y
   x_start <- res_x / 2
@@ -105,7 +99,44 @@ simulateLandCoverData <- function(LC_types,
   ## Combine x and y and land cover types
   simulated_LC_df <- cbind(cell_coords,
                            simulated_LC_matrix)
-  colnames(simulated_LC_df)[3:ncol(simulated_LC_df)] <- LC_types
+
+  if(map_type == "fractional") {
+    colnames(simulated_LC_df)[3:ncol(simulated_LC_df)] <- LC_types
+
+  } else if(map_type == "discrete") {
+    colnames(simulated_LC_df)[3] <- "Land_cover"
+  }
 
   return(simulated_LC_df)
+}
+
+simulateFractionalLC <- function(number_cells,
+                                 number_LC_types,
+                                 cell_size) {
+  simulated_LC <- c()
+  for (i in 1:number_cells) {
+
+    simulated_LC <- c(simulated_LC,
+                      as.vector(table(factor(sample(1:number_LC_types,
+                                                    size = cell_size,
+                                                    replace = TRUE),
+                                             levels = 1:number_LC_types))))
+  }
+
+  simulated_LC_matrix <- matrix(data = simulated_LC,
+                                nrow = number_cells,
+                                ncol = number_LC_types,
+                                byrow = TRUE)
+
+  return(simulated_LC_matrix)
+}
+
+simulateDiscreteLC <- function(number_cells,
+                               LC_types) {
+
+  simulated_LC <- sample(LC_types,
+                         size = number_cells,
+                         replace = TRUE)
+
+  return(simulated_LC)
 }
