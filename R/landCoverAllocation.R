@@ -202,7 +202,6 @@ allocateLCs <- function(assigned_ref_map,
                                                               LC_to_name,
                                                               LC_from_name,
                                                               coarse_ID))
-            #print(cells_for_allocation)
 
             if (nrow(cells_for_allocation) >= 1) {
 
@@ -214,7 +213,6 @@ allocateLCs <- function(assigned_ref_map,
                                                    LC_from_delta,
                                                    cells_for_allocation[ , LC_from_name])
 
-              #print(LC_conversion_df)
               # Update the reference map with new land cover areas
               updated_assigned_ref_map <- updateRefMapWithLCConversions(updated_assigned_ref_map,
                                                                            LC_conversion_df,
@@ -366,7 +364,6 @@ getLCConversions <- function(kernel_density_df,
   # Calculate tentative conversion values
   LC_conversion_df_tmp$tentative_conversion <- calculateTentativeConversionValues(LC_delta_for_tc,
                                                                                   LC_conversion_df_tmp[ , LC_to_name])
-                                                                                  #sum_of_kernel_densities)
 
   # Calculate the actual conversion values
   LC_conversion_df_tmp$actual_conversion <- calculateActualConversion(LC_from_values,
@@ -435,7 +432,13 @@ calculateTentativeConversionValues <- function(LC_delta_for_tc,
                                                kernel_densities) {
 
   sum_of_kernel_densities <- sum(kernel_densities, na.rm = TRUE)
-  tentative_conversions <- LC_delta_for_tc * (kernel_densities / sum_of_kernel_densities)
+
+  if (sum_of_kernel_densities > 0) {
+    tentative_conversions <- LC_delta_for_tc * (kernel_densities / sum_of_kernel_densities)
+
+  } else {
+    tentative_conversions <- rep(0, length(kernel_densities))
+  }
 
   return(tentative_conversions)
 }
