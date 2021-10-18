@@ -9,6 +9,8 @@ downscaleLC(
   LC_deltas_file_list,
   LC_delta_types,
   LC_deltas_cell_area,
+  ref_map_type = "areas",
+  LC_column_name = "Land_cover",
   ref_map_LC_types,
   ref_map_cell_area,
   ref_map_cell_resolution,
@@ -39,8 +41,16 @@ change data frame `LC_deltas`.}
 
 \item{LC_deltas_cell_area}{Area of a coarse-scale grid cell.}
 
-\item{ref_map_LC_types}{Vector of land cover types in the reference map. All
-land cover types should be column names in the reference map.}
+\item{ref_map_type}{Specifies whether the reference map is discrete (contains
+one land cover class per cell) or area-based (provides the area of each
+land cover class in each cell). Must be one of "areas" or "discrete".}
+
+\item{LC_column_name}{For a discrete reference map, gives the name of the
+column containing the land cover class for each grid cell.}
+
+\item{ref_map_LC_types}{Vector of land cover types in the reference map. For
+an area-based reference map, all land cover types should be column names in
+the reference map.}
 
 \item{ref_map_cell_area}{Area of a reference map grid cell.}
 

@@ -36,3 +36,100 @@ test_that("assignRefMapCells assigns grid cells to nearest neighbours" , {
   expect_identical(actual_df,
                    expected_df)
 })
+
+test_that("convertDiscreteLCToLCAreasOneCell returns vector of land cover areas", {
+  LC_class <- "pri"
+  ref_map_LC_types <- c("pri",
+                        "sec",
+                        "urb")
+  ref_map_cell_area <- 25
+
+  expected_vector <- c(25, 0, 0)
+  names(expected_vector) <- ref_map_LC_types
+
+  actual_vector <- convertDiscreteLCToLCAreasOneCell(LC_class = LC_class,
+                                                     ref_map_LC_types = ref_map_LC_types,
+                                                     ref_map_cell_area = ref_map_cell_area)
+
+  expect_identical(actual_vector,
+                   expected_vector)
+})
+
+test_that("convertDiscreteLCToLCAreasOneCell throws error if LC class is not a reference map LC class", {
+  LC_class <- "crp"
+  ref_map_LC_types <- c("pri",
+                        "sec",
+                        "urb")
+  ref_map_cell_area <- 25
+
+  expect_error(convertDiscreteLCToLCAreasOneCell(LC_class = LC_class,
+                                                 ref_map_LC_types = ref_map_LC_types,
+                                                 ref_map_cell_area = ref_map_cell_area),
+               " is not a land cover class in the ref_map_LC_types vector")
+})
+
+test_that("convertDiscreteLCToLCAreas returns data frame", {
+  ref_map_raw <- data.frame(x = c(1, 2),
+                            y = c(1, 2),
+                            Land_class = c("pri", "urb"))
+  ref_map_LC_types = c("pri",
+                       "urb")
+  ref_map_cell_area = 2
+  LC_column_name = "Land_class"
+
+  expected_df <- data.frame(x = c(1, 2),
+                            y = c(1, 2),
+                            pri = c(2, 0),
+                            urb = c(0, 2))
+
+  actual_df <- convertDiscreteLCToLCAreas(ref_map = ref_map_raw,
+                                          ref_map_LC_types = ref_map_LC_types,
+                                          ref_map_cell_area = ref_map_cell_area,
+                                          LC_column_name = LC_column_name)
+
+  expect_identical(actual_df,
+                   expected_df)
+})
+
+test_that("convertDiscreteLCToLCAreas returns data frame with extra land cover class columns", {
+  ref_map_raw <- data.frame(x = c(1, 2),
+                            y = c(1, 2),
+                            Land_class = c("pri", "urb"))
+  ref_map_LC_types = c("pri",
+                       "urb",
+                       "sec",
+                       "pas")
+  ref_map_cell_area = 2
+  LC_column_name = "Land_class"
+
+  expected_df <- data.frame(x = c(1, 2),
+                            y = c(1, 2),
+                            pri = c(2, 0),
+                            urb = c(0, 2),
+                            sec = c(0, 0),
+                            pas = c(0, 0))
+
+  actual_df <- convertDiscreteLCToLCAreas(ref_map = ref_map_raw,
+                                          ref_map_LC_types = ref_map_LC_types,
+                                          ref_map_cell_area = ref_map_cell_area,
+                                          LC_column_name = LC_column_name)
+
+  expect_identical(actual_df,
+                   expected_df)
+})
+
+test_that("convertDiscreteLCToLCAreas throws error if LC_column_name does not exist", {
+  ref_map_raw <- data.frame(x = c(1, 2),
+                            y = c(1, 2),
+                            Land_class = c("pri", "urb"))
+  ref_map_LC_types = c("pri",
+                       "urb")
+  ref_map_cell_area = 2
+  LC_column_name = "Land_cover_class"
+
+  expect_error(convertDiscreteLCToLCAreas(ref_map = ref_map_raw,
+                                          ref_map_LC_types = ref_map_LC_types,
+                                          ref_map_cell_area = ref_map_cell_area,
+                                          LC_column_name = LC_column_name),
+               "was not found as a column name in the reference map")
+})

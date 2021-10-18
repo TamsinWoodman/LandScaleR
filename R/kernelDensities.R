@@ -4,8 +4,9 @@
 #'   map data frame.
 #'
 #' @inheritParams processLCDeltas
-#' @param ref_map_LC_types Vector of land cover types in the reference map. All
-#'   land cover types should be column names in the reference map.
+#' @param ref_map_LC_types Vector of land cover types in the reference map. For
+#'   an area-based reference map, all land cover types should be column names in
+#'   the reference map.
 #' @param ref_map_cell_resolution Resolution of one cell in the reference map,
 #'   in the form `c(x, y)`.
 #' @param kernel_radius Radius of cells to include in the kernel density
@@ -121,3 +122,6 @@ kernelDensityFunction <- function(LC_values,
 
   return(kernel_density)
 }
+
+
+

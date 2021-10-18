@@ -37,6 +37,11 @@
 #'   the first file in the list, the second time step the second file, and so
 #'   on. Land cover change files can be generated using the `calculateLCDeltas`
 #'   function from this package.
+#' @param ref_map_type Specifies whether the reference map is discrete (contains
+#'   one land cover class per cell) or area-based (provides the area of each
+#'   land cover class in each cell). Must be one of "areas" or "discrete".
+#' @param LC_column_name For a discrete reference map, gives the name of the
+#'   column containing the land cover class for each grid cell.
 #' @inheritParams processLCDeltas
 #' @inheritParams calculateKernelDensities
 #' @inheritParams runLCAllocation
@@ -55,6 +60,8 @@ downscaleLC <- function(ref_map_file_name,
                         LC_deltas_file_list,
                         LC_delta_types,
                         LC_deltas_cell_area,
+                        ref_map_type = "areas",
+                        LC_column_name = "Land_cover",
                         ref_map_LC_types,
                         ref_map_cell_area,
                         ref_map_cell_resolution,
@@ -91,6 +98,14 @@ downscaleLC <- function(ref_map_file_name,
                                 header = TRUE,
                                 sep = "\t")
 
+      # Convert discrete map into fractional map
+      if (ref_map_type == "discrete") {
+        ref_map_raw <- convertDiscreteLCToLCAreas(ref_map = ref_map_raw,
+                                                  ref_map_LC_types = ref_map_LC_types,
+                                                  ref_map_cell_area = ref_map_cell_area,
+                                                  LC_column_name = LC_column_name)
+      }
+
       # Add IDs column
       ref_map <- addCellIDs(ref_map_raw,
                             "ref_ID")
@@ -107,7 +122,8 @@ downscaleLC <- function(ref_map_file_name,
 
       assigned_ref_map <- read.table(previous_ref_map_file_path,
                                      header = TRUE,
-                                     sep = "\t")
+                                     sep = "\t",
+                                     check.names = FALSE)
     }
 
     # Reconcile areas of LC deltas and aggregate to final LC types
@@ -192,5 +208,65 @@ assignRefMapCells <- function(ref_map,
   ref_map_with_nn$coarse_ID <- as.integer(nearest_neighbours$nn.index)
 
   return(ref_map_with_nn)
+}
+
+#' Convert a discrete land cover map to one containing the area of each land
+#'   cover class per cell
+#'
+#' Takes a land cover map with one land cover class per grid cell, and converts
+#'   it to a map with the area of each land cover class per cell.
+#'
+#' @inheritParams downscaleLC
+#'
+#' @return A data frame of land cover in grid cells. The first two columns give
+#'   the x- and y-coordinates of each cell. Remaining columns give the area of
+#'   each land cover class in each cell.
+convertDiscreteLCToLCAreas <- function(ref_map,
+                                       ref_map_LC_types,
+                                       ref_map_cell_area,
+                                       LC_column_name) {
+
+  if (!LC_column_name %in% colnames(ref_map)) {
+    stop(paste0(LC_column_name,
+                " was not found as a column name in the reference map"))
+  }
+
+  ref_map_LC_areas <- ref_map[ , c("x", "y")]
+
+  ref_map_LC_areas[ , ref_map_LC_types] <- t(sapply(ref_map[ , LC_column_name],
+                                                   convertDiscreteLCToLCAreasOneCell,
+                                                   ref_map_LC_types = ref_map_LC_types,
+                                                   ref_map_cell_area = ref_map_cell_area))
+
+  return(ref_map_LC_areas)
+}
+
+#' Convert discrete land cover in one grid cell to a vector with the area of
+#'   land cover classes
+#'
+#' Converts a discrete land cover class for one grid cell to a vector containing
+#'   the area of user-specified land cover classes in that cell.
+#'
+#' @param LC_class The land cover class in the grid cell.
+#' @inheritParams downscaleLC
+#'
+#' @return A vector with the area of each of the specified land cover classes in
+#'   the given grid cell.
+convertDiscreteLCToLCAreasOneCell <- function(LC_class,
+                                              ref_map_LC_types,
+                                              ref_map_cell_area) {
+
+  if (!LC_class %in% ref_map_LC_types) {
+    stop(paste0(LC_class, " is not a land cover class in the ref_map_LC_types vector"))
+  }
+
+  # Set up new data frame
+  LC_areas <- rep(0,
+                  length(ref_map_LC_types))
+  names(LC_areas) <- ref_map_LC_types
+
+  LC_areas[which(names(LC_areas) == LC_class)] <- ref_map_cell_area
+
+  return(LC_areas)
 }
 

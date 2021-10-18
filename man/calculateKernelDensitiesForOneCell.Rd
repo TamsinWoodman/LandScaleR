@@ -21,8 +21,9 @@ scale at which you want to downscale the land cover data. The data frame
 must have a column called `coarse_ID` which assigns each cell in the
 reference map to the nearest coarse-scale cell.}
 
-\item{ref_map_LC_types}{Vector of land cover types in the reference map. All
-land cover types should be column names in the reference map.}
+\item{ref_map_LC_types}{Vector of land cover types in the reference map. For
+an area-based reference map, all land cover types should be column names in
+the reference map.}
 
 \item{cell_x_dist}{Radius of the cell neighbourhood in the x-direction.}
 
