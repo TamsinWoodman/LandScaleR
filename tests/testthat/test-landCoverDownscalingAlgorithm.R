@@ -133,3 +133,88 @@ test_that("convertDiscreteLCToLCAreas throws error if LC_column_name does not ex
                                           LC_column_name = LC_column_name),
                "was not found as a column name in the reference map")
 })
+
+test_that("getMaxLCCClassInOneCell returns maximum LC class in a cell", {
+  LC_vector <- c(1, 2, 2.5, 5)
+  LC_vector_names <- c("pri",
+                       "crp",
+                       "urb",
+                       "sec")
+  names(LC_vector) <- LC_vector_names
+
+  expected_LC_class <- "sec"
+
+  expect_identical(getMaxLCClassInOneCell(LC_vector),
+                   expected_LC_class)
+})
+
+test_that("getMaxLCClassInOneCell returns one LC class", {
+  LC_vector <- c(1, 2, 5, 5)
+  names(LC_vector) <- c("pri",
+                        "crp",
+                        "urb",
+                        "sec")
+
+  LC_vector_2 <- c(0)
+  names(LC_vector_2) <- c("1")
+
+  LC_vector_3 <- c(1, 1, 1)
+  names(LC_vector_3) <- c("pri",
+                          "urb",
+                          "crp")
+
+  expect_length(length(getMaxLCClassInOneCell(LC_vector)),
+                  1)
+  expect_length(length(getMaxLCClassInOneCell(LC_vector_2)),
+                1)
+  expect_length(length(getMaxLCClassInOneCell(LC_vector_3)),
+                1)
+})
+
+test_that("getMaxLCClassInOneCel handles numeric LC classes", {
+  LC_vector <- c(0, 3, 4, 2, 3)
+  names(LC_vector) <- c(11, 12, 13, 14, 15)
+
+  expect_identical(getMaxLCClassInOneCell(LC_vector),
+                   "13")
+})
+
+test_that("getDiscreteLC returns a data frame with discrete LC class column", {
+  LC_df <- data.frame(x = c(1, 1, 2, 2, 3, 3),
+                      y = c(1, 2, 1, 2, 1, 2),
+                      pri = c(0, 1, 2, 3, 4, 5),
+                      sec = c(1, 4, 0, 6, 6, 0),
+                      urb = c(3, 3, 3, 3, 3, 0))
+  ref_map_LC_types <- c("pri",
+                        "sec",
+                        "urb")
+
+  expected_discrete_LC <- c("urb",
+                            "sec",
+                            "urb",
+                            "sec",
+                            "sec",
+                            "pri")
+  expected_LC_df <- cbind(LC_df,
+                          expected_discrete_LC)
+  colnames(expected_LC_df)[6] <- "Discrete_LC_class"
+
+  expect_identical(getDiscreteLC(LC_df,
+                                 ref_map_LC_types),
+                   expected_LC_df)
+})
+
+test_that("getDiscreteLC throws error if land cover classes are missing", {
+  LC_df <- data.frame(x = c(1, 1, 2, 2, 3, 3),
+                      y = c(1, 2, 1, 2, 1, 2),
+                      pri = c(0, 1, 2, 3, 4, 5),
+                      sec = c(1, 4, 0, 6, 6, 0),
+                      urb = c(3, 3, 3, 3, 3, 0))
+  ref_map_LC_types <- c("pri",
+                        "sec",
+                        "crp")
+
+  expect_error(getDiscreteLC(LC_df,
+                             ref_map_LC_types),
+               "Not all land cover classes are columns in the land cover data frame.")
+})

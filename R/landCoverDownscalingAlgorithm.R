@@ -45,6 +45,8 @@
 #' @inheritParams processLCDeltas
 #' @inheritParams calculateKernelDensities
 #' @inheritParams runLCAllocation
+#' @param discrete_output_map Output discrete land cover as well as area-based
+#'   land cover. Default is `FALSE`.
 #' @param output_file_prefix Prefix for output downscaled land cover map files.
 #' @param output_dir_path Path to directory in which to saved the downscaled
 #'   land cover map files.
@@ -55,7 +57,9 @@
 #'   land cover for each cell. The 'ref_ID' column gives an identification
 #'   number for each grid cell, and the 'coarse_ID' column specifies the
 #'   coarse-scale cell to which each fine-scale cell was assigned to during
-#'   downscaling.
+#'   downscaling. If `discrete_output_map = FALSE`, a column named
+#'   'Discrete_LC_class' containing the discrete land cover class for each cell
+#'   will be appended to the output.
 downscaleLC <- function(ref_map_file_name,
                         LC_deltas_file_list,
                         LC_delta_types,
@@ -69,6 +73,7 @@ downscaleLC <- function(ref_map_file_name,
                         kernel_radius,
                         transition_priorities,
                         intensification_ratio,
+                        discrete_output_map = FALSE,
                         output_file_prefix,
                         output_dir_path) {
 
@@ -149,6 +154,12 @@ downscaleLC <- function(ref_map_file_name,
                                   transition_priorities = transition_priorities,
                                   intensification_ratio = intensification_ratio,
                                   ref_map_cell_area = ref_map_cell_area)
+
+    # Add discrete land cover if specified
+    if (discrete_output_map) {
+      new_LC_map <- getDiscreteLC(LC_map = new_LC_map,
+                    ref_map_LC_types = ref_map_LC_types)
+    }
 
     # Save land cover map
     saveLandCoverMapAsTable(new_LC_map,
@@ -270,3 +281,53 @@ convertDiscreteLCToLCAreasOneCell <- function(LC_class,
   return(LC_areas)
 }
 
+#' Get discrete land cover classes from a land cover data frame containing the
+#'   area of each land cover class per grid cell
+#'
+#' Takes a land cover data frame containing the area of each land cover class
+#'   per grid cell and adds a column with a discrete land cover class for each
+#'   grid cell. The discrete land cover class for a cell is calculated as the
+#'   land cover class with the highest area in that cell.
+#'
+#' @param LC_map Land cover data frame with the area of each land cover class
+#'   per grid cell.
+#' @inheritParams downscaleLC
+#'
+#' @return The land cover data frame with an additional column called
+#'   'Discrete_LC_class' that gives a discrete land cover class for each grid
+#'   cell.
+getDiscreteLC <- function(LC_map,
+                          ref_map_LC_types) {
+
+  if (!all(ref_map_LC_types %in% colnames(LC_map))) {
+    stop("Not all land cover classes are columns in the land cover data frame.")
+  }
+
+  LC_map$Discrete_LC_class <- apply(LC_map[ , ref_map_LC_types],
+                                        1,
+                                        getMaxLCClassInOneCell)
+
+  return(LC_map)
+}
+
+#' Get the land cover class with highest area in one grid cell
+#'
+#' Takes a named vector with the area of each land cover class in one grid cell,
+#'   and returns the land cover class with the highest area.
+#'
+#' @param grid_cell_LC Named vector containing area of land cover classes in one
+#'   grid cell. Names should correspond to the land cover classes in that grid
+#'   cell.
+#'
+#' @return Character string of the land cover class with the greatest coverage
+#'   in the given grid cell.
+getMaxLCClassInOneCell <- function(grid_cell_LC) {
+
+  max_LC_class <- names(grid_cell_LC)[which(grid_cell_LC == max(grid_cell_LC))]
+
+  if (length(max_LC_class) > 1) {
+    max_LC_class <- sample(max_LC_class, 1)
+  }
+
+  return(max_LC_class)
+}

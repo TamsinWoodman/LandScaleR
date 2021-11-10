@@ -18,6 +18,7 @@ downscaleLC(
   kernel_radius,
   transition_priorities,
   intensification_ratio,
+  discrete_output_map = FALSE,
   output_file_prefix,
   output_dir_path
 )
@@ -76,6 +77,9 @@ land cover type is converted to others.}
 \item{intensification_ratio}{Ratio of land intensification versus land
 expansion for the allocation algorithm.}
 
+\item{discrete_output_map}{Output discrete land cover as well as area-based
+land cover. Default is `FALSE`.}
+
 \item{output_file_prefix}{Prefix for output downscaled land cover map files.}
 
 \item{output_dir_path}{Path to directory in which to saved the downscaled
@@ -88,7 +92,9 @@ Tab-separated text files containing downscaled land cover maps, with
   land cover for each cell. The 'ref_ID' column gives an identification
   number for each grid cell, and the 'coarse_ID' column specifies the
   coarse-scale cell to which each fine-scale cell was assigned to during
-  downscaling.
+  downscaling. If `discrete_output_map = FALSE`, a column named
+  'Discrete_LC_class' containing the discrete land cover class for each cell
+  will be appended to the output.
 }
 \description{
 Downscales land cover by applying land cover change from coarse-scale input
