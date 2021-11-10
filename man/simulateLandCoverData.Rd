@@ -4,7 +4,14 @@
 \alias{simulateLandCoverData}
 \title{Simulate land cover data}
 \usage{
-simulateLandCoverData(LC_types, res_x, res_y, number_cells_x, number_cells_y)
+simulateLandCoverData(
+  LC_types,
+  res_x,
+  res_y,
+  number_cells_x,
+  number_cells_y,
+  map_type = "areas"
+)
 }
 \arguments{
 \item{LC_types}{Vector of land cover types to simulate.}
@@ -16,11 +23,16 @@ simulateLandCoverData(LC_types, res_x, res_y, number_cells_x, number_cells_y)
 \item{number_cells_x}{Number of cells in the x-direction.}
 
 \item{number_cells_y}{Number of cells in the y-direction.}
+
+\item{map_type}{Simulate a map with area of each land cover class per cell
+("areas") or one land cover class per cell ("discrete").}
 }
 \value{
 Data frame of land cover. The first two columns give the x- and
-  y-coordinates of grid cells and the remaining columns contain the simulated
-  area of each land cover type.
+  y-coordinates of grid cells. If `map_type = "areas"` is specified the
+  remaining columns contain the simulated area of each land cover type. If
+  `map_type = "discrete"` is used, there is one other column with a discrete
+  land cover class for each cell.
 }
 \description{
 Simulates land cover data of a given resolution and size using random

@@ -58,16 +58,20 @@ generateOutputFilePath <- function(dir_path,
 #' @param res_y Size of one grid cell in the y-direction.
 #' @param number_cells_x Number of cells in the x-direction.
 #' @param number_cells_y Number of cells in the y-direction.
+#' @param map_type Simulate a map with area of each land cover class per cell
+#'   ("areas") or one land cover class per cell ("discrete").
 #'
 #' @return Data frame of land cover. The first two columns give the x- and
-#'   y-coordinates of grid cells and the remaining columns contain the simulated
-#'   area of each land cover type.
+#'   y-coordinates of grid cells. If `map_type = "areas"` is specified the
+#'   remaining columns contain the simulated area of each land cover type. If
+#'   `map_type = "discrete"` is used, there is one other column with a discrete
+#'   land cover class for each cell.
 simulateLandCoverData <- function(LC_types,
                                   res_x,
                                   res_y,
                                   number_cells_x,
                                   number_cells_y,
-                                  map_type = "fractional") {
+                                  map_type = "areas") {
 
   number_LC_types <- length(LC_types)
   cell_size <- res_x * res_y
@@ -75,11 +79,11 @@ simulateLandCoverData <- function(LC_types,
 
   ## Set up land cover data
   simulated_LC_matrix <- switch(map_type,
-                                "fractional" = simulateFractionalLC(number_cells = number_cells,
-                                                                    number_LC_types = number_LC_types,
-                                                                    cell_size = cell_size),
+                                "areas" = simulateAreaBasedLC(number_cells = number_cells,
+                                                              number_LC_types = number_LC_types,
+                                                              cell_size = cell_size),
                                 "discrete" = simulateDiscreteLC(number_cells = number_cells,
-                                                              LC_types = LC_types))
+                                                                LC_types = LC_types))
 
   ## Set up x and y
   x_start <- res_x / 2
@@ -100,7 +104,7 @@ simulateLandCoverData <- function(LC_types,
   simulated_LC_df <- cbind(cell_coords,
                            simulated_LC_matrix)
 
-  if(map_type == "fractional") {
+  if(map_type == "areas") {
     colnames(simulated_LC_df)[3:ncol(simulated_LC_df)] <- LC_types
 
   } else if(map_type == "discrete") {
@@ -110,9 +114,9 @@ simulateLandCoverData <- function(LC_types,
   return(simulated_LC_df)
 }
 
-simulateFractionalLC <- function(number_cells,
-                                 number_LC_types,
-                                 cell_size) {
+simulateAreaBasedLC <- function(number_cells,
+                                number_LC_types,
+                                cell_size) {
   simulated_LC <- c()
   for (i in 1:number_cells) {
 
