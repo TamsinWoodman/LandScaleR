@@ -4,15 +4,15 @@
 \alias{calculateLCDeltas}
 \title{Calculate land-use delta values}
 \usage{
-calculateLCDeltas(coarse_scale_df_time_1, coarse_scale_df_time_2, LC_types)
+calculateLCDeltas(LC_map_1, LC_map_2, LC_classes, x_col = "x", y_col = "y")
 }
 \arguments{
-\item{coarse_scale_df_time_1}{Coarse-scale land cover data frame.}
+\item{LC_map_1}{Land cover data frame.}
 
-\item{coarse_scale_df_time_2}{Second coarse-scale land cover data frame from
-the subsequent timestep.}
+\item{LC_map_2}{Second land cover data frame from the subsequent timestep.}
 
-\item{LC_types}{}
+\item{LC_classes}{Vector of land cover classes, which must be column names in
+both data frames.}
 }
 \value{
 A data frame with the delta value for each land cover type between

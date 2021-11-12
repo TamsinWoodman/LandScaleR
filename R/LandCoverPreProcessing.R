@@ -6,40 +6,48 @@
 #' Calculates the change in each land cover type (delta) between two timesteps
 #'   of PLUMv2 output.
 #'
-#' @param coarse_scale_df_time_1 Coarse-scale land cover data frame.
-#' @param coarse_scale_df_time_2 Second coarse-scale land cover data frame from
-#'   the subsequent timestep.
-#' @param LC_types
+#' @param LC_map_1 Land cover data frame.
+#' @param LC_map_2 Second land cover data frame from the subsequent timestep.
+#' @param LC_classes Vector of land cover classes, which must be column names in
+#'   both data frames.
 #'
 #' @return A data frame with the delta value for each land cover type between
 #'   the two input timesteps.
-calculateLCDeltas <- function(coarse_scale_df_time_1,
-                              coarse_scale_df_time_2,
-                              LC_types) {
+calculateLCDeltas <- function(LC_map_1,
+                              LC_map_2,
+                              LC_classes,
+                              x_col = "x",
+                              y_col = "y") {
+
+  calculateLCDeltasInputChecks(LC_map_1 = LC_map_1,
+                               LC_map_2 = LC_map_2,
+                               LC_classes = LC_classes)
+
+  coord_cols <- c(x_col, y_col)
 
   # Order data frame by coordinates
-  coarse_scale_df_time_1_sorted <- coarse_scale_df_time_1[order(coarse_scale_df_time_1$x,
-                                                                coarse_scale_df_time_1$y), ]
-  coarse_scale_df_time_2_sorted <- coarse_scale_df_time_2[order(coarse_scale_df_time_2$x,
-                                                                coarse_scale_df_time_2$y), ]
+  LC_map_1_sorted <- LC_map_1[order(LC_map_1[ , x_col],
+                                    LC_map_1[ , y_col]), ]
+  LC_map_2_sorted <- LC_map_2[order(LC_map_2[ , x_col],
+                                    LC_map_2[ , y_col]), ]
 
   # Throw error if coordinates do not match
-  if (!identical(coarse_scale_df_time_1_sorted[ , c("x", "y")], coarse_scale_df_time_2_sorted[ , c("x", "y")])) {
+  if (!identical(LC_map_1_sorted[ , coord_cols], LC_map_2_sorted[ , coord_cols])) {
     stop("Coordinates differ between the two timesteps")
   }
 
   # Set up x and y in data frame
-  coarse_scale_df_coords <- coarse_scale_df_time_1_sorted[ , c("x", "y")]
+  LC_map_coords <- LC_map_1_sorted[ , coord_cols]
 
   # Set up two LC-only data frame
-  coarse_scale_df_time_1_sorted_LC <- coarse_scale_df_time_1_sorted[ , LC_types]
-  coarse_scale_df_time_2_sorted_LC <- coarse_scale_df_time_2_sorted[ , LC_types]
+  LC_map_1_sorted_LC <- LC_map_1_sorted[ , LC_classes]
+  LC_map_2_sorted_LC <- LC_map_2_sorted[ , LC_classes]
 
   # Calculate deltas
-  LC_deltas <- coarse_scale_df_time_2_sorted_LC - coarse_scale_df_time_1_sorted_LC
+  LC_deltas <- LC_map_2_sorted_LC - LC_map_1_sorted_LC
 
   # Create output data frame
-  LC_deltas_with_coords <- cbind(coarse_scale_df_coords,
+  LC_deltas_with_coords <- cbind(LC_map_coords,
                                  LC_deltas)
 
   return(LC_deltas_with_coords)
