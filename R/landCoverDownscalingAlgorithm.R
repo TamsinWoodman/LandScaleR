@@ -80,6 +80,9 @@ downscaleLC <- function(ref_map_file_name,
   # Create output directory if it doesn't exist
   if (!dir.exists(output_dir_path)) {
     dir.create(output_dir_path)
+
+    print(paste0("Created output directory: ",
+                 output_dir_path))
   }
 
   # Loop through LC delta files
@@ -94,6 +97,9 @@ downscaleLC <- function(ref_map_file_name,
     # Add the coarse ID values here
     LC_deltas <- addCellIDs(LC_deltas_raw,
                             "coarse_ID")
+
+    print(paste0("Loaded LC deltas file: ",
+                 LC_deltas_file_name))
 
     # If this is the first timestep
     if (i == 1) {
@@ -115,6 +121,9 @@ downscaleLC <- function(ref_map_file_name,
       ref_map <- addCellIDs(ref_map_raw,
                             "ref_ID")
 
+      print(paste0("Loaded reference map: ",
+                   ref_map_file_name))
+
       # Assign fine-scale cells
       assigned_ref_map <- assignRefMapCells(ref_map = ref_map,
                                             LC_deltas = LC_deltas)
@@ -129,6 +138,9 @@ downscaleLC <- function(ref_map_file_name,
                                      header = TRUE,
                                      sep = "\t",
                                      check.names = FALSE)
+
+      print(paste0("Loaded reference map: ",
+                   previous_ref_map_file_path))
     }
 
     # Reconcile areas of LC deltas and aggregate to final LC types
@@ -166,9 +178,9 @@ downscaleLC <- function(ref_map_file_name,
                             file_prefix = output_file_prefix,
                             dir_path = output_dir_path,
                             time_step = i)
-
   }
 
+  print(paste0("Finished downscaling"))
 }
 
 #' Add cell IDs to a data frame
@@ -208,6 +220,8 @@ addCellIDs <- function(LC_df,
 assignRefMapCells <- function(ref_map,
                               LC_deltas) {
 
+  start_time <- Sys.time()
+
   # Calculate nearest neighbours
   nearest_neighbours <- FNN::get.knnx(LC_deltas[ , 1:2],
                                       ref_map[ , 1:2],
@@ -217,6 +231,14 @@ assignRefMapCells <- function(ref_map,
   # Add nearest neighbours to fine-scale cell df
   ref_map_with_nn <- ref_map
   ref_map_with_nn$coarse_ID <- as.integer(nearest_neighbours$nn.index)
+
+  # Time check
+  end_time <- Sys.time()
+  time_taken <- end_time - start_time
+
+  print(paste0("Assigned reference map cells to coarse-scale map cells in ",
+               time_taken,
+               " hours"))
 
   return(ref_map_with_nn)
 }
