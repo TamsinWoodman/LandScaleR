@@ -21,6 +21,7 @@ calculateKernelDensities <- function(assigned_ref_map,
                                      ref_map_cell_resolution,
                                      kernel_radius = 1) {
 
+  print(paste0("Starting to calculate kernel density values..."))
   start_time <- Sys.time()
 
   # Set up the radius in the x and y directions
@@ -45,10 +46,13 @@ calculateKernelDensities <- function(assigned_ref_map,
   kernel_density_df$ref_ID <- assigned_ref_map$ref_ID
   kernel_density_df$coarse_ID <- assigned_ref_map$coarse_ID
 
+  # Time check
   end_time <- Sys.time()
 
   time_taken <- end_time - start_time
-  print(paste0("Time taken: ", time_taken))
+  print(paste0("Calculated kernel density values in ",
+               time_taken,
+               " hours"))
 
   return(kernel_density_df)
 }
