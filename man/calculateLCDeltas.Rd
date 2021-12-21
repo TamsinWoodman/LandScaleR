@@ -16,7 +16,8 @@ both data frames.}
 }
 \value{
 A data frame with the delta value for each land cover type between
-  the two input timesteps.
+  the two input timesteps. The function works by subtracting land cover areas
+  in `LC_map_1` from those in `LC_map_2`.
 }
 \description{
 Calculates the change in each land cover type (delta) between two timesteps
