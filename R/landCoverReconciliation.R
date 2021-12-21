@@ -30,6 +30,8 @@ processLCDeltas <- function(LC_deltas,
                             LC_delta_types,
                             final_LC_types) {
 
+  print(paste0("Starting land cover deltas processing..."))
+
   # Adjust coarse-scale land-use areas according to fine-scale areas
   adj_LC_deltas <- reconcileLCDeltas(LC_deltas = LC_deltas,
                                      assigned_ref_map = assigned_ref_map,
@@ -40,6 +42,8 @@ processLCDeltas <- function(LC_deltas,
   # Aggregate to final land-use types
   processed_LC_deltas <- aggregateToFinalLCTypes(final_LC_types = final_LC_types,
                                                  adj_LC_deltas = adj_LC_deltas)
+
+  print(paste0("Finished land cover deltas processing"))
 
   return(processed_LC_deltas)
 }
@@ -62,6 +66,8 @@ reconcileLCDeltas <- function(LC_deltas,
                               LC_delta_types,
                               LC_deltas_cell_area,
                               ref_map_cell_area) {
+
+  start_time <- Sys.time()
 
   # Calculate area of fine-scale cells assigned to each coarse grid cell
   ref_map_areas <- apply(LC_deltas,
@@ -87,6 +93,14 @@ reconcileLCDeltas <- function(LC_deltas,
   # adj_coarse_scale_df$total_area <- apply(adj_coarse_scale_df[ , coarse_land_use_types],
   #                                         1,
   #                                         sum)
+
+  # Time check
+  end_time <- Sys.time()
+  time_taken <- end_time - start_time
+
+  print(paste0("Land cover areas reconciled in ",
+               time_taken,
+               " hours"))
 
   return(adj_LC_deltas)
 }
@@ -158,6 +172,8 @@ adjustCoarseLCAreas <- function(coarse_scale_land_use_areas,
 aggregateToFinalLCTypes <- function(final_LC_types,
                                     adj_LC_deltas) {
 
+  start_time <- Sys.time()
+
   new_LC_types <- colnames(final_LC_types)
   agg_adj_LC_deltas <- adj_LC_deltas[ , 1:2]
 
@@ -179,6 +195,14 @@ aggregateToFinalLCTypes <- function(final_LC_types,
   # agg_adj_coarse_scale_df$total_area <- apply(agg_adj_coarse_scale_df[ , new_land_use_types],
   #                                             1,
   #                                             sum)
+
+  # Time check
+  end_time <- Sys.time()
+  time_taken <- end_time - start_time
+
+  print(paste0("Coarse-scale land cover classes aggregated to reference map land cover classes in ",
+               time_taken,
+               " hours"))
 
   return(agg_adj_LC_deltas)
 }
