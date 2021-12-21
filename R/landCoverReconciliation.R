@@ -43,7 +43,7 @@ processLCDeltas <- function(LC_deltas,
   processed_LC_deltas <- aggregateToFinalLCTypes(final_LC_types = final_LC_types,
                                                  adj_LC_deltas = adj_LC_deltas)
 
-  print(paste0("Finished land cover deltas processing"))
+  print(paste0("Completed land cover deltas processing"))
 
   return(processed_LC_deltas)
 }
@@ -96,11 +96,9 @@ reconcileLCDeltas <- function(LC_deltas,
 
   # Time check
   end_time <- Sys.time()
-  time_taken <- end_time - start_time
-
-  print(paste0("Land cover areas reconciled in ",
-               time_taken,
-               " hours"))
+  timeCheckMessage(start_time,
+                   end_time,
+                   "Land cover areas reconciled in ")
 
   return(adj_LC_deltas)
 }
@@ -198,11 +196,9 @@ aggregateToFinalLCTypes <- function(final_LC_types,
 
   # Time check
   end_time <- Sys.time()
-  time_taken <- end_time - start_time
-
-  print(paste0("Coarse-scale land cover classes aggregated to reference map land cover classes in ",
-               time_taken,
-               " hours"))
+  timeCheckMessage(start_time,
+                   end_time,
+                   "Coarse-scale land cover classes aggregated to reference map land cover classes in ")
 
   return(agg_adj_LC_deltas)
 }

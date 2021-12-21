@@ -49,10 +49,9 @@ calculateKernelDensities <- function(assigned_ref_map,
   # Time check
   end_time <- Sys.time()
 
-  time_taken <- end_time - start_time
-  print(paste0("Calculated kernel density values in ",
-               time_taken,
-               " hours"))
+  timeCheckMessage(start_time,
+                   end_time,
+                   "Calculated kernel density values in ")
 
   return(kernel_density_df)
 }

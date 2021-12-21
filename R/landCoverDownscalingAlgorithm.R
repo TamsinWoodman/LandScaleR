@@ -180,7 +180,7 @@ downscaleLC <- function(ref_map_file_name,
                             time_step = i)
   }
 
-  print(paste0("Finished downscaling"))
+  print(paste0("Completed downscaling"))
 }
 
 #' Add cell IDs to a data frame
@@ -234,11 +234,9 @@ assignRefMapCells <- function(ref_map,
 
   # Time check
   end_time <- Sys.time()
-  time_taken <- end_time - start_time
-
-  print(paste0("Assigned reference map cells to coarse-scale map cells in ",
-               time_taken,
-               " hours"))
+  timeCheckMessage(start_time,
+                   end_time,
+                   "Assigned reference map cells to coarse-scale map cells in ")
 
   return(ref_map_with_nn)
 }
