@@ -23,6 +23,9 @@ saveLandCoverMapAsTable <- function(LC_map,
               sep = "\t",
               row.names = FALSE,
               quote = FALSE)
+
+  print(paste0("Saved downscaled land cover map to file: ",
+               file_path))
 }
 
 #' Get output file path string
