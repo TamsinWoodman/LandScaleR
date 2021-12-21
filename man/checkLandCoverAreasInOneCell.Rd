@@ -14,7 +14,7 @@ corresponding to one grid cell in a map.}
 \item{total_area}{The expected total area in the given grid cell.}
 
 \item{LC_types}{Vector of land cover types in the grid cell. Land cover types
-should all be columns in the `grid_cell` data frame.}
+should all be names of the `grid_cell` vector.}
 }
 \value{
 Invisible `NULL`. Throws a warning if the sum of land cover in the

@@ -106,6 +106,12 @@ runLCAllocation <- function(assigned_ref_map,
                    intensify_two_end_time,
                    "Completed second land cover intensification round in ")
 
+  # Check for unallocated land cover
+  apply(final_LCs@LC_deltas,
+        1,
+        checkForUnallocatedLandCover,
+        LC_types = LC_types)
+
   # Check land cover areas in the fine-scale map
   apply(final_LCs@ref_map_df,
         1,
