@@ -144,3 +144,14 @@ simulateDiscreteLC <- function(number_cells,
 
   return(simulated_LC)
 }
+
+timeCheckMessage <- function(start_time,
+                             end_time,
+                             message) {
+
+  time_taken <- end_time - start_time
+
+  print(paste0(message,
+               time_taken,
+               " hours"))
+}

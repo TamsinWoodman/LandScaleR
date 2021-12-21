@@ -42,6 +42,10 @@ runLCAllocation <- function(assigned_ref_map,
                             intensification_ratio,
                             ref_map_cell_area) {
 
+  print(paste0("Starting land cover allocation..."))
+  allocation_start_time <- Sys.time()
+  intensify_start_time <- Sys.time()
+
   LC_types <- row.names(transition_priorities)
 
   # Calculate intensification LC deltas
@@ -56,6 +60,13 @@ runLCAllocation <- function(assigned_ref_map,
                                  transition_priorities,
                                  allocation_type = "intensify")
 
+  # Time check
+  intensify_end_time <- Sys.time()
+  timeCheckMessage(intensify_start_time,
+                   intensify_end_time,
+                   "Completed land cover intensification in ")
+  expand_start_time <- Sys.time()
+
   # Calculate expansion LC deltas
   expansion_factor <- 1 - intensification_ratio
   LC_deltas_expand <- multiplyLCDeltas(LC_deltas,
@@ -68,6 +79,13 @@ runLCAllocation <- function(assigned_ref_map,
                               LC_deltas = LC_deltas_expand,
                               transition_priorities,
                               allocation_type = "expand")
+
+  # Time check
+  expand_end_time <- Sys.time()
+  timeCheckMessage(expand_start_time,
+                   expand_end_time,
+                   "Completed land cover expansion in ")
+  intensify_two_start_time <- Sys.time()
 
   # LC deltas for second round of intensification are the remaining LC delta
   # that were not allocated in either the intensification or expansion round
@@ -82,12 +100,24 @@ runLCAllocation <- function(assigned_ref_map,
                            transition_priorities,
                            allocation_type = "intensify")
 
+  # Time check
+  intensify_two_end_time <- Sys.time()
+  timeCheckMessage(intensify_two_start_time,
+                   intensify_two_end_time,
+                   "Completed second land cover intensification round in ")
+
   # Check land cover areas in the fine-scale map
   apply(final_LCs@ref_map_df,
         1,
         checkLandCoverAreasInOneCell,
         total_area = ref_map_cell_area,
         LC_types = LC_types)
+
+  # Time check
+  allocation_end_time <- Sys.time()
+  timeCheckMessage(allocation_start_time,
+                   allocation_end_time,
+                   "Completed land cover allocation in ")
 
   return(final_LCs@ref_map_df)
 }
@@ -174,7 +204,6 @@ allocateLCs <- function(assigned_ref_map,
 
       # Allocate the land cover if it increases in the cell
       if (LC_to_delta > 0) {
-        print(paste(i, LC_to_name, LC_to_delta))
 
         # Get sorted list of priorities
         sorted_priority_LCs <- getSortedTransitionPriorities(transition_priorities,
@@ -186,8 +215,6 @@ allocateLCs <- function(assigned_ref_map,
           LC_from_delta <- updated_LC_deltas[i, LC_from_name]
 
           if (LC_from_delta < 0) {
-
-            print(paste0(i, " negative ", LC_from_name, LC_from_delta))
 
             # Get cells to intensify land-use one in
             ### Getting the cells in which to expand/intensify LCs will be a
@@ -221,7 +248,6 @@ allocateLCs <- function(assigned_ref_map,
 
               # Calculate total conversion value
               total_conversion <- sum(LC_conversion_df$actual_conversion)
-              print(total_conversion)
 
               # Update LC_to_delta in this for loop and in data frame
               LC_to_delta <- updateLCToDelta(LC_to_delta,
@@ -529,9 +555,6 @@ updateOneRefMapCellWithLCConversions <- function(ref_map_cell,
   current_LC_from_area <-  updated_ref_map_cell[ , LC_from_name]
   new_LC_from_area <- current_LC_from_area - actual_conversion
   updated_ref_map_cell[ , LC_from_name] <- new_LC_from_area
-
-  # print(ref_map_cell)
-  # print(updated_ref_map_cell)
 
   return(updated_ref_map_cell)
 }
