@@ -5,21 +5,26 @@
 \title{Calculate kernel densities}
 \usage{
 calculateKernelDensities(
+  ref_map_cells_df,
   assigned_ref_map,
-  ref_map_LC_types,
+  LC_class,
   ref_map_cell_resolution,
   kernel_radius = 1
 )
 }
 \arguments{
+\item{ref_map_cells_df}{Subset of rows from the `assigned_ref_map` data frame
+that contains the grid cells for which you want to calculate kernel
+densities.}
+
 \item{assigned_ref_map}{Data frame of the reference map which should be the
 scale at which you want to downscale the land cover data. The data frame
 must have a column called `coarse_ID` which assigns each cell in the
 reference map to the nearest coarse-scale cell.}
 
-\item{ref_map_LC_types}{Vector of land cover types in the reference map. For
-an area-based reference map, all land cover types should be column names in
-the reference map.}
+\item{LC_class}{Single land cover class for which to calculate kernel
+densities. Must be a column name in `ref_map_cells_df` and
+`assigned_ref_map`.}
 
 \item{ref_map_cell_resolution}{Resolution of one cell in the reference map,
 in the form `c(x, y)`.}
@@ -30,10 +35,10 @@ kernel density will be 1 cell in every direction around the focal cell.
 Defaults to 1.}
 }
 \value{
-Data frame with the kernel density value for each land cover type in
-  each cell.
+Data frame with the kernel density value for the given land cover
+  class in each cell.
 }
 \description{
-Calculates kernel densities for all cell and land cover types in a reference
-  map data frame.
+Calculates kernel densities for one land cover class for a subset of
+  reference map cells.
 }

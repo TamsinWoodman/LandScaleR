@@ -5,23 +5,37 @@
 \title{Get amount of one land cover type converted into another}
 \usage{
 getLCConversions(
-  kernel_density_df,
+  cells_for_allocation,
+  assigned_ref_map,
+  ref_map_cell_resolution,
+  kernel_radius,
   LC_to_name,
-  cells_for_allocation_ref_IDs,
+  LC_from_name,
   LC_to_delta,
-  LC_from_delta,
-  LC_from_values
+  LC_from_delta
 )
 }
 \arguments{
-\item{kernel_density_df}{Data frame of kernel density values for every cell
-and land cover type in the reference map. The kernel density data frame
-should have the same dimensions as the reference map data frame.}
+\item{cells_for_allocation}{Data frame of reference cells to which the
+increasing land cover type will be allocated.}
+
+\item{assigned_ref_map}{Data frame of the reference map which should be the
+scale at which you want to downscale the land cover data. The data frame
+must have a column called `coarse_ID` which assigns each cell in the
+reference map to the nearest coarse-scale cell.}
+
+\item{ref_map_cell_resolution}{Resolution of one cell in the reference map,
+in the form `c(x, y)`.}
+
+\item{kernel_radius}{Radius of cells to include in the kernel density
+calculation. A value of 1 means that the neighbour cells used to calculate
+kernel density will be 1 cell in every direction around the focal cell.
+Defaults to 1.}
 
 \item{LC_to_name}{Name of the land cover that is increasing.}
 
-\item{cells_for_allocation_ref_IDs}{Vector of ID numbers of reference cells
-to which the increasing land cover type will be allocated.}
+\item{LC_from_name}{Name of the land cover that is being converted to
+`LC_to_name`.}
 
 \item{LC_to_delta}{The land cover change amount (delta) for the increasing
 land cover type, which is equivalent to the amount that this land cover
@@ -30,9 +44,6 @@ type increased in the coarse-scale cell during one timestep.}
 \item{LC_from_delta}{The land cover delta value for the decreasing land cover
 type, which is the amount that this land cover type decreased in the
 coarse-scale cell during one timestep.}
-
-\item{LC_from_values}{The area of the decreasing land cover type within each
-reference map cell specified in `cells_for_allocation_ref_IDs`.}
 }
 \value{
 Two column data frame. First column contains IDs of reference map

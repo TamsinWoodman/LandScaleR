@@ -2,12 +2,12 @@
 % Please edit documentation in R/kernelDensities.R
 \name{calculateKernelDensitiesForOneCell}
 \alias{calculateKernelDensitiesForOneCell}
-\title{Calculate kernel densities for all land cover types in one cell}
+\title{Calculate kernel densities for one land cover class in one cell}
 \usage{
 calculateKernelDensitiesForOneCell(
   grid_cell,
   assigned_ref_map,
-  ref_map_LC_types,
+  LC_class,
   cell_x_dist,
   cell_y_dist
 )
@@ -21,19 +21,19 @@ scale at which you want to downscale the land cover data. The data frame
 must have a column called `coarse_ID` which assigns each cell in the
 reference map to the nearest coarse-scale cell.}
 
-\item{ref_map_LC_types}{Vector of land cover types in the reference map. For
-an area-based reference map, all land cover types should be column names in
-the reference map.}
+\item{LC_class}{Single land cover class for which to calculate kernel
+densities. Must be a column name in `ref_map_cells_df` and
+`assigned_ref_map`.}
 
 \item{cell_x_dist}{Radius of the cell neighbourhood in the x-direction.}
 
 \item{cell_y_dist}{Radius of the cell neighbourhood in the y-direction.}
 }
 \value{
-Named vector of the kernel density for each land-use within the
+The kernel density value for the user-specified land cover class and
   grid cell.
 }
 \description{
-Calculates the kernel density values for all land cover types in a single
+Calculates the kernel density values for one land cover class in a single
   grid cell.
 }

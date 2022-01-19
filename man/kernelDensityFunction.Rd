@@ -4,10 +4,10 @@
 \alias{kernelDensityFunction}
 \title{Calculate kernel density value for a single land cover in a single cell}
 \usage{
-kernelDensityFunction(LC_values, distance_values, number_of_neighbour_cells)
+kernelDensityFunction(LC_areas, distance_values, number_of_neighbour_cells)
 }
 \arguments{
-\item{LC_values}{Vector of land cover areas within each neighbour cell.}
+\item{LC_areas}{Vector of land cover areas within each neighbour cell.}
 
 \item{distance_values}{Vector giving the distance of each neighbour cell
 from the focal cell, should be the same length as `LC_values`.}

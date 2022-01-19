@@ -13,6 +13,9 @@ convertDiscreteLCToLCAreas(
 )
 }
 \arguments{
+\item{ref_map}{Data frame of the reference map which should be the
+scale at which you want to downscale the land cover data.}
+
 \item{ref_map_LC_types}{Vector of land cover types in the reference map. For
 an area-based reference map, all land cover types should be column names in
 the reference map.}

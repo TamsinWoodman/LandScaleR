@@ -42,6 +42,9 @@
 #'   land cover class in each cell). Must be one of "areas" or "discrete".
 #' @param LC_column_name For a discrete reference map, gives the name of the
 #'   column containing the land cover class for each grid cell.
+#' @param ref_map_LC_types Vector of land cover types in the reference map. For
+#'   an area-based reference map, all land cover types should be column names in
+#'   the reference map.
 #' @inheritParams processLCDeltas
 #' @inheritParams calculateKernelDensities
 #' @inheritParams runLCAllocation
@@ -151,17 +154,10 @@ downscaleLC <- function(ref_map_file_name,
                                            LC_delta_types = LC_delta_types,
                                            final_LC_types = final_LC_types)
 
-    # Calculate suitability of ref map cells
-    ## This currently uses a kernel density method, but could be changed to any
-    ## other method for calculating cell suitability for each land cover type
-    ref_map_suitability <- calculateKernelDensities(assigned_ref_map = assigned_ref_map,
-                                                    ref_map_LC_types = ref_map_LC_types,
-                                                    ref_map_cell_resolution = ref_map_cell_resolution,
-                                                    kernel_radius = kernel_radius)
-
     # Allocate land cover change
     new_LC_map <- runLCAllocation(assigned_ref_map = assigned_ref_map,
-                                  kernel_density_df = ref_map_suitability,
+                                  ref_map_cell_resolution = ref_map_cell_resolution,
+                                  kernel_radius = kernel_radius,
                                   LC_deltas = processed_LC_deltas,
                                   transition_priorities = transition_priorities,
                                   intensification_ratio = intensification_ratio,
@@ -246,7 +242,8 @@ assignRefMapCells <- function(ref_map,
 #'
 #' Takes a land cover map with one land cover class per grid cell, and converts
 #'   it to a map with the area of each land cover class per cell.
-#'
+#' @param ref_map Data frame of the reference map which should be the
+#'   scale at which you want to downscale the land cover data.
 #' @inheritParams downscaleLC
 #'
 #' @return A data frame of land cover in grid cells. The first two columns give

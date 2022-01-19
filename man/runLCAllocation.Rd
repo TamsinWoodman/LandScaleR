@@ -7,7 +7,8 @@
 \usage{
 runLCAllocation(
   assigned_ref_map,
-  kernel_density_df,
+  ref_map_cell_resolution,
+  kernel_radius,
   LC_deltas,
   transition_priorities,
   intensification_ratio,
@@ -20,9 +21,13 @@ scale at which you want to downscale the land cover data. The data frame
 must have a column called `coarse_ID` which assigns each cell in the
 reference map to the nearest coarse-scale cell.}
 
-\item{kernel_density_df}{Data frame of kernel density values for every cell
-and land cover type in the reference map. The kernel density data frame
-should have the same dimensions as the reference map data frame.}
+\item{ref_map_cell_resolution}{Resolution of one cell in the reference map,
+in the form `c(x, y)`.}
+
+\item{kernel_radius}{Radius of cells to include in the kernel density
+calculation. A value of 1 means that the neighbour cells used to calculate
+kernel density will be 1 cell in every direction around the focal cell.
+Defaults to 1.}
 
 \item{LC_deltas}{Data frame of adjusted and aggregated land cover change
 (delta) values from the coarse-scale input map for every cell and land
