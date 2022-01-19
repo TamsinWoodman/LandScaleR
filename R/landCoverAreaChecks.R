@@ -56,7 +56,7 @@ checkForUnallocatedLandCover <- function(grid_cell,
 
   # Set the tolerance for unallocated land cover change
   percent_tolerance <- 0.01
-  area_tolerance <- (grid_cell$ref_map_area / 100) * percent_tolerance
+  area_tolerance <- (grid_cell["ref_map_area"] / 100) * percent_tolerance
 
   # Check if any LC_deltas are more than or equal to 0
   if (any(abs(grid_cell[LC_types]) > area_tolerance)) {
