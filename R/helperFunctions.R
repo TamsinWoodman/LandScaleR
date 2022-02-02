@@ -152,9 +152,11 @@ timeCheckMessage <- function(start_time,
                              end_time,
                              message) {
 
-  time_taken <- end_time - start_time
+  time_taken <- difftime(end_time,
+                         start_time,
+                         units = "auto")
+  time_taken <- format(time_taken)
 
   print(paste0(message,
-               time_taken,
-               " hours"))
+               time_taken))
 }
