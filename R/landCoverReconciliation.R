@@ -1,8 +1,8 @@
 #' Land cover change processing
 #'
 #' Reconciles the land cover change values for each coarse-scale cell
-#'   with fine-scale areas and aggregates land cover types to specified final
-#'   land cover types.
+#'   with fine-scale areas and aggregates land cover classes to specified final
+#'   land cover classes.
 #'
 #' @param LC_deltas Data frame of land cover changes between two coarse-scale
 #'   timesteps. Must be the same projection as `assigned_ref_map`.
@@ -12,17 +12,17 @@
 #'   reference map to the nearest coarse-scale cell.
 #' @param LC_deltas_cell_area Area of a coarse-scale grid cell.
 #' @param ref_map_cell_area Area of a reference map grid cell.
-#' @param LC_delta_types Column names of land cover types in the land cover
+#' @param LC_delta_classes Column names of land cover classes in the land cover
 #'   change data frame `LC_deltas`.
 #' @param final_LC_classes A matrix containing the fraction of each coarse-scale
-#'   land cover type that contributes to each reference map land cover type.
-#'   Columns should contain reference map land cover types, and rows are the
-#'   coarse-scale land cover types. Each cell should contain the proportion of
-#'   the coarse-scale land cover type that contributes to the fine-scale type in
+#'   land cover class that contributes to each reference map land cover class.
+#'   Columns should contain reference map land cover classes, and rows are the
+#'   coarse-scale land cover classes. Each cell should contain the proportion of
+#'   the coarse-scale land cover class that contributes to the fine-scale class in
 #'   the output map.
 #'
 #' @return Data frame of coarse-scale cells with adjusted land cover changes
-#'   aggregated to final land cover types.
+#'   aggregated to final land cover classes.
 processLCDeltas <- function(LC_deltas,
                             ref_map,
                             final_LC_classes) {
@@ -33,9 +33,9 @@ processLCDeltas <- function(LC_deltas,
   adj_LC_deltas <- reconcileLCDeltas(LC_deltas = LC_deltas,
                                      ref_map = ref_map)
 
-  # Aggregate to final land-use types
-  processed_LC_deltas <- aggregateToFinalLCTypes(final_LC_classes = final_LC_classes,
-                                                 adj_LC_deltas = adj_LC_deltas)
+  # Aggregate to final land-use classes
+  processed_LC_deltas <- aggregateToFinalLCClasses(final_LC_classes = final_LC_classes,
+                                                   adj_LC_deltas = adj_LC_deltas)
 
   print(paste0("Completed land cover deltas processing"))
 
@@ -93,7 +93,7 @@ reconcileLCDeltas <- function(LC_deltas,
 
   ### Need to add some kind of check in here to make sure that the sum of the
   ### new land-use areas is equal to the fine-scale area for that cell
-  # adj_coarse_scale_df$total_area <- apply(adj_coarse_scale_df[ , coarse_land_use_types],
+  # adj_coarse_scale_df$total_area <- apply(adj_coarse_scale_df[ , coarse_land_use_classes],
   #                                         1,
   #                                         sum)
 
@@ -142,14 +142,14 @@ calculateRefMapAreaForCoarseCell <- function(coarse_cell,
 #' Adjust land cover areas for each coarse grid cell by the area of reference
 #'   map grid cells
 #'
-#' Adjusts the land cover delta value for a single land cover type according to
+#' Adjusts the land cover delta value for a single land cover class according to
 #'   the area of reference map cells assigned to the coarse cell.
 #'
 #' Implements equation 1 from Le Page et al. (2016) to adjust the area of a
 #'   given land-use within a coarse-scale grid cell.
 #'
 #' @param coarse_scale_land_use_areas Vector containing values of a single land
-#'   cover type in all coarse-scale grid cells.
+#'   cover class in all coarse-scale grid cells.
 #' @param ref_map_areas Vector containing the area of reference map cells within
 #'   each coarse-scale grid cell.
 #' @inheritParams processLCDeltas
@@ -164,10 +164,10 @@ adjustCoarseLCAreas <- function(coarse_scale_land_use_areas,
   return(adj_LC_deltas)
 }
 
-#' Aggregate land cover types
+#' Aggregate land cover classes
 #'
-#' Aggregate land cover types from the land cover deltas data frame to the
-#'   land cover types in the reference map.
+#' Aggregate land cover classes from the land cover deltas data frame to the
+#'   land cover classes in the reference map.
 #'
 #' @inheritParams processLCDeltas
 #' @param adj_LC_deltas Data frame of land cover deltas, with every value
@@ -175,8 +175,8 @@ adjustCoarseLCAreas <- function(coarse_scale_land_use_areas,
 #'   grid cell. This data frame is output from `reconcileLCDeltas`.
 #'
 #' @return Data frame of land cover deltas in coarse-scale cells with land cover
-#'   types aggregated to the reference map land cover types.
-aggregateToFinalLCTypes <- function(final_LC_classes,
+#'   classes aggregated to the reference map land cover classes.
+aggregateToFinalLCClasses <- function(final_LC_classes,
                                     adj_LC_deltas) {
 
   start_time <- Sys.time()
@@ -194,7 +194,7 @@ aggregateToFinalLCTypes <- function(final_LC_classes,
 
     agg_adj_LC_deltas_df[ , new_LC_class] <- apply(adj_LC_deltas_df,
                                                    1,
-                                                   aggregateLCTypeInOneCell,
+                                                   aggregateLCClassInOneCell,
                                                    agg_rules = agg_rules)
   }
 
@@ -203,7 +203,7 @@ aggregateToFinalLCTypes <- function(final_LC_classes,
 
   ### Need to add some kind of check in here to make sure that the sum of the
   ### new land-use areas is equal to the fine-scale area for that cell
-  # agg_adj_coarse_scale_df$total_area <- apply(agg_adj_coarse_scale_df[ , new_land_use_types],
+  # agg_adj_coarse_scale_df$total_area <- apply(agg_adj_coarse_scale_df[ , new_land_use_classes],
   #                                             1,
   #                                             sum)
 
@@ -223,24 +223,24 @@ aggregateToFinalLCTypes <- function(final_LC_classes,
   return(agg_adj_LC_deltas)
 }
 
-#' Aggregate a single land cover type in one grid cell
+#' Aggregate a single land cover class in one grid cell
 #'
 #' @param grid_cell Single row from `adj_LC_deltas` containing adjusted land
 #'   cover deltas for one coarse-scale grid cell.
 #' @param agg_rules One column from the `final_LC_classes` matrix, which gives
-#'   rules for aggregating coarse-scale land cover types to a single reference
-#'   map land cover type.
+#'   rules for aggregating coarse-scale land cover classes to a single reference
+#'   map land cover class.
 #'
-#' @return Area of the reference map land cover type in the given grid cell.
-aggregateLCTypeInOneCell <- function(grid_cell,
+#' @return Area of the reference map land cover class in the given grid cell.
+aggregateLCClassInOneCell <- function(grid_cell,
                                      agg_rules) {
 
   new_land_use_value <- 0
 
   for (i in 1:length(agg_rules)) {
-    old_land_use_type <- names(agg_rules)[i]
+    old_land_use_class <- names(agg_rules)[i]
 
-    tmp_land_use_value <- as.numeric(grid_cell[old_land_use_type]) * agg_rules[old_land_use_type]
+    tmp_land_use_value <- as.numeric(grid_cell[old_land_use_class]) * agg_rules[old_land_use_class]
 
     new_land_use_value <- new_land_use_value + tmp_land_use_value
   }

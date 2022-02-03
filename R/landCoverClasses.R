@@ -1,21 +1,3 @@
-#' S4 class to hold coarse-scale and fine-scale land cover data for one timestep
-#'
-#' An S4 class with slots for the reference map data frame and a data frame of
-#'   coarse-scale land cover delta values.
-#'
-#' @slot ref_map_df Data frame of the reference map, where each row is one
-#'   raster cell.
-#' @slot LC_deltas Data frame of land cover changes between two coarse-scale
-#'   timesteps. Must be the same projection as the `ref_map_df`.
-#' @slot LC_types Character vector with the land-use types. The land-use
-#'   types should be the same in each data frame.
-#'
-#' @export
-setClass("LCDataClass",
-         slots = c(ref_map = "LCMap",
-                   LC_deltas = "LCMap",
-                   LC_types = "character"))
-
 #' S4 class to hold a land cover map with associated properties
 #'
 #' @slot LC_map Data frame containing a land cover map. First two columns must
@@ -39,3 +21,31 @@ setClass("LCMap",
                        LC_classes = NA_character_,
                        cell_area = NA_real_,
                        cell_resolution = NA_real_))
+
+#' S4 class to hold parameters required for land cover allocation
+#'
+#' @slot LC_deltas `LCMap` object containing the LC deltas data frame and
+#'   associated information.
+#' @slot ref_map `LCMap` object containing a reference map data frame and
+#'   associated information.
+#' @slot transition_priorities Matrix with the transition priorities for land
+#'   cover allocation.
+#' @slot kernel_radius Value for radius of cells used to calculate kernel
+#'   densities for each land cover and grid cell.
+#' @slot intensification_ratio Value giving the ratio of land cover to be
+#'   allocated via intensification.
+#'
+#' @export
+setClass("LCAllocationParams",
+         slots = c(LC_deltas = "LCMap",
+                   ref_map = "LCMap",
+                   transition_priorities = "matrix",
+                   kernel_radius = "numeric",
+                   intensification_ratio = "numeric"
+         ),
+         prototype = c(LC_deltas = new("LCMap"),
+                       ref_map = new("LCMap"),
+                       transition_priorities = matrix(0, 0, 0),
+                       kernel_radius = NA_real_,
+                       intensification_ratio = NA_real_))
+

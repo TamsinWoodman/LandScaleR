@@ -2,4 +2,3 @@
 
 export(makeLandUseRaster)
 export(makeLandUseRasterStack)
-exportClasses(LCDataClass)

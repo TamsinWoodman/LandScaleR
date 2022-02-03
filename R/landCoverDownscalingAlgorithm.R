@@ -107,11 +107,15 @@ downscaleLC <- function(ref_map_file_name,
                                            final_LC_classes = final_LC_classes)
 
     # Allocate land cover change
-    new_LC_map <- runLCAllocation(LC_deltas = processed_LC_deltas,
-                                  ref_map = ref_map,
-                                  kernel_radius = kernel_radius,
-                                  transition_priorities = transition_priorities,
-                                  intensification_ratio = intensification_ratio)
+    # Set up object for LC allocation
+    LC_allocation_params <- new("LCAllocationParams",
+                                LC_deltas = processed_LC_deltas,
+                                ref_map = ref_map,
+                                transition_priorities = transition_priorities,
+                                kernel_radius = kernel_radius,
+                                intensification_ratio = intensification_ratio)
+
+    new_LC_map <- runLCAllocation(LC_allocation_params)
 
     # Add discrete land cover if specified
     if (discrete_output_map) {

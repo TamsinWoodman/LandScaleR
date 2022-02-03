@@ -33,25 +33,28 @@
 #'   expansion for the allocation algorithm.
 #'
 #' @return New land cover data frame with the given land cover change allocated.
-runLCAllocation <- function(LC_deltas,
-                            ref_map,
-                            kernel_radius,
-                            transition_priorities,
-                            intensification_ratio) {
+runLCAllocation <- function(LC_allocation_params) {
 
   print(paste0("Starting land cover allocation..."))
   allocation_start_time <- Sys.time()
   intensify_start_time <- Sys.time()
+
+  # Extract required parameters from object
+  LC_deltas <- slot(LC_allocation_params,
+                    "LC_deltas")
+  intensification_ratio <- slot(LC_allocation_params,
+                                "intensification_ratio")
 
   # Calculate intensification LC deltas
   LC_deltas_intensify <- multiplyLCDeltas(LC_deltas = LC_deltas,
                                           multiplication_factor = intensification_ratio)
 
   # Run first round of intensification
-  intensified_LCs <- allocateLCs(LC_deltas = LC_deltas_intensify,
-                                 ref_map = ref_map,
-                                 kernel_radius = kernel_radius,
-                                 transition_priorities = transition_priorities,
+  LC_intensify_params <- LC_allocation_params
+  slot(LC_intensify_params,
+       "LC_deltas") <- LC_deltas_intensify
+
+  intensified_LCs <- allocateLCs(LC_allocation_params = LC_intensify_params,
                                  allocation_type = "intensify")
 
   # Time check
@@ -67,10 +70,11 @@ runLCAllocation <- function(LC_deltas,
                                        multiplication_factor = expansion_factor)
 
   # Run expansion
-  expanded_LCs <- allocateLCs(LC_deltas = LC_deltas_expand,
-                              ref_map = intensified_LCs@ref_map,
-                              kernel_radius = kernel_radius,
-                              transition_priorities = transition_priorities,
+  LC_expand_params <- intensified_LCs
+  slot(LC_expand_params,
+       "LC_deltas") <- LC_deltas_expand
+
+  expanded_LCs <- allocateLCs(LC_allocation_params = LC_expand_params,
                               allocation_type = "expand")
 
   # Time check
@@ -86,10 +90,11 @@ runLCAllocation <- function(LC_deltas,
                                          expanded_LCs@LC_deltas)
 
   # Run second round of intensification
-  final_LCs <- allocateLCs(LC_deltas = LC_deltas_intensify_two,
-                           ref_map = expanded_LCs@ref_map,
-                           kernel_radius = kernel_radius,
-                           transition_priorities = transition_priorities,
+  LC_intensify_two_params <- expanded_LCs
+  slot(LC_intensify_two_params,
+       "LC_deltas") <- LC_deltas_intensify_two
+
+  final_LCs <- allocateLCs(LC_allocation_params = LC_intensify_two_params,
                            allocation_type = "intensify")
 
   # Time check
@@ -98,18 +103,14 @@ runLCAllocation <- function(LC_deltas,
                    intensify_two_end_time,
                    "Completed second land cover intensification round in ")
 
-  # Check for unallocated land cover
-  apply(final_LCs@LC_deltas@LC_map,
-        1,
-        checkForUnallocatedLandCover,
-        LC_types = final_LCs@LC_deltas@LC_classes)
+  # Run checks on LC deltas and new reference map
+  LCAllocationChecks(final_LCs = final_LCs)
 
-  # Check land cover areas in the fine-scale map
-  apply(final_LCs@ref_map@LC_map,
-        1,
-        checkLandCoverAreasInOneCell,
-        total_area = final_LCs@ref_map@cell_area,
-        LC_types = final_LCs@ref_map@LC_classes)
+  # Extract new reference map
+  final_LCs_ref_map <- slot(final_LCs,
+                            "ref_map")
+  final_LCs_ref_map_df <- slot(final_LCs_ref_map,
+                               "LC_map")
 
   # Time check
   allocation_end_time <- Sys.time()
@@ -117,7 +118,7 @@ runLCAllocation <- function(LC_deltas,
                    allocation_end_time,
                    "Completed land cover allocation in ")
 
-  return(final_LCs@ref_map@LC_map)
+  return(final_LCs_ref_map_df)
 }
 
 #' Multiply land cover change values
@@ -202,13 +203,21 @@ sumLCDeltas <- function(LC_deltas_one,
 #' @return `LCDataClass` with a new reference map with land cover change
 #'   allocated, data frame with land cover delta values, and the final land
 #'   cover types in the reference map.
-allocateLCs <- function(LC_deltas,
-                        ref_map,
-                        kernel_radius,
-                        transition_priorities,
+allocateLCs <- function(LC_allocation_params,
                         allocation_type = "intensify") {
 
   # Extract variables from objects
+  LC_deltas <- slot(LC_allocation_params,
+                    "LC_deltas")
+  ref_map <- slot(LC_allocation_params,
+                  "ref_map")
+  transition_priorities <- slot(LC_allocation_params,
+                                "transition_priorities")
+  kernel_radius <- slot(LC_allocation_params,
+                        "kernel_radius")
+  intensification_ratio <- slot(LC_allocation_params,
+                                "intensification_ratio")
+
   updated_LC_deltas_df <- slot(LC_deltas,
                                "LC_map")
   updated_ref_map_df <- slot(ref_map,
@@ -292,7 +301,7 @@ allocateLCs <- function(LC_deltas,
     }
   }
 
-  # Return LCDataClass object
+  # Return LCAllocationParams object
   updated_ref_map <- ref_map
   slot(updated_ref_map,
        "LC_map") <- updated_ref_map_df
@@ -301,10 +310,12 @@ allocateLCs <- function(LC_deltas,
   slot(updated_LC_deltas,
        "LC_map") <- updated_LC_deltas_df
 
-  allocated_LCs <- new("LCDataClass",
+  allocated_LCs <- new("LCAllocationParams",
                        ref_map = updated_ref_map,
                        LC_deltas = updated_LC_deltas,
-                       LC_types = row.names(transition_priorities))
+                       transition_priorities = transition_priorities,
+                       kernel_radius = kernel_radius,
+                       intensification_ratio = intensification_ratio)
 
   return(allocated_LCs)
 }
@@ -616,4 +627,39 @@ updateLCFromDelta <- function(LC_from_delta,
                                         8)
 
   return(LC_from_delta_updated_rounded)
+}
+
+# Check for unallocated land cover and the area of land cover in each reference
+# map cell
+LCAllocationChecks <- function(final_LCs) {
+
+  # Extract params
+  final_LCs_deltas <- slot(final_LCs,
+                           "LC_deltas")
+  final_LCs_deltas_df <- slot(final_LCs_deltas,
+                              "LC_map")
+  final_LCs_deltas_classes <- slot(final_LCs_deltas,
+                                   "LC_classes")
+  final_LCs_ref_map <- slot(final_LCs,
+                            "ref_map")
+  final_LCs_ref_map_df <- slot(final_LCs_ref_map,
+                               "LC_map")
+  final_LCs_ref_map_LC_classes <- slot(final_LCs_ref_map,
+                                       "LC_classes")
+  final_LCs_ref_map_cell_area <- slot(final_LCs_ref_map,
+                                      "cell_area")
+
+  # Check for unallocated land cover
+  apply(final_LCs_deltas_df,
+        1,
+        checkForUnallocatedLandCover,
+        LC_types = final_LCs_deltas_classes)
+
+  # Check land cover areas in the fine-scale map
+  apply(final_LCs_ref_map_df,
+        1,
+        checkLandCoverAreasInOneCell,
+        total_area = final_LCs_ref_map_cell_area,
+        LC_types = final_LCs_ref_map_LC_classes)
+
 }
