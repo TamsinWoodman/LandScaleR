@@ -4,12 +4,12 @@
 #'   reference map cells.
 #'
 #' @inheritParams processLCDeltas
-#' @param ref_map_cells_df Subset of rows from the `assigned_ref_map` data frame
+#' @param ref_map_cells_df Subset of rows from the `ref_map` data frame
 #'   that contains the grid cells for which you want to calculate kernel
 #'   densities.
 #' @param LC_class Single land cover class for which to calculate kernel
 #'   densities. Must be a column name in `ref_map_cells_df` and
-#'   `assigned_ref_map`.
+#'   `ref_map`.
 #' @param ref_map_cell_resolution Resolution of one cell in the reference map,
 #'   in the form `c(x, y)`.
 #' @param kernel_radius Radius of cells to include in the kernel density
@@ -20,7 +20,7 @@
 #' @return Data frame with the kernel density value for the given land cover
 #'   class in each cell.
 calculateKernelDensities <- function(ref_map_cells_df,
-                                     assigned_ref_map,
+                                     ref_map,
                                      LC_class,
                                      ref_map_cell_resolution,
                                      kernel_radius = 1) {
@@ -38,7 +38,7 @@ calculateKernelDensities <- function(ref_map_cells_df,
   kernel_density_df[ , LC_class] <- apply(ref_map_cells_df,
                                                   1,
                                                   calculateKernelDensitiesForOneCell,
-                                                  assigned_ref_map = assigned_ref_map,
+                                                  ref_map = ref_map,
                                                   LC_class = LC_class,
                                                   cell_x_dist = cell_x_dist,
                                                   cell_y_dist = cell_y_dist)
@@ -64,7 +64,7 @@ calculateKernelDensities <- function(ref_map_cells_df,
 #' @return The kernel density value for the user-specified land cover class and
 #'   grid cell.
 calculateKernelDensitiesForOneCell <- function(grid_cell,
-                                               assigned_ref_map,
+                                               ref_map,
                                                LC_class,
                                                cell_x_dist,
                                                cell_y_dist) {
@@ -75,10 +75,10 @@ calculateKernelDensitiesForOneCell <- function(grid_cell,
   cell_coords <- c(cell_x_coord, cell_y_coord)
 
   # Find neighbour cells
-  neighbour_cells <- assigned_ref_map[which(assigned_ref_map["x"] >= (cell_x_coord - cell_x_dist) &
-                                                    assigned_ref_map["x"] <= (cell_x_coord + cell_x_dist) &
-                                                    assigned_ref_map["y"] >= (cell_y_coord - cell_y_dist) &
-                                                    assigned_ref_map["y"] <= (cell_y_coord + cell_y_dist)), ]
+  neighbour_cells <- ref_map[which(ref_map["x"] >= (cell_x_coord - cell_x_dist) &
+                                                    ref_map["x"] <= (cell_x_coord + cell_x_dist) &
+                                                    ref_map["y"] >= (cell_y_coord - cell_y_dist) &
+                                                    ref_map["y"] <= (cell_y_coord + cell_y_dist)), ]
 
   # Remove focal cell from neighbour cells df
   neighbour_cells <- neighbour_cells[-which(neighbour_cells["x"] == cell_x_coord &
