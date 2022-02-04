@@ -37,6 +37,10 @@
 #'   the first file in the list, the second time step the second file, and so
 #'   on. Land cover change files can be generated using the `calculateLCDeltas`
 #'   function from this package.
+#' @param LC_deltas_classes Vector of land cover classes in the land cover change
+#'   maps. Each land cover class should be a column name in every land cover
+#'   change file.
+#' @param LC_deltas_cell_area Area of a single coarse-scale grid cell.
 #' @param ref_map_type Specifies whether the reference map is discrete (contains
 #'   one land cover class per cell) or area-based (provides the area of each
 #'   land cover class in each cell). Must be one of "areas" or "discrete".
@@ -45,14 +49,29 @@
 #' @param ref_map_LC_classes Vector of land cover types in the reference map. For
 #'   an area-based reference map, all land cover types should be column names in
 #'   the reference map.
-#' @inheritParams processLCDeltas
-#' @inheritParams calculateKernelDensities
-#' @inheritParams runLCAllocation
+#' @param ref_map_cell_area Area of a single reference map grid cell.
+#' @param ref_map_cell_resolution Resolution of one cell in the reference map,
+#'   in the form `c(x, y)`.
+#' @param final_LC_classes A matrix containing the fraction of each coarse-scale
+#'   land cover class that contributes to each reference map land cover class.
+#'   Columns should contain reference map land cover classes, and rows are the
+#'   coarse-scale land cover classes. Each cell should contain the proportion of
+#'   the coarse-scale land cover class that contributes to the fine-scale class in
+#'   the output map.
+#' @param kernel_radius Radius of cells to include in the kernel density
+#'   calculation. A value of 1 means that the neighbour cells used to calculate
+#'   kernel density will be 1 cell in every direction around the focal cell.
+#'   Defaults to 1.
+#' @param transition_priorities Matrix containing transition priorities for land
+#'   cover allocation. Each row of the matrix should give the order in which one
+#'   land cover type is converted to others.
+#' @param intensification_ratio Ratio of land intensification versus land
+#'   expansion for the allocation algorithm.
 #' @param discrete_output_map Output discrete land cover as well as area-based
 #'   land cover. Default is `FALSE`.
 #' @param output_file_prefix Prefix for output downscaled land cover map files.
-#' @param output_dir_path Path to directory in which to saved the downscaled
-#'   land cover map files.
+#' @param output_dir_path Path to directory in which to save the downscaled
+#'   land cover map files. Will be created if it does not already exist.
 #'
 #' @return Tab-separated text files containing downscaled land cover maps, with
 #'   one file per input land cover change file. In each output file, the first
@@ -65,7 +84,7 @@
 #'   will be appended to the output.
 downscaleLC <- function(ref_map_file_name,
                         LC_deltas_file_list,
-                        LC_delta_classes,
+                        LC_deltas_classes,
                         LC_deltas_cell_area,
                         ref_map_type = "areas",
                         LC_column_name = "Land_cover",
@@ -88,7 +107,7 @@ downscaleLC <- function(ref_map_file_name,
 
     LC_deltas <- loadLCDeltas(LC_deltas_file_list = LC_deltas_file_list,
                               timestep = i,
-                              LC_deltas_classes = LC_delta_classes,
+                              LC_deltas_classes = LC_deltas_classes,
                               LC_deltas_cell_area = LC_deltas_cell_area)
 
     ref_map <- loadRefMap(timestep = i,
@@ -133,7 +152,11 @@ downscaleLC <- function(ref_map_file_name,
   print(paste0("Completed downscaling"))
 }
 
-# Create the output directory for land cover downscaling
+#' Create the output directory for land cover downscaling
+#'
+#' @inheritParams downscaleLC
+#'
+#' @return Creates an output directory with the path given in `output_dir_path`.
 createOutputDir <- function(output_dir_path) {
 
   if (!dir.exists(output_dir_path)) {
@@ -144,7 +167,15 @@ createOutputDir <- function(output_dir_path) {
   }
 }
 
-# Load the LC deltas data frame
+#' Load an LC deltas data frame
+#'
+#' Loads an LC deltas data frame for the given timestep.
+#'
+#' @inheritParams downscaleLC
+#' @param timestep Timestep of land cover change to be downscaled.
+#'
+#' @return An `LCMap` object containing the LC deltas data frame and associated
+#'   information.
 loadLCDeltas <- function(LC_deltas_file_list,
                          timestep,
                          LC_deltas_classes,
@@ -196,7 +227,15 @@ addCellIDs <- function(LC_df,
   return(LC_df_sorted)
 }
 
-# Load the reference map into R
+#' Load a reference map into R
+#'
+#' @inheritParams downscaleLC
+#' @inheritParams loadLCDeltas
+#' @param LC_deltas An `LCMap` object containing land cover change areas for the
+#'   given timestep.
+#'
+#' @return An `LCMap` object containing the reference map data frame for the
+#'   given timestep and associated information.
 loadRefMap <- function(timestep,
                        ref_map_file_name,
                        ref_map_type,
@@ -221,21 +260,21 @@ loadRefMap <- function(timestep,
 
     # Convert discrete map into fractional map
     if (ref_map_type == "discrete") {
-      ref_map_raw <- convertDiscreteLCToLCAreas(ref_map = ref_map_raw,
+      ref_map_raw <- convertDiscreteLCToLCAreas(ref_map_df = ref_map_raw,
                                                 ref_map_LC_classes = ref_map_LC_classes,
                                                 ref_map_cell_area = ref_map_cell_area,
                                                 LC_column_name = LC_column_name)
     }
 
     # Add IDs column
-    ref_map <- addCellIDs(ref_map_raw,
-                          "ref_ID")
+    ref_map_df <- addCellIDs(LC_df = ref_map_raw,
+                             ID_column_name = "ref_ID")
 
     print(paste0("Loaded reference map: ",
                  ref_map_file_name))
 
     # Assign fine-scale cells
-    assigned_ref_map <- assignRefMapCells(ref_map = ref_map,
+    assigned_ref_map <- assignRefMapCells(ref_map_df = ref_map_df,
                                           LC_deltas_df = LC_deltas_df)
   } else {
 
@@ -265,26 +304,28 @@ loadRefMap <- function(timestep,
 #' Assign reference map cells to coarse-scale grid cells
 #'
 #' Assigns fine-scale cells on an reference land cover map to coarse-scale grid
-#'   cells from a land-use model using a nearest-neighbour method.
+#'   cells from a land cover change map using a nearest-neighbour method.
 #'
-#' @inheritParams processLCDeltas
+#' @param ref_map_df Data frame of the reference map for the current timestep.
+#' @param LC_deltas_df Data frame of coarse-scale land cover change areas for
+#'   the current timestep.
 #'
-#' @return A copy of the fine-scale cells data frame with an extra column
-#'   containing the ID of the coarse-scale cell to which each fine-scale cell
+#' @return A copy of the reference map data frame with an extra column
+#'   containing the ID of the coarse-scale cell to which each reference map cell
 #'   belongs.
-assignRefMapCells <- function(ref_map,
+assignRefMapCells <- function(ref_map_df,
                               LC_deltas_df) {
 
   start_time <- Sys.time()
 
   # Calculate nearest neighbours
   nearest_neighbours <- FNN::get.knnx(LC_deltas_df[ , 1:2],
-                                      ref_map[ , 1:2],
+                                      ref_map_df[ , 1:2],
                                       1,
                                       algorithm = "kd_tree")
 
   # Add nearest neighbours to fine-scale cell df
-  ref_map_with_nn <- ref_map
+  ref_map_with_nn <- ref_map_df
   ref_map_with_nn$coarse_ID <- as.integer(nearest_neighbours$nn.index)
 
   # Time check
@@ -301,29 +342,29 @@ assignRefMapCells <- function(ref_map,
 #'
 #' Takes a land cover map with one land cover class per grid cell, and converts
 #'   it to a map with the area of each land cover class per cell.
-#' @param ref_map Data frame of the reference map which should be the
-#'   scale at which you want to downscale the land cover data.
+#'
+#' @inheritParams assignRefMapCells
 #' @inheritParams downscaleLC
 #'
-#' @return A data frame of land cover in grid cells. The first two columns give
-#'   the x- and y-coordinates of each cell. Remaining columns give the area of
-#'   each land cover class in each cell.
-convertDiscreteLCToLCAreas <- function(ref_map,
+#' @return A data frame of land cover areas per grid cell. The first two columns
+#'   give the x- and y-coordinates of each cell. Remaining columns give the area
+#'   of each land cover class in each cell.
+convertDiscreteLCToLCAreas <- function(ref_map_df,
                                        ref_map_LC_classes,
                                        ref_map_cell_area,
                                        LC_column_name) {
 
-  if (!LC_column_name %in% colnames(ref_map)) {
+  if (!LC_column_name %in% colnames(ref_map_df)) {
     stop(paste0(LC_column_name,
                 " was not found as a column name in the reference map"))
   }
 
-  ref_map_LC_areas <- ref_map[ , c("x", "y")]
+  ref_map_LC_areas <- ref_map_df[ , c("x", "y")]
 
-  ref_map_LC_areas[ , ref_map_LC_classes] <- t(sapply(ref_map[ , LC_column_name],
-                                                   convertDiscreteLCToLCAreasOneCell,
-                                                   ref_map_LC_classes = ref_map_LC_classes,
-                                                   ref_map_cell_area = ref_map_cell_area))
+  ref_map_LC_areas[ , ref_map_LC_classes] <- t(sapply(ref_map_df[ , LC_column_name],
+                                                      convertDiscreteLCToLCAreasOneCell,
+                                                      ref_map_LC_classes = ref_map_LC_classes,
+                                                      ref_map_cell_area = ref_map_cell_area))
 
   return(ref_map_LC_areas)
 }
@@ -334,7 +375,7 @@ convertDiscreteLCToLCAreas <- function(ref_map,
 #' Converts a discrete land cover class for one grid cell to a vector containing
 #'   the area of user-specified land cover classes in that cell.
 #'
-#' @param LC_class The land cover class in the grid cell.
+#' @param LC_class Discrete land cover class that the grid cell contains.
 #' @inheritParams downscaleLC
 #'
 #' @return A vector with the area of each of the specified land cover classes in

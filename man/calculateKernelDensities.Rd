@@ -6,25 +6,22 @@
 \usage{
 calculateKernelDensities(
   ref_map_cells_df,
-  assigned_ref_map,
+  ref_map_df,
   LC_class,
   ref_map_cell_resolution,
   kernel_radius = 1
 )
 }
 \arguments{
-\item{ref_map_cells_df}{Subset of rows from the `assigned_ref_map` data frame
+\item{ref_map_cells_df}{Subset of rows from the `ref_map_df` data frame
 that contains the grid cells for which you want to calculate kernel
 densities.}
 
-\item{assigned_ref_map}{Data frame of the reference map which should be the
-scale at which you want to downscale the land cover data. The data frame
-must have a column called `coarse_ID` which assigns each cell in the
-reference map to the nearest coarse-scale cell.}
+\item{ref_map_df}{Data frame of the reference map for the current timestep.}
 
 \item{LC_class}{Single land cover class for which to calculate kernel
 densities. Must be a column name in `ref_map_cells_df` and
-`assigned_ref_map`.}
+`ref_map`.}
 
 \item{ref_map_cell_resolution}{Resolution of one cell in the reference map,
 in the form `c(x, y)`.}

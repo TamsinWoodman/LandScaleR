@@ -7,8 +7,8 @@
 calculateActualConversion(LC_from_values, tentative_conversion)
 }
 \arguments{
-\item{LC_from_values}{Vector of the area of the land cover type to be
-decreased that is currently in a set of reference map cells.}
+\item{LC_from_values}{Vector of the current area of the decreasing land cover
+class within reference cells selected for land cover allocation.}
 
 \item{tentative_conversion}{Vector with the tentative land cover conversion
 value for each reference map cell.}

@@ -4,33 +4,18 @@
 \alias{reconcileLCDeltas}
 \title{Reconcile land cover deltas}
 \usage{
-reconcileLCDeltas(
-  LC_deltas,
-  assigned_ref_map,
-  LC_delta_types,
-  LC_deltas_cell_area,
-  ref_map_cell_area
-)
+reconcileLCDeltas(LC_deltas, ref_map)
 }
 \arguments{
-\item{LC_deltas}{Data frame of land cover changes between two coarse-scale
-timesteps. Must be the same projection as `assigned_ref_map`.}
+\item{LC_deltas}{An `LCMap` object containing land cover change areas for the
+given timestep.}
 
-\item{assigned_ref_map}{Data frame of the reference map which should be the
-scale at which you want to downscale the land cover data. The data frame
-must have a column called `coarse_ID` which assigns each cell in the
-reference map to the nearest coarse-scale cell.}
-
-\item{LC_delta_types}{Column names of land cover types in the land cover
-change data frame `LC_deltas`.}
-
-\item{LC_deltas_cell_area}{Area of a coarse-scale grid cell.}
-
-\item{ref_map_cell_area}{Area of a reference map grid cell.}
+\item{ref_map}{An `LCMap` object containing the reference map for the current
+timestep.}
 }
 \value{
-A data frame of land-use areas within coarse-scale cells, with every
-  area adjusted for the area of fine-scale cells associated with that coarse
+`LCMap` object of land cover change in `LC_deltas` where every area
+  is adjusted for the area of fine-scale cells associated with that coarse
   grid cell.
 }
 \description{

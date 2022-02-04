@@ -2,19 +2,16 @@
 % Please edit documentation in R/landCoverAllocation.R
 \name{getCellsToIntensifyLC}
 \alias{getCellsToIntensifyLC}
-\title{Get cells in which to intensify one land cover type}
+\title{Get cells in which to intensify one land cover class}
 \usage{
-getCellsToIntensifyLC(assigned_ref_map, LC_to_name, LC_from_name, coarse_ID)
+getCellsToIntensifyLC(ref_map_df, LC_to_name, LC_from_name, coarse_ID)
 }
 \arguments{
-\item{assigned_ref_map}{Data frame of the reference map which should be the
-scale at which you want to downscale the land cover data. The data frame
-must have a column called `coarse_ID` which assigns each cell in the
-reference map to the nearest coarse-scale cell.}
+\item{ref_map_df}{Data frame of the reference map for the current timestep.}
 
-\item{LC_to_name}{Name of the land cover that is increasing.}
+\item{LC_to_name}{Name of the land cover class that is increasing.}
 
-\item{LC_from_name}{Name of the land cover that is being converted to
+\item{LC_from_name}{Name of the land cover class that is being converted to
 `LC_to_name`.}
 
 \item{coarse_ID}{Identification number of the coarse-scale cell within which
@@ -22,10 +19,10 @@ reference map to the nearest coarse-scale cell.}
 }
 \value{
 Data frame of cells from the reference map that meet the criteria for
-  intensification of one land cover type into another.
+  intensification of one land cover class into another.
 }
 \description{
-Find cells which match the conditions for intensifying one land cover type
+Find cells which match the conditions for intensifying one land cover class
   into a second. Cells meet the criteria for intensification if both land
-  cover types are greater than 0 within the cell.
+  cover classes are greater than 0 within the cell.
 }

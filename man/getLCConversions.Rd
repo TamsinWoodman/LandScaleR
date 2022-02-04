@@ -6,7 +6,7 @@
 \usage{
 getLCConversions(
   cells_for_allocation,
-  assigned_ref_map,
+  ref_map_df,
   ref_map_cell_resolution,
   kernel_radius,
   LC_to_name,
@@ -16,13 +16,10 @@ getLCConversions(
 )
 }
 \arguments{
-\item{cells_for_allocation}{Data frame of reference cells to which the
-increasing land cover type will be allocated.}
+\item{cells_for_allocation}{Data frame of reference map cells to which the
+increasing land cover class will be allocated.}
 
-\item{assigned_ref_map}{Data frame of the reference map which should be the
-scale at which you want to downscale the land cover data. The data frame
-must have a column called `coarse_ID` which assigns each cell in the
-reference map to the nearest coarse-scale cell.}
+\item{ref_map_df}{Data frame of the reference map for the current timestep.}
 
 \item{ref_map_cell_resolution}{Resolution of one cell in the reference map,
 in the form `c(x, y)`.}
@@ -32,22 +29,20 @@ calculation. A value of 1 means that the neighbour cells used to calculate
 kernel density will be 1 cell in every direction around the focal cell.
 Defaults to 1.}
 
-\item{LC_to_name}{Name of the land cover that is increasing.}
+\item{LC_to_name}{Name of the land cover class that is increasing.}
 
-\item{LC_from_name}{Name of the land cover that is being converted to
+\item{LC_from_name}{Name of the land cover class that is being converted to
 `LC_to_name`.}
 
-\item{LC_to_delta}{The land cover change amount (delta) for the increasing
-land cover type, which is equivalent to the amount that this land cover
-type increased in the coarse-scale cell during one timestep.}
+\item{LC_to_delta}{The area by which the increasing land cover class grew in
+the coarse-scale cell the current timestep.}
 
-\item{LC_from_delta}{The land cover delta value for the decreasing land cover
-type, which is the amount that this land cover type decreased in the
-coarse-scale cell during one timestep.}
+\item{LC_from_delta}{The area by which the decreasing land cover class
+contracted in the coarse-scale cell in the current timestep.}
 }
 \value{
 Two column data frame. First column contains IDs of reference map
-  cells, second column is the amount of the increasing land cover type
+  cells, second column is the amount of the increasing land cover class
   allocated to each cell.
 }
 \description{

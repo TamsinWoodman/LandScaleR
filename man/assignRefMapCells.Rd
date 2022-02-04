@@ -4,18 +4,20 @@
 \alias{assignRefMapCells}
 \title{Assign reference map cells to coarse-scale grid cells}
 \usage{
-assignRefMapCells(ref_map, LC_deltas)
+assignRefMapCells(ref_map_df, LC_deltas_df)
 }
 \arguments{
-\item{LC_deltas}{Data frame of land cover changes between two coarse-scale
-timesteps. Must be the same projection as `assigned_ref_map`.}
+\item{ref_map_df}{Data frame of the reference map for the current timestep.}
+
+\item{LC_deltas_df}{Data frame of coarse-scale land cover change areas for
+the current timestep.}
 }
 \value{
-A copy of the fine-scale cells data frame with an extra column
-  containing the ID of the coarse-scale cell to which each fine-scale cell
+A copy of the reference map data frame with an extra column
+  containing the ID of the coarse-scale cell to which each reference map cell
   belongs.
 }
 \description{
 Assigns fine-scale cells on an reference land cover map to coarse-scale grid
-  cells from a land-use model using a nearest-neighbour method.
+  cells from a land cover change map using a nearest-neighbour method.
 }

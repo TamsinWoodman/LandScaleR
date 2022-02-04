@@ -4,44 +4,29 @@
 \alias{processLCDeltas}
 \title{Land cover change processing}
 \usage{
-processLCDeltas(
-  LC_deltas,
-  assigned_ref_map,
-  LC_deltas_cell_area,
-  ref_map_cell_area,
-  LC_delta_types,
-  final_LC_types
-)
+processLCDeltas(LC_deltas, ref_map, final_LC_classes)
 }
 \arguments{
-\item{LC_deltas}{Data frame of land cover changes between two coarse-scale
-timesteps. Must be the same projection as `assigned_ref_map`.}
+\item{LC_deltas}{An `LCMap` object containing land cover change areas for the
+given timestep.}
 
-\item{assigned_ref_map}{Data frame of the reference map which should be the
-scale at which you want to downscale the land cover data. The data frame
-must have a column called `coarse_ID` which assigns each cell in the
-reference map to the nearest coarse-scale cell.}
+\item{ref_map}{An `LCMap` object containing the reference map for the current
+timestep.}
 
-\item{LC_deltas_cell_area}{Area of a coarse-scale grid cell.}
-
-\item{ref_map_cell_area}{Area of a reference map grid cell.}
-
-\item{LC_delta_types}{Column names of land cover types in the land cover
-change data frame `LC_deltas`.}
-
-\item{final_LC_types}{A matrix containing the fraction of each coarse-scale
-land cover type that contributes to each reference map land cover type.
-Columns should contain reference map land cover types, and rows are the
-coarse-scale land cover types. Each cell should contain the proportion of
-the coarse-scale land cover type that contributes to the fine-scale type in
+\item{final_LC_classes}{A matrix containing the fraction of each coarse-scale
+land cover class that contributes to each reference map land cover class.
+Columns should contain reference map land cover classes, and rows are the
+coarse-scale land cover classes. Each cell should contain the proportion of
+the coarse-scale land cover class that contributes to the fine-scale class in
 the output map.}
 }
 \value{
-Data frame of coarse-scale cells with adjusted land cover changes
-  aggregated to final land cover types.
+`LCMap` object containing land cover change from `LC_deltas` that has
+  been adjusted according to areas in the reference map and aggregated to
+  final land cover classes.
 }
 \description{
 Reconciles the land cover change values for each coarse-scale cell
-  with fine-scale areas and aggregates land cover types to specified final
-  land cover types.
+  with fine-scale areas and aggregates land cover classes to specified final
+  land cover classes.
 }

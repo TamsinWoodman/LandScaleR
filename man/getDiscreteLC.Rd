@@ -5,13 +5,13 @@
 \title{Get discrete land cover classes from a land cover data frame containing the
   area of each land cover class per grid cell}
 \usage{
-getDiscreteLC(LC_map, ref_map_LC_types)
+getDiscreteLC(LC_map, ref_map_LC_classes)
 }
 \arguments{
 \item{LC_map}{Land cover data frame with the area of each land cover class
 per grid cell.}
 
-\item{ref_map_LC_types}{Vector of land cover types in the reference map. For
+\item{ref_map_LC_classes}{Vector of land cover types in the reference map. For
 an area-based reference map, all land cover types should be column names in
 the reference map.}
 }

@@ -15,9 +15,9 @@ updateOneRefMapCellWithLCConversions(
 \item{ref_map_cell}{One row from a reference map data frame, which is
 equivalent to one grid cell.}
 
-\item{LC_to_name}{Name of the land cover that is increasing.}
+\item{LC_to_name}{Name of the land cover class that is increasing.}
 
-\item{LC_from_name}{Name of the land cover that is being converted to
+\item{LC_from_name}{Name of the land cover class that is being converted to
 `LC_to_name`.}
 
 \item{actual_conversion}{The actual area of land cover to be converted from
@@ -29,5 +29,5 @@ A one row data frame with updated land cover areas.
 }
 \description{
 Updates one cell from a reference map with land cover conversion areas from
-  the conversion of one land cover type to another.
+  the conversion of one land cover class to another.
 }

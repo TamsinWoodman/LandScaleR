@@ -7,13 +7,11 @@
 getLCDeltaForTentativeConversion(LC_to_delta, LC_from_delta)
 }
 \arguments{
-\item{LC_to_delta}{The land cover change amount (delta) for the increasing
-land cover type, which is equivalent to the amount that this land cover
-type increased in the coarse-scale cell during one timestep.}
+\item{LC_to_delta}{The area by which the increasing land cover class grew in
+the coarse-scale cell the current timestep.}
 
-\item{LC_from_delta}{The land cover delta value for the decreasing land cover
-type, which is the amount that this land cover type decreased in the
-coarse-scale cell during one timestep.}
+\item{LC_from_delta}{The area by which the decreasing land cover class
+contracted in the coarse-scale cell in the current timestep.}
 }
 \value{
 Value of land cover delta to be used in tentative land cover
@@ -22,5 +20,5 @@ Value of land cover delta to be used in tentative land cover
 \description{
 Returns land cover change area (delta) to be used in tentative land cover
   conversions, which is the minimum of the absolute increasing and decreasing
-  land cover type delta values.
+  land cover class delta values.
 }

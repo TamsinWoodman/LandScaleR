@@ -5,26 +5,23 @@
 \title{Update reference map with land cover conversion values}
 \usage{
 updateRefMapWithLCConversions(
-  assigned_ref_map,
+  ref_map_df,
   LC_conversion_df,
   LC_from_name,
   LC_to_name
 )
 }
 \arguments{
-\item{assigned_ref_map}{Data frame of the reference map which should be the
-scale at which you want to downscale the land cover data. The data frame
-must have a column called `coarse_ID` which assigns each cell in the
-reference map to the nearest coarse-scale cell.}
+\item{ref_map_df}{Data frame of the reference map for the current timestep.}
 
 \item{LC_conversion_df}{Data frame with one column for actual land cover
-conversion areas and a second with reference map IDs. Output from the
+conversion areas and a second with reference map cell IDs. Output from the
 `getLCConversions` function.}
 
-\item{LC_from_name}{Name of the land cover that is being converted to
+\item{LC_from_name}{Name of the land cover class that is being converted to
 `LC_to_name`.}
 
-\item{LC_to_name}{Name of the land cover that is increasing.}
+\item{LC_to_name}{Name of the land cover class that is increasing.}
 }
 \value{
 Reference map data frame with updated land cover areas in the cells
@@ -32,5 +29,5 @@ Reference map data frame with updated land cover areas in the cells
 }
 \description{
 Updates a reference map with the actual land cover conversion areas for one
-  timestep and land cover type.
+  timestep and land cover class.
 }

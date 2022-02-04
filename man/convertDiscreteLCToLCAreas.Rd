@@ -6,29 +6,28 @@
   cover class per cell}
 \usage{
 convertDiscreteLCToLCAreas(
-  ref_map,
-  ref_map_LC_types,
+  ref_map_df,
+  ref_map_LC_classes,
   ref_map_cell_area,
   LC_column_name
 )
 }
 \arguments{
-\item{ref_map}{Data frame of the reference map which should be the
-scale at which you want to downscale the land cover data.}
+\item{ref_map_df}{Data frame of the reference map for the current timestep.}
 
-\item{ref_map_LC_types}{Vector of land cover types in the reference map. For
+\item{ref_map_LC_classes}{Vector of land cover types in the reference map. For
 an area-based reference map, all land cover types should be column names in
 the reference map.}
 
-\item{ref_map_cell_area}{Area of a reference map grid cell.}
+\item{ref_map_cell_area}{Area of a single reference map grid cell.}
 
 \item{LC_column_name}{For a discrete reference map, gives the name of the
 column containing the land cover class for each grid cell.}
 }
 \value{
-A data frame of land cover in grid cells. The first two columns give
-  the x- and y-coordinates of each cell. Remaining columns give the area of
-  each land cover class in each cell.
+A data frame of land cover areas per grid cell. The first two columns
+  give the x- and y-coordinates of each cell. Remaining columns give the area
+  of each land cover class in each cell.
 }
 \description{
 Takes a land cover map with one land cover class per grid cell, and converts

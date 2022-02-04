@@ -4,49 +4,25 @@
 \alias{allocateLCs}
 \title{Allocate land cover change to reference map}
 \usage{
-allocateLCs(
-  assigned_ref_map,
-  ref_map_cell_resolution,
-  kernel_radius,
-  LC_deltas,
-  transition_priorities,
-  allocation_type = "intensify"
-)
+allocateLCs(LC_allocation_params, allocation_type = "intensify")
 }
 \arguments{
-\item{assigned_ref_map}{Data frame of the reference map which should be the
-scale at which you want to downscale the land cover data. The data frame
-must have a column called `coarse_ID` which assigns each cell in the
-reference map to the nearest coarse-scale cell.}
-
-\item{ref_map_cell_resolution}{Resolution of one cell in the reference map,
-in the form `c(x, y)`.}
-
-\item{kernel_radius}{Radius of cells to include in the kernel density
-calculation. A value of 1 means that the neighbour cells used to calculate
-kernel density will be 1 cell in every direction around the focal cell.
-Defaults to 1.}
-
-\item{LC_deltas}{Data frame of adjusted and aggregated land cover change
-(delta) values from the coarse-scale input map for every cell and land
-cover type.}
-
-\item{transition_priorities}{Matrix containing transition priorities for land
-cover allocation. Each row of the matrix should give the order in which one
-land cover type is converted to others.}
+\item{LC_allocation_params}{`LCAllocationParams` object containing all the
+parameters required to allocate land cover change to a reference map for a
+single timestep.}
 
 \item{allocation_type}{The type of land cover allocation. Can be one of
 `intensify` or `expand`, which mean that land covers will be allocated to
 cells where they do or do not already occur, respectively.}
 }
 \value{
-`LCDataClass` with a new reference map with land cover change
-  allocated, data frame with land cover delta values, and the final land
-  cover types in the reference map.
+`LCAllocationParams` object with an updated reference map after land
+  cover change allocation and a data frame with any unallocated land cover
+  change areas.
 }
 \description{
 Allocates land cover change (delta) values to the given reference map. Land
-  cover types can be allocated to cells where they already exist
+  cover classes can be allocated to cells where they already exist
   (intensified) or to cells where they do not exist (expanded). The type of
   land cover allocation can be set with the `allocation_type` argument.
 }

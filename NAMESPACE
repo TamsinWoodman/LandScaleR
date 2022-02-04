@@ -2,3 +2,5 @@
 
 export(makeLandUseRaster)
 export(makeLandUseRasterStack)
+exportClasses(LCAllocationParams)
+exportClasses(LCMap)

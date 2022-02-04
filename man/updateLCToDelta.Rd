@@ -2,23 +2,22 @@
 % Please edit documentation in R/landCoverAllocation.R
 \name{updateLCToDelta}
 \alias{updateLCToDelta}
-\title{Update land cover change (delta) area of an increasing land cover type}
+\title{Update land cover change (delta) area of an increasing land cover class}
 \usage{
 updateLCToDelta(LC_to_delta, total_conversion)
 }
 \arguments{
-\item{LC_to_delta}{The land cover change amount (delta) for the increasing
-land cover type, which is equivalent to the amount that this land cover
-type increased in the coarse-scale cell during one timestep.}
+\item{LC_to_delta}{The area by which the increasing land cover class grew in
+the coarse-scale cell the current timestep.}
 
 \item{total_conversion}{The total area of land converted to the given land
-cover type.}
+cover class.}
 }
 \value{
-The new land cover delta value for one land cover type.
+The new land cover delta value for one land cover class.
 }
 \description{
-Updates the land cover delta value of an increasing land cover type, by
+Updates the land cover delta value of an increasing land cover class, by
   subtracting the total increase of that land cover within one coarse-scale
   cell from the initial delta value.
 }

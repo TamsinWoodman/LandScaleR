@@ -3,7 +3,7 @@
 \name{getSortedTransitionPriorities}
 \alias{getSortedTransitionPriorities}
 \title{Get ordered vector of transition priorities for allocation of one land cover
-  type}
+  class}
 \usage{
 getSortedTransitionPriorities(transition_priorities, row_number)
 }
@@ -22,5 +22,5 @@ Sorted vector of land cover transition priorities for the land cover
 }
 \description{
 Takes a land cover transition priorities matrix and a row number, and returns
-  an vector with the order of land cover types in that row.
+  an vector with the order of land cover classes in that row.
 }

@@ -12,19 +12,19 @@ adjustCoarseLCAreas(
 )
 }
 \arguments{
-\item{coarse_scale_land_use_areas}{Vector containing values of a single land
-cover type in all coarse-scale grid cells.}
+\item{coarse_scale_land_use_areas}{Vector containing areas of a single land
+cover class in all coarse-scale grid cells.}
 
 \item{ref_map_areas}{Vector containing the area of reference map cells within
 each coarse-scale grid cell.}
 
-\item{LC_deltas_cell_area}{Area of a coarse-scale grid cell.}
+\item{LC_deltas_cell_area}{Area of a single coarse-scale grid cell.}
 }
 \value{
 Vector of adjusted land cover deltas.
 }
 \description{
-Adjusts the land cover delta value for a single land cover type according to
+Adjusts the land cover delta value for a single land cover class according to
   the area of reference map cells assigned to the coarse cell.
 }
 \details{

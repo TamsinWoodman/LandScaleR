@@ -4,20 +4,17 @@
 \alias{sumLCDeltas}
 \title{Sum land cover change values}
 \usage{
-sumLCDeltas(LC_deltas_one, LC_deltas_two, LC_types)
+sumLCDeltas(LC_deltas_one, LC_deltas_two)
 }
 \arguments{
-\item{LC_deltas_one}{Data frame of land cover change values from a
-coarse-scale map.}
+\item{LC_deltas_one}{An `LCMap` object containing land cover change areas.}
 
-\item{LC_deltas_two}{Second data frame of land cover change values from a
-coarse-scale map.}
-
-\item{LC_types}{Vector of land cover types in the `LC_deltas` data frame.}
+\item{LC_deltas_two}{A second `LCMap` object containing land cover change
+areas.}
 }
 \value{
-Data frame containing the sum of land cover change from the two input
-  land cover change data frames.
+`LCMap` object containing the sum of land cover change from the two
+  input objects.
 }
 \description{
 Sums the land cover change values in two data frames. The land cover types

@@ -7,11 +7,11 @@
 calculateTentativeConversionValues(LC_delta_for_tc, kernel_densities)
 }
 \arguments{
-\item{LC_delta_for_tc}{Change in area of one land cover type (delta) within
+\item{LC_delta_for_tc}{Change in area of one land cover class (delta) within
 one coarse-scale grid cell.}
 
-\item{kernel_densities}{Vector of kernel densities within reference map cells
-assigned to the coarse-scale cell, for the land cover type of interest.}
+\item{kernel_densities}{Vector of kernel densities for the land cover class
+of interest within reference map cells selected for land cover allocation.}
 }
 \value{
 Vector with a tentative land cover conversion area for each reference
@@ -19,7 +19,6 @@ Vector with a tentative land cover conversion area for each reference
 }
 \description{
 Calculates tentative land cover conversion values based on the change in area
-  of one
-  land cover type in a coarse-scale cell, and the kernel density values of
-  reference map cells assigned to the coarse-scale cell.
+  of one land cover class in a coarse-scale cell and the kernel density
+  values of reference map cells selected for land cover allocation.
 }

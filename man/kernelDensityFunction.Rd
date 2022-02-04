@@ -2,12 +2,13 @@
 % Please edit documentation in R/kernelDensities.R
 \name{kernelDensityFunction}
 \alias{kernelDensityFunction}
-\title{Calculate kernel density value for a single land cover in a single cell}
+\title{Calculate kernel density value for a single land cover class in a single cell}
 \usage{
 kernelDensityFunction(LC_areas, distance_values, number_of_neighbour_cells)
 }
 \arguments{
-\item{LC_areas}{Vector of land cover areas within each neighbour cell.}
+\item{LC_areas}{Vector of areas for one land cover class within each
+neighbour cell.}
 
 \item{distance_values}{Vector giving the distance of each neighbour cell
 from the focal cell, should be the same length as `LC_values`.}
@@ -18,6 +19,6 @@ from the focal cell, should be the same length as `LC_values`.}
 The kernel density of the given land-use in the focal cell.
 }
 \description{
-Calculates the kernel density value for a single land cover in a single
-  fine-scale grid cell.
+Calculates the kernel density value for a single land cover class in a single
+  reference map grid cell.
 }

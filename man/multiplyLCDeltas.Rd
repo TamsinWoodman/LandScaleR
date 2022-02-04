@@ -4,24 +4,21 @@
 \alias{multiplyLCDeltas}
 \title{Multiply land cover change values}
 \usage{
-multiplyLCDeltas(LC_deltas, LC_types, multiplication_factor)
+multiplyLCDeltas(LC_deltas, multiplication_factor)
 }
 \arguments{
-\item{LC_deltas}{Data frame of adjusted and aggregated land cover change
-(delta) values from the coarse-scale input map for every cell and land
-cover type.}
-
-\item{LC_types}{Vector of land cover types in the `LC_deltas` data frame.}
+\item{LC_deltas}{An `LCMap` object containing land cover change areas for the
+given timestep.}
 
 \item{multiplication_factor}{Factor by which to multiply the land cover
-change values in the `LC_deltas` data frame.}
+change values in the `LC_deltas` object.}
 }
 \value{
-Data frame containing land cover change values multiplied by the
+`LCMap` object containing land cover change values multiplied by the
   user-specified `multiplication_factor` parameter.
 }
 \description{
-Multiples land cover change (delta) values by a user-specified multiplication
+Multiplies land cover change (delta) values by a user-specified multiplication
   factor. This allows the implementation of an intensification versus
   expansion factor that determines the amount of land cover which is
   intensified versus expanded during land cover allocation.

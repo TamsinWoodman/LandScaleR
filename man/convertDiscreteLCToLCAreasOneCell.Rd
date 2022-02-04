@@ -7,18 +7,18 @@
 \usage{
 convertDiscreteLCToLCAreasOneCell(
   LC_class,
-  ref_map_LC_types,
+  ref_map_LC_classes,
   ref_map_cell_area
 )
 }
 \arguments{
-\item{LC_class}{The land cover class in the grid cell.}
+\item{LC_class}{Discrete land cover class that the grid cell contains.}
 
-\item{ref_map_LC_types}{Vector of land cover types in the reference map. For
+\item{ref_map_LC_classes}{Vector of land cover types in the reference map. For
 an area-based reference map, all land cover types should be column names in
 the reference map.}
 
-\item{ref_map_cell_area}{Area of a reference map grid cell.}
+\item{ref_map_cell_area}{Area of a single reference map grid cell.}
 }
 \value{
 A vector with the area of each of the specified land cover classes in

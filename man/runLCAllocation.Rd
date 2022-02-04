@@ -5,45 +5,16 @@
 \title{Run allocation of land covers to reference map by intensification and
   expansion}
 \usage{
-runLCAllocation(
-  assigned_ref_map,
-  ref_map_cell_resolution,
-  kernel_radius,
-  LC_deltas,
-  transition_priorities,
-  intensification_ratio,
-  ref_map_cell_area
-)
+runLCAllocation(LC_allocation_params)
 }
 \arguments{
-\item{assigned_ref_map}{Data frame of the reference map which should be the
-scale at which you want to downscale the land cover data. The data frame
-must have a column called `coarse_ID` which assigns each cell in the
-reference map to the nearest coarse-scale cell.}
-
-\item{ref_map_cell_resolution}{Resolution of one cell in the reference map,
-in the form `c(x, y)`.}
-
-\item{kernel_radius}{Radius of cells to include in the kernel density
-calculation. A value of 1 means that the neighbour cells used to calculate
-kernel density will be 1 cell in every direction around the focal cell.
-Defaults to 1.}
-
-\item{LC_deltas}{Data frame of adjusted and aggregated land cover change
-(delta) values from the coarse-scale input map for every cell and land
-cover type.}
-
-\item{transition_priorities}{Matrix containing transition priorities for land
-cover allocation. Each row of the matrix should give the order in which one
-land cover type is converted to others.}
-
-\item{intensification_ratio}{Ratio of land intensification versus land
-expansion for the allocation algorithm.}
-
-\item{ref_map_cell_area}{Area of a reference map grid cell.}
+\item{LC_allocation_params}{`LCAllocationParams` object containing all the
+parameters required to allocate land cover change to a reference map for a
+single timestep.}
 }
 \value{
-New land cover data frame with the given land cover change allocated.
+New land cover data frame at the same resolution as the given
+  reference map with the specified land cover change areas allocated.
 }
 \description{
 This function will run the allocation of all land cover change (delta) values

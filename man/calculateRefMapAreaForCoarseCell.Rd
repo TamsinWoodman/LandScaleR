@@ -4,22 +4,15 @@
 \alias{calculateRefMapAreaForCoarseCell}
 \title{Calculate area of reference map cells assigned to a coarse grid cell}
 \usage{
-calculateRefMapAreaForCoarseCell(
-  coarse_cell,
-  assigned_ref_map,
-  ref_map_cell_area
-)
+calculateRefMapAreaForCoarseCell(coarse_cell, ref_map_df, ref_map_cell_area)
 }
 \arguments{
 \item{coarse_cell}{A row containing land-use areas and ID number for a single
 coarse grid cell.}
 
-\item{assigned_ref_map}{Data frame of the reference map which should be the
-scale at which you want to downscale the land cover data. The data frame
-must have a column called `coarse_ID` which assigns each cell in the
-reference map to the nearest coarse-scale cell.}
+\item{ref_map_df}{Data frame of the reference map for the current timestep.}
 
-\item{ref_map_cell_area}{Area of a reference map grid cell.}
+\item{ref_map_cell_area}{Area of a single reference map grid cell.}
 }
 \value{
 Area of reference map cells that are assigned to the given coarse
