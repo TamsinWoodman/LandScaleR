@@ -99,6 +99,8 @@ downscaleLC <- function(ref_map_file_name,
                         output_file_prefix,
                         output_dir_path) {
 
+  start_time <- Sys.time()
+
   # Create output directory if it doesn't exist
   createOutputDir(output_dir_path = output_dir_path)
 
@@ -147,9 +149,15 @@ downscaleLC <- function(ref_map_file_name,
                             file_prefix = output_file_prefix,
                             dir_path = output_dir_path,
                             time_step = i)
+
+    print(paste0("Completed downscaling timestep ",
+                 i))
   }
 
-  print(paste0("Completed downscaling"))
+  end_time <- Sys.time()
+  timeCheckMessage(start_time,
+                   end_time,
+                   "Completed downscaling in ")
 }
 
 #' Create the output directory for land cover downscaling
