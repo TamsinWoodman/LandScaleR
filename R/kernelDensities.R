@@ -1,48 +1,18 @@
-#' Calculate kernel densities
-#'
-#' Calculates kernel densities for one land cover class for a subset of
-#'   reference map cells.
-#'
-#' @inheritParams assignRefMapCells
-#' @param ref_map_cells_df Subset of rows from the `ref_map_df` data frame
-#'   that contains the grid cells for which you want to calculate kernel
-#'   densities.
-#' @param LC_class Single land cover class for which to calculate kernel
-#'   densities. Must be a column name in `ref_map_cells_df` and
-#'   `ref_map`.
-#' @inheritParams downscaleLC
-#'
-#' @return Data frame with the kernel density value for the given land cover
-#'   class in each cell.
-calculateKernelDensities <- function(ref_map_cells_df,
-                                     ref_map_df,
-                                     LC_class,
-                                     ref_map_cell_resolution,
-                                     kernel_radius = 1) {
+
+calculateXYKernelDistances <- function(ref_map_cell_resolution,
+                                       kernel_radius) {
 
   # Set up the radius in the x and y directions
   x_size <- ref_map_cell_resolution[1]
   y_size <- ref_map_cell_resolution[2]
+
   cell_x_dist <- kernel_radius * x_size
   cell_y_dist <- kernel_radius * y_size
 
-  # Set up new data frame containing kernel densities
-  kernel_density_df <- ref_map_cells_df[ , c("x", "y")]
+  kernel_xy_dist <- c(cell_x_dist,
+                      cell_y_dist)
 
-  # Fill kernel density data frame
-  kernel_density_df[ , LC_class] <- apply(ref_map_cells_df,
-                                                  1,
-                                                  calculateKernelDensitiesForOneCell,
-                                                  ref_map_df = ref_map_df,
-                                                  LC_class = LC_class,
-                                                  cell_x_dist = cell_x_dist,
-                                                  cell_y_dist = cell_y_dist)
-
-  # Add coarse-scale cell IDs to kernel density data frame
-  kernel_density_df$ref_ID <- ref_map_cells_df$ref_ID
-  kernel_density_df$coarse_ID <- ref_map_cells_df$coarse_ID
-
-  return(kernel_density_df)
+  return(kernel_xy_dist)
 }
 
 #' Calculate kernel densities for one land cover class in one cell
@@ -62,8 +32,11 @@ calculateKernelDensities <- function(ref_map_cells_df,
 calculateKernelDensitiesForOneCell <- function(grid_cell,
                                                ref_map_df,
                                                LC_class,
-                                               cell_x_dist,
-                                               cell_y_dist) {
+                                               kernel_xy_dist) {
+
+  # Get x- and y- kernel distances
+  cell_x_dist <- kernel_xy_dist[1]
+  cell_y_dist <- kernel_xy_dist[2]
 
   # Set the coordinates of the cell
   cell_x_coord <- grid_cell["x"]
@@ -115,5 +88,11 @@ kernelDensityFunction <- function(LC_areas,
   return(kernel_density)
 }
 
+sortKernelDensities <- function(kernel_density_df) {
 
+  sorted_kernel_density_df <- kernel_density_df[order(kernel_density_df[ , "kernel_density"],
+                                                      decreasing = TRUE), ]
+
+  return(sorted_kernel_density_df)
+}
 

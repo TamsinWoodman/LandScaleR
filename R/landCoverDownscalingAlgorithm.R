@@ -93,8 +93,6 @@ downscaleLC <- function(ref_map_file_name,
                         ref_map_cell_resolution,
                         final_LC_classes,
                         kernel_radius,
-                        transition_priorities,
-                        intensification_ratio,
                         discrete_output_map = FALSE,
                         output_file_prefix,
                         output_dir_path) {
@@ -114,11 +112,13 @@ downscaleLC <- function(ref_map_file_name,
 
     ref_map <- loadRefMap(timestep = i,
                           ref_map_file_name = ref_map_file_name,
-                          ref_map_type = ref_map_type, ref_map_LC_classes = ref_map_LC_classes,
+                          ref_map_type = ref_map_type,
+                          ref_map_LC_classes = ref_map_LC_classes,
                           ref_map_cell_area = ref_map_cell_area,
                           ref_map_cell_resolution = ref_map_cell_resolution,
                           LC_column_name = LC_column_name,
                           LC_deltas = LC_deltas,
+                          discrete_output_map = discrete_output_map,
                           output_dir_path = output_dir_path,
                           output_file_prefix = output_file_prefix)
 
@@ -132,16 +132,14 @@ downscaleLC <- function(ref_map_file_name,
     LC_allocation_params <- new("LCAllocationParams",
                                 LC_deltas = processed_LC_deltas,
                                 ref_map = ref_map,
-                                transition_priorities = transition_priorities,
-                                kernel_radius = kernel_radius,
-                                intensification_ratio = intensification_ratio)
+                                kernel_radius = kernel_radius)
 
     new_LC_map <- runLCAllocation(LC_allocation_params)
 
     # Add discrete land cover if specified
     if (discrete_output_map) {
       new_LC_map <- getDiscreteLC(LC_map = new_LC_map,
-                    ref_map_LC_classes = ref_map_LC_classes)
+                                  ref_map_LC_classes = ref_map_LC_classes)
     }
 
     # Save land cover map
@@ -194,7 +192,8 @@ loadLCDeltas <- function(LC_deltas_file_list,
 
   LC_deltas_raw <- read.table(LC_deltas_file_name,
                               header = TRUE,
-                              sep = "\t")
+                              sep = "\t",
+                              check.names = FALSE)
 
   # Add the coarse ID values here
   LC_deltas_df <- addCellIDs(LC_df = LC_deltas_raw,
@@ -252,6 +251,7 @@ loadRefMap <- function(timestep,
                        ref_map_cell_resolution,
                        LC_column_name,
                        LC_deltas,
+                       discrete_output_map,
                        output_dir_path,
                        output_file_prefix) {
 
@@ -295,6 +295,11 @@ loadRefMap <- function(timestep,
                                    header = TRUE,
                                    sep = "\t",
                                    check.names = FALSE)
+
+    # Remove discrete LC column if discrete_output_map is TRUE
+    if (discrete_output_map) {
+      assigned_ref_map <- assigned_ref_map[ , !names(assigned_ref_map) == "Discrete_LC_class"]
+    }
 
     print(paste0("Loaded reference map: ",
                  previous_ref_map_file_path))
