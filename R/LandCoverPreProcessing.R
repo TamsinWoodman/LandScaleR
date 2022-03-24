@@ -34,8 +34,14 @@ calculateLCDeltas <- function(LC_map_1,
   LC_map_2_sorted <- LC_map_2[order(LC_map_2[ , x_col],
                                     LC_map_2[ , y_col]), ]
 
+  # Remove row numbers for comparisons
+  LC_map_1_coords <- LC_map_1_sorted[ , coord_cols]
+  row.names(LC_map_1_coords) <- NULL
+  LC_map_2_coords <- LC_map_2_sorted[ , coord_cols]
+  row.names(LC_map_2_coords) <- NULL
+
   # Throw error if coordinates do not match
-  if (!identical(LC_map_1_sorted[ , coord_cols], LC_map_2_sorted[ , coord_cols])) {
+  if (!identical(LC_map_1_coords, LC_map_2_coords)) {
     stop("Coordinates differ between the two timesteps")
   }
 
