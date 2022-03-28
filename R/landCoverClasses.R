@@ -39,8 +39,10 @@ setClass("LCMap",
 setClass("LCAllocationParams",
          slots = c(LC_deltas = "LCMap",
                    ref_map = "LCMap",
-                   kernel_radius = "numeric"),
+                   kernel_radius = "numeric",
+                   random_seed = "numeric"),
          prototype = c(LC_deltas = new("LCMap"),
                        ref_map = new("LCMap"),
-                       kernel_radius = NA_real_))
+                       kernel_radius = NA_real_,
+                       random_seed = NA_real_))
 

@@ -96,3 +96,15 @@ sortKernelDensities <- function(kernel_density_df) {
   return(sorted_kernel_density_df)
 }
 
+randomiseKernelDensities <- function(kernel_density_df,
+                                     random_seed) {
+
+  # Set a seed here so that the results are reproducible
+  set.seed(random_seed)
+
+  df_rows <- sample(nrow(kernel_density_df))
+
+  random_kernel_density_df <- kernel_density_df[df_rows, ]
+
+  return(random_kernel_density_df)
+}

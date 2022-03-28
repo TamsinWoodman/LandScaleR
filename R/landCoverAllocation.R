@@ -12,6 +12,8 @@ runLCAllocation <- function(LC_allocation_params) {
                   "ref_map")
   kernel_radius <- slot(LC_allocation_params,
                         "kernel_radius")
+  random_seed <- slot(LC_allocation_params,
+                      "random_seed")
 
   updated_LC_deltas_df <- slot(LC_deltas,
                                "LC_map")
@@ -61,32 +63,25 @@ runLCAllocation <- function(LC_allocation_params) {
                                                                LC_class = LC_to_name,
                                                                kernel_xy_dist = kernel_xy_dist)
 
-            cells_for_allocation_sorted <- sortKernelDensities(kernel_density_df = cells_for_allocation)
+            # Sort for cells for allocation depending on whether kernel density > 0 or kernel density == 0
+            cells_for_allocation_sorted <- sortCellsForAllocation(cells_for_allocation = cells_for_allocation,
+                                                                  random_seed = random_seed)
 
-            # Set up for LC allocation
-            cells_for_allocation_sorted$actual_conversion <- 0
-            LC_conversion_area_remaining <- LC_conversion_area
+            # Allocate land cover change
+            allocated_LC <- getActualConversions(cells_for_allocation = cells_for_allocation_sorted,
+                                                 LC_from_name = LC_from_name,
+                                                 LC_conversion_area = LC_conversion_area)
 
-            for (m in 1:nrow(cells_for_allocation_sorted)) {
-
-              cells_for_allocation_sorted$actual_conversion[m] <- min(cells_for_allocation_sorted[m, LC_from_name],
-                                                               LC_conversion_area_remaining)
-
-              LC_conversion_area_remaining <- LC_conversion_area_remaining - cells_for_allocation_sorted$actual_conversion[m]
-
-              if (round(LC_conversion_area_remaining, 8) == 0) {
-                break
-              }
-
-            }
+            cells_with_allocation <- allocated_LC[["cells_for_allocation"]]
+            LC_conversion_area_remaining <- allocated_LC[["LC_conversion_area_remaining"]]
 
             # Update the reference map with new land cover areas
             updated_ref_map_df <- updateRefMapWithLCConversions(ref_map_df = updated_ref_map_df,
-                                                                LC_conversion_df = cells_for_allocation_sorted,
+                                                                LC_conversion_df = cells_with_allocation,
                                                                 LC_from_name = LC_from_name,
                                                                 LC_to_name = LC_to_name)
             # Calculate total conversion value
-            total_conversion <- sum(cells_for_allocation_sorted$actual_conversion)
+            total_conversion <- sum(cells_with_allocation$actual_conversion)
 
             # Update LC_to_delta in this for loop and in data frame
             LC_to_delta <- updated_LC_deltas_df[i, LC_to_name]
@@ -97,6 +92,7 @@ runLCAllocation <- function(LC_allocation_params) {
             LC_from_delta <- updated_LC_deltas_df[i, LC_from_name]
             updated_LC_deltas_df[i, LC_from_name] <- updateLCFromDelta(LC_from_delta,
                                                                        total_conversion)
+
           }
         }
     }
@@ -158,6 +154,28 @@ getTransitionMatrix <- function(LC_deltas_cell,
   return(transition_matrix)
 }
 
+sortCellsForAllocation <- function(cells_for_allocation,
+                                   random_seed) {
+
+  if (any(cells_for_allocation$kernel_density > 0) & any(cells_for_allocation$kernel == 0)) {
+    cells_for_allocation_kd_not_zero <- getCellsForAllocationKdNotZero(cells_for_allocation = cells_for_allocation)
+    cells_for_allocation_kd_zero <- getCellsForAllocationKdZero(cells_for_allocation = cells_for_allocation,
+                                                                random_seed = random_seed)
+    cells_for_allocation_sorted <- rbind(cells_for_allocation_kd_not_zero,
+                                         cells_for_allocation_kd_zero)
+
+  } else if (any(cells_for_allocation$kernel_density > 0) & !any(cells_for_allocation$kernel == 0)) {
+    cells_for_allocation_sorted <- getCellsForAllocationKdNotZero(cells_for_allocation = cells_for_allocation)
+
+  } else if (!any(cells_for_allocation$kernel_density > 0) & any(cells_for_allocation$kernel == 0)) {
+    cells_for_allocation_sorted <- getCellsForAllocationKdZero(cells_for_allocation = cells_for_allocation,
+                                                               random_seed = random_seed)
+
+  }
+
+  return(cells_for_allocation_sorted)
+}
+
 getCellsForAllocation <- function(ref_map_df,
                                   LC_from_name,
                                   coarse_ID) {
@@ -166,6 +184,49 @@ getCellsForAllocation <- function(ref_map_df,
                                            ref_map_df[ , "coarse_ID"] == coarse_ID), ]
 
   return(cells_for_allocation)
+}
+
+getCellsForAllocationKdNotZero <- function(cells_for_allocation) {
+
+  cells_for_allocation_kd_not_zero <- cells_for_allocation[cells_for_allocation$kernel_density > 0, ]
+  cells_for_allocation_kd_not_zero_sorted <- sortKernelDensities(kernel_density_df = cells_for_allocation_kd_not_zero)
+
+  return(cells_for_allocation_kd_not_zero_sorted)
+}
+
+getCellsForAllocationKdZero <- function(cells_for_allocation,
+                                        random_seed) {
+
+  cells_for_allocation_kd_zero <- cells_for_allocation[cells_for_allocation$kernel_density == 0, ]
+  cells_for_allocation_kd_zero_random <- randomiseKernelDensities(kernel_density_df = cells_for_allocation_kd_zero,
+                                                                  random_seed = random_seed)
+
+  return(cells_for_allocation_kd_zero_random)
+}
+
+getActualConversions <- function(cells_for_allocation,
+                                 LC_from_name,
+                                 LC_conversion_area) {
+
+  cells_for_allocation$actual_conversion <- 0
+  LC_conversion_area_remaining <- LC_conversion_area
+
+  for (m in 1:nrow(cells_for_allocation)) {
+
+    cells_for_allocation$actual_conversion[m] <- min(cells_for_allocation[m, LC_from_name],
+                                                     LC_conversion_area_remaining)
+
+    LC_conversion_area_remaining <- LC_conversion_area_remaining - cells_for_allocation$actual_conversion[m]
+
+    if (round(LC_conversion_area_remaining, 8) == 0) {
+      break
+    }
+  }
+
+  allocated_LC <- list(cells_for_allocation = cells_for_allocation,
+                       LC_conversion_area_remaining = LC_conversion_area_remaining)
+
+  return(allocated_LC)
 }
 
 #' Update reference map with land cover conversion values

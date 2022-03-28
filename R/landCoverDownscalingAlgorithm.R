@@ -94,6 +94,7 @@ downscaleLC <- function(ref_map_file_name,
                         final_LC_classes,
                         kernel_radius,
                         discrete_output_map = FALSE,
+                        random_seed = as.numeric(Sys.time()),
                         output_file_prefix,
                         output_dir_path) {
 
@@ -132,7 +133,8 @@ downscaleLC <- function(ref_map_file_name,
     LC_allocation_params <- new("LCAllocationParams",
                                 LC_deltas = processed_LC_deltas,
                                 ref_map = ref_map,
-                                kernel_radius = kernel_radius)
+                                kernel_radius = kernel_radius,
+                                random_seed = random_seed)
 
     new_LC_map <- runLCAllocation(LC_allocation_params)
 
