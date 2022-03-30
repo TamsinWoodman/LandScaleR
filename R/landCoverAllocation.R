@@ -1,4 +1,33 @@
-
+#' Run allocation of land covers to the reference map
+#'
+#' This function will run the allocation of all land cover change (delta) values
+#'   from a coarse-scale map to a fine-scale reference map.
+#'
+#' To explain how the land cover allocation method works, assume that cropland
+#'   increases in a coarse-scale grid cell by 90 km^2 and pasture increases by
+#'   10 km^2. In the same cell, primary vegetation decreases by 60 km^2 and
+#'   secondary vegetation by 40 km^2. The algorithm will allocate land cover
+#'   proportionally in order of largest to smallest, so 54 km^2 of primary
+#'   vegetation will first be converted to cropland, then 36 km^2 of secondary
+#'   vegetation will become cropland. The algorithm then moves to the pasture,
+#'   and will convert 6 km^2 of primary vegetation into pasture followed by 4
+#'   km^2 of secondary vegetation.
+#'
+#'   For the conversion of 60 km^2 primary vegetation to cropland, all
+#'   fine-scale cells that contain primary vegetation and occur within the
+#'   coarse-scale grid cell are selected. The kernel density for cropland is
+#'   calculated for each of the selected cells. The algorithm works through the
+#'   selected cells in order of highest to lowest kernel density, and converts
+#'   all available primary vegetation to cropland until the 60 km^2 has all been
+#'   allocated. If multiple selected cells have a kernel density value of zero,
+#'   the algorithm randomly orders these cells for allocation.
+#'
+#' @param LC_allocation_params `LC_allocation_params` object containing all the
+#'   parameters required to allocate land cover change to a reference map for a
+#'   single timestep.
+#'
+#' @return New land cover data frame at the same resolution as the given
+#'   reference map with the specified land cover change areas allocated.
 runLCAllocation <- function(LC_allocation_params) {
 
   print(paste0("Starting land cover allocation..."))
@@ -34,6 +63,7 @@ runLCAllocation <- function(LC_allocation_params) {
 
     # get cell ID
     coarse_ID <- updated_LC_deltas_df$coarse_ID[i]
+    print(paste0("Downscaling cell ", coarse_ID))
 
     # Get transition matrix showing area of LU conversion between each LC class
     transition_matrix <- getTransitionMatrix(LC_deltas_cell = updated_LC_deltas_df[i, ],
@@ -113,6 +143,16 @@ runLCAllocation <- function(LC_allocation_params) {
   return(updated_ref_map_df)
 }
 
+#' Get the transition matrix for one cell
+#'
+#' The transition matrix determines the area of land cover change that is
+#'   converted to each land cover class.
+#'
+#' @param LC_deltas_cell One row of a land cover deltas data frame, which
+#'   corresponds to one coarse-scale grid cell.
+#' @param LC_classes Vector of land cover classes in the coarse-scale grid cell.
+#'
+#' @return Matrix giving order and area of land cover transitions.
 getTransitionMatrix <- function(LC_deltas_cell,
                                 LC_classes) {
 
@@ -154,6 +194,37 @@ getTransitionMatrix <- function(LC_deltas_cell,
   return(transition_matrix)
 }
 
+#' Get a data frame of candidate fine-scale cells for land cover allocation
+#'
+#' Fine-scale cells are selected for allocation if they contain the land cover
+#'   class that is being converted to a different class.
+#'
+#' @inheritParams assignRefMapCells
+#' @param LC_from_name Name of the land cover class that is being converted to
+#'   `LC_to_name`.
+#' @param coarse_ID Identification number of the coarse-scale cell within which
+#'   `LC_to_name` has increased.
+#'
+#' @return Data frame of fine-scale cells that contain `LC_from_name`.
+getCellsForAllocation <- function(ref_map_df,
+                                  LC_from_name,
+                                  coarse_ID) {
+
+  cells_for_allocation <- ref_map_df[which(ref_map_df[ , LC_from_name] > 0 &
+                                             ref_map_df[ , "coarse_ID"] == coarse_ID), ]
+
+  return(cells_for_allocation)
+}
+
+#' Sort cells before land cover allocation
+#'
+#' @param cells_for_allocation Data frame of fine-scale cells selected to
+#'   receive a given land cover class.
+#' @inheritParams downscaleLC
+#'
+#' @return Data frame of fine-scale cells ordered from highest to lowest kernel
+#'   density. Cells with a kernel density value of zero are randomly sorted at
+#'   the end of the data frame.
 sortCellsForAllocation <- function(cells_for_allocation,
                                    random_seed) {
 
@@ -176,16 +247,12 @@ sortCellsForAllocation <- function(cells_for_allocation,
   return(cells_for_allocation_sorted)
 }
 
-getCellsForAllocation <- function(ref_map_df,
-                                  LC_from_name,
-                                  coarse_ID) {
-
-  cells_for_allocation <- ref_map_df[which(ref_map_df[ , LC_from_name] > 0 &
-                                           ref_map_df[ , "coarse_ID"] == coarse_ID), ]
-
-  return(cells_for_allocation)
-}
-
+#' Return a data frame of fine-scale cells with kernel density greater than 0
+#'
+#' @inheritParams sortCellsForAllocation
+#'
+#' @return Data frame of fine-scale cells with kernel density greater than 0,
+#'   sorted from highest to lowest kernel density.
 getCellsForAllocationKdNotZero <- function(cells_for_allocation) {
 
   cells_for_allocation_kd_not_zero <- cells_for_allocation[cells_for_allocation$kernel_density > 0, ]
@@ -194,6 +261,13 @@ getCellsForAllocationKdNotZero <- function(cells_for_allocation) {
   return(cells_for_allocation_kd_not_zero_sorted)
 }
 
+#' Return a data frame of fine-scale cells with kernel density equal to zero
+#'
+#' @inheritParams sortCellsForAllocation
+#' @inheritParams downscaleLC
+#'
+#' @return Data frame of fine-scale cells with kernel density equal to 0 that
+#'   have been randomly sorted.
 getCellsForAllocationKdZero <- function(cells_for_allocation,
                                         random_seed) {
 
@@ -204,6 +278,22 @@ getCellsForAllocationKdZero <- function(cells_for_allocation,
   return(cells_for_allocation_kd_zero_random)
 }
 
+#' Calculate actual conversion areas for a set of grid cells
+#'
+#' For each grid cell, the actual conversion from a decreasing land cover class
+#'   to an increasing land cover class is the minimum of the area of the
+#'   decreasing land cover class in that cell and the remaining area of land to
+#'   be converted within the coarse-scale cell.
+#'
+#' @inheritParams sortCellsForAllocation
+#' @inheritParams getCellsForAllocation
+#' @param LC_conversion_area Remaining area of land in the coarse-scale cell to
+#'   be converted from `LC_from_name` (decreasing land cover class) to
+#'   `LC_to_name` (increasing land cover class).
+#'
+#' @return Data frame of fine-scale cells with an additional column named
+#'   `actual_conversion` that contains the actual conversion areas for each grid
+#'   cell.
 getActualConversions <- function(cells_for_allocation,
                                  LC_from_name,
                                  LC_conversion_area) {
@@ -238,7 +328,9 @@ getActualConversions <- function(cells_for_allocation,
 #' @param LC_conversion_df Data frame with one column for actual land cover
 #'   conversion areas and a second with reference map cell IDs. Output from the
 #'   `getLCConversions` function.
-#' @inheritParams getCellsToIntensifyLC
+#' @inheritParams getCellsForAllocation
+#' @param LC_to_name Name of the land cover class that is increasing in the
+#'   coarse-scale cell.
 #'
 #' @return Reference map data frame with updated land cover areas in the cells
 #'   specified in the `LC_conversion_df` data frame.
@@ -248,10 +340,11 @@ updateRefMapWithLCConversions <- function(ref_map_df,
                                           LC_to_name) {
 
   updated_ref_map_df <- ref_map_df
+  LC_conversion_df_increase <- LC_conversion_df[LC_conversion_df$actual_conversion > 0, ]
 
-  for (i in 1:nrow(LC_conversion_df)) {
-    ref_ID <- LC_conversion_df[i, "ref_ID"]
-    actual_conversion <- LC_conversion_df[i, "actual_conversion"]
+  for (i in 1:nrow(LC_conversion_df_increase)) {
+    ref_ID <- LC_conversion_df_increase[i, "ref_ID"]
+    actual_conversion <- LC_conversion_df_increase[i, "actual_conversion"]
     ref_map_cell <- updated_ref_map_df[updated_ref_map_df$ref_ID == ref_ID, ]
 
     # Update LCs in this cell
@@ -271,7 +364,7 @@ updateRefMapWithLCConversions <- function(ref_map_df,
 #'
 #' @param ref_map_cell One row from a reference map data frame, which is
 #'   equivalent to one grid cell.
-#' @inheritParams getCellsToIntensifyLC
+#' @inheritParams updateRefMapWithLCConversions
 #' @param actual_conversion The actual area of land cover to be converted from
 #'   the decreasing land cover (`LC_from_name`) to the increasing land cover
 #'   (`LC_to_name`) in this reference map cell.
@@ -303,7 +396,7 @@ updateOneRefMapCellWithLCConversions <- function(ref_map_cell,
 #'   subtracting the total increase of that land cover within one coarse-scale
 #'   cell from the initial delta value.
 #'
-#' @inheritParams getLCConversions
+#' @param LC_to_delta Initial delta value for the increasing land cover class.
 #' @param total_conversion The total area of land converted to the given land
 #'   cover class.
 #'
@@ -324,9 +417,8 @@ updateLCToDelta <- function(LC_to_delta,
 #'   adding the total decrease of that land cover within one coarse-scale cell
 #'   to the initial delta value.
 #'
-#' @inheritParams getLCConversions
-#' @param total_conversion The total area of land converted from the given land
-#'   cover class.
+#' @param LC_from_delta Initial delta value for the decreasing land cover class.
+#' @inheritParams updateLCToDelta
 #'
 #' @return The new land cover delta value for one land cover class.
 updateLCFromDelta <- function(LC_from_delta,
@@ -342,9 +434,9 @@ updateLCFromDelta <- function(LC_from_delta,
 #' Check unallocated land cover change and the sum of land cover areas in each
 #'   reference map cell
 #'
-#' @param finalLCs `LCAllocationParams` object containing an updated reference
-#'   map and unallocated land cover change areas after land cover allocation for
-#'   one timestep.
+#' @inheritParams downscaleLC
+#' @inheritParams getTransitionMatrix
+#' @inheritParams assignRefMapCells
 #'
 #' @return Returns nothing. Checks for unallocated land cover change and that
 #'   the sum of land cover areas in each reference map cell is equal to the

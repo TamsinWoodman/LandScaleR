@@ -8,8 +8,7 @@ calculateKernelDensitiesForOneCell(
   grid_cell,
   ref_map_df,
   LC_class,
-  cell_x_dist,
-  cell_y_dist
+  kernel_xy_dist
 )
 }
 \arguments{
@@ -22,9 +21,8 @@ and y-coordinates and the area of each land cover class in that cell.}
 densities. Must be a column name in `ref_map_cells_df` and
 `ref_map`.}
 
-\item{cell_x_dist}{Radius of the cell neighbourhood in the x-direction.}
-
-\item{cell_y_dist}{Radius of the cell neighbourhood in the y-direction.}
+\item{kernel_xy_dist}{Vector in the format `c(x, y)` that gives the radius of
+the cell neighbourhood in the x- and y- directions.}
 }
 \value{
 The kernel density value for the user-specified land cover class and

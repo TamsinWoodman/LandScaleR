@@ -1,4 +1,10 @@
 
+#' Calculates the x- and y- distances for the kernel density radius
+#'
+#' @inheritParams downscaleLC
+#'
+#' @return Vector in the format `c(x, y)` that gives the radius of
+#'   the cell neighbourhood in the x- and y- directions.
 calculateXYKernelDistances <- function(ref_map_cell_resolution,
                                        kernel_radius) {
 
@@ -22,9 +28,11 @@ calculateXYKernelDistances <- function(ref_map_cell_resolution,
 #'
 #' @param grid_cell Single row from the `ref_map_cells_df` data frame with x-
 #'   and y-coordinates and the area of each land cover class in that cell.
-#' @param cell_x_dist Radius of the cell neighbourhood in the x-direction.
-#' @param cell_y_dist Radius of the cell neighbourhood in the y-direction.
-#' @inheritParams calculateKernelDensities
+#' @param LC_class Single land cover class for which to calculate kernel
+#'   densities. Must be a column name in `ref_map_cells_df` and
+#'   `ref_map`.
+#' @param kernel_xy_dist Vector in the format `c(x, y)` that gives the radius of
+#'   the cell neighbourhood in the x- and y- directions.
 #' @inheritParams assignRefMapCells
 #'
 #' @return The kernel density value for the user-specified land cover class and
@@ -88,6 +96,13 @@ kernelDensityFunction <- function(LC_areas,
   return(kernel_density)
 }
 
+#' Sort a data frame with a 'kernel_density' column from highest to lowest
+#'   kernel density
+#'
+#' @param kernel_density_df Data frame of grid cells with a column named
+#'   `kernel_density` that contains a kernel density for each cell.
+#'
+#' @return Input data frame sorted from highest to lowest kernel density value.
 sortKernelDensities <- function(kernel_density_df) {
 
   sorted_kernel_density_df <- kernel_density_df[order(kernel_density_df[ , "kernel_density"],
@@ -96,6 +111,12 @@ sortKernelDensities <- function(kernel_density_df) {
   return(sorted_kernel_density_df)
 }
 
+#' Randomly sorts a data frame with a 'kernel_density' column
+#'
+#' @inheritParams sortKernelDensities
+#' @inheritParams downscaleLC
+#'
+#' @return Input data frame with randomly sorted grid cells.
 randomiseKernelDensities <- function(kernel_density_df,
                                      random_seed) {
 

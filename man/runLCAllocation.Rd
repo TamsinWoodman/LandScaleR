@@ -2,13 +2,12 @@
 % Please edit documentation in R/landCoverAllocation.R
 \name{runLCAllocation}
 \alias{runLCAllocation}
-\title{Run allocation of land covers to reference map by intensification and
-  expansion}
+\title{Run allocation of land covers to the reference map}
 \usage{
 runLCAllocation(LC_allocation_params)
 }
 \arguments{
-\item{LC_allocation_params}{`LCAllocationParams` object containing all the
+\item{LC_allocation_params}{`LC_allocation_params` object containing all the
 parameters required to allocate land cover change to a reference map for a
 single timestep.}
 }
@@ -18,23 +17,25 @@ New land cover data frame at the same resolution as the given
 }
 \description{
 This function will run the allocation of all land cover change (delta) values
-  from a coarse-scale map, such as the output from one timestep of a global
-  land-use model, to a fine-scale reference map. The method employed is from
-  West et al. (2014) and Le Page et al. (2016). Land cover change is
-  allocated in three steps: a first round of intensification, meaning land
-  cover is allocated to cells where it already occurs; a round of expansion,
-  where land cover is allocated to cells where it does not exist; and a final
-  round of intensification to make sure all land cover change has been
-  allocated.
+  from a coarse-scale map to a fine-scale reference map.
 }
 \details{
-The amount of land cover change that is allocated by intensification versus
-  expansion is determined by the `intensification_ratio` parameter. An
-  intensification ratio of 0.8 gives a target of 80 percent of land cover to
-  be allocated via intensification and 20 percent by expansion.
+To explain how the land cover allocation method works, assume that cropland
+  increases in a coarse-scale grid cell by 90 km^2 and pasture increases by
+  10 km^2. In the same cell, primary vegetation decreases by 60 km^2 and
+  secondary vegetation by 40 km^2. The algorithm will allocate land cover
+  proportionally in order of largest to smallest, so 54 km^2 of primary
+  vegetation will first be converted to cropland, then 36 km^2 of secondary
+  vegetation will become cropland. The algorithm then moves to the pasture,
+  and will convert 6 km^2 of primary vegetation into pasture followed by 4
+  km^2 of secondary vegetation.
 
-  The amount of land cover change for a single land cover type that is
-  allocated to a fine-scale reference cell is currently determined by the
-  kernel density value of that cell. A kernel density value is a relative
-  measure of the amount of a land cover type in neighbouring cells.
+  For the conversion of 60 km^2 primary vegetation to cropland, all
+  fine-scale cells that contain primary vegetation and occur within the
+  coarse-scale grid cell are selected. The kernel density for cropland is
+  calculated for each of the selected cells. The algorithm works through the
+  selected cells in order of highest to lowest kernel density, and converts
+  all available primary vegetation to cropland until the 60 km^2 has all been
+  allocated. If multiple selected cells have a kernel density value of zero,
+  the algorithm randomly orders these cells for allocation.
 }

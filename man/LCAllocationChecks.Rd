@@ -5,12 +5,17 @@
 \title{Check unallocated land cover change and the sum of land cover areas in each
   reference map cell}
 \usage{
-LCAllocationChecks(final_LCs)
+LCAllocationChecks(LC_deltas_df, ref_map_df, LC_classes, ref_map_cell_area)
 }
 \arguments{
-\item{finalLCs}{`LCAllocationParams` object containing an updated reference
-map and unallocated land cover change areas after land cover allocation for
-one timestep.}
+\item{LC_deltas_df}{Data frame of coarse-scale land cover change areas for
+the current timestep.}
+
+\item{ref_map_df}{Data frame of the reference map for the current timestep.}
+
+\item{LC_classes}{Vector of land cover classes in the coarse-scale grid cell.}
+
+\item{ref_map_cell_area}{Area of a single reference map grid cell.}
 }
 \value{
 Returns nothing. Checks for unallocated land cover change and that

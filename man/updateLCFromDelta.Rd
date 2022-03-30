@@ -7,10 +7,9 @@
 updateLCFromDelta(LC_from_delta, total_conversion)
 }
 \arguments{
-\item{LC_from_delta}{The area by which the decreasing land cover class
-contracted in the coarse-scale cell in the current timestep.}
+\item{LC_from_delta}{Initial delta value for the decreasing land cover class.}
 
-\item{total_conversion}{The total area of land converted from the given land
+\item{total_conversion}{The total area of land converted to the given land
 cover class.}
 }
 \value{

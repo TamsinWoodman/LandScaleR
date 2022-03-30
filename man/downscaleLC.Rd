@@ -16,9 +16,8 @@ downscaleLC(
   ref_map_cell_resolution,
   final_LC_classes,
   kernel_radius,
-  transition_priorities,
-  intensification_ratio,
   discrete_output_map = FALSE,
+  random_seed = as.numeric(Sys.time()),
   output_file_prefix,
   output_dir_path
 )
@@ -71,15 +70,12 @@ calculation. A value of 1 means that the neighbour cells used to calculate
 kernel density will be 1 cell in every direction around the focal cell.
 Defaults to 1.}
 
-\item{transition_priorities}{Matrix containing transition priorities for land
-cover allocation. Each row of the matrix should give the order in which one
-land cover type is converted to others.}
-
-\item{intensification_ratio}{Ratio of land intensification versus land
-expansion for the allocation algorithm.}
-
 \item{discrete_output_map}{Output discrete land cover as well as area-based
 land cover. Default is `FALSE`.}
+
+\item{random_seed}{Numeric random seed for ordering fine-scale cells with a
+kernel density value of zero during land cover allocation. Defaults to the
+date and time when the function is called.}
 
 \item{output_file_prefix}{Prefix for output downscaled land cover map files.}
 

@@ -62,13 +62,11 @@
 #'   calculation. A value of 1 means that the neighbour cells used to calculate
 #'   kernel density will be 1 cell in every direction around the focal cell.
 #'   Defaults to 1.
-#' @param transition_priorities Matrix containing transition priorities for land
-#'   cover allocation. Each row of the matrix should give the order in which one
-#'   land cover type is converted to others.
-#' @param intensification_ratio Ratio of land intensification versus land
-#'   expansion for the allocation algorithm.
 #' @param discrete_output_map Output discrete land cover as well as area-based
 #'   land cover. Default is `FALSE`.
+#' @param random_seed Numeric random seed for ordering fine-scale cells with a
+#'   kernel density value of zero during land cover allocation. Defaults to the
+#'   date and time when the function is called.
 #' @param output_file_prefix Prefix for output downscaled land cover map files.
 #' @param output_dir_path Path to directory in which to save the downscaled
 #'   land cover map files. Will be created if it does not already exist.

@@ -21,7 +21,8 @@ conversion areas and a second with reference map cell IDs. Output from the
 \item{LC_from_name}{Name of the land cover class that is being converted to
 `LC_to_name`.}
 
-\item{LC_to_name}{Name of the land cover class that is increasing.}
+\item{LC_to_name}{Name of the land cover class that is increasing in the
+coarse-scale cell.}
 }
 \value{
 Reference map data frame with updated land cover areas in the cells

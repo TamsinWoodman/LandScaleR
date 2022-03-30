@@ -13,6 +13,7 @@ loadRefMap(
   ref_map_cell_resolution,
   LC_column_name,
   LC_deltas,
+  discrete_output_map,
   output_dir_path,
   output_file_prefix
 )
@@ -43,6 +44,9 @@ column containing the land cover class for each grid cell.}
 
 \item{LC_deltas}{An `LCMap` object containing land cover change areas for the
 given timestep.}
+
+\item{discrete_output_map}{Output discrete land cover as well as area-based
+land cover. Default is `FALSE`.}
 
 \item{output_dir_path}{Path to directory in which to save the downscaled
 land cover map files. Will be created if it does not already exist.}

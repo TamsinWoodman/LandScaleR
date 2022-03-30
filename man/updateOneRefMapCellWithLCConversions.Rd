@@ -15,7 +15,8 @@ updateOneRefMapCellWithLCConversions(
 \item{ref_map_cell}{One row from a reference map data frame, which is
 equivalent to one grid cell.}
 
-\item{LC_to_name}{Name of the land cover class that is increasing.}
+\item{LC_to_name}{Name of the land cover class that is increasing in the
+coarse-scale cell.}
 
 \item{LC_from_name}{Name of the land cover class that is being converted to
 `LC_to_name`.}

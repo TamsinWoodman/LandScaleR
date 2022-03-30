@@ -7,8 +7,7 @@
 updateLCToDelta(LC_to_delta, total_conversion)
 }
 \arguments{
-\item{LC_to_delta}{The area by which the increasing land cover class grew in
-the coarse-scale cell the current timestep.}
+\item{LC_to_delta}{Initial delta value for the increasing land cover class.}
 
 \item{total_conversion}{The total area of land converted to the given land
 cover class.}
