@@ -46,6 +46,8 @@ runLCAllocation <- function(LC_allocation_params) {
 
   updated_LC_deltas_df <- slot(LC_deltas,
                                "LC_map")
+  initial_ref_map_df <- slot(ref_map,
+                             "LC_map")
   updated_ref_map_df <- slot(ref_map,
                              "LC_map")
   LC_classes <- slot(ref_map,
@@ -89,7 +91,7 @@ runLCAllocation <- function(LC_allocation_params) {
             cells_for_allocation[ , "kernel_density"] <- apply(cells_for_allocation,
                                                                1,
                                                                calculateKernelDensitiesForOneCell,
-                                                               ref_map_df = updated_ref_map_df,
+                                                               ref_map_df = initial_ref_map_df,
                                                                LC_class = LC_to_name,
                                                                kernel_xy_dist = kernel_xy_dist)
 
