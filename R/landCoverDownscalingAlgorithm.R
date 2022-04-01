@@ -305,8 +305,15 @@ loadRefMap <- function(timestep,
                  previous_ref_map_file_path))
   }
 
+  # Create aggregated version of reference map to make land cover allocation quicker
+  agg_ref_map <- aggregateLCMap(ref_map = assigned_ref_map,
+                                LC_deltas = LC_deltas_df,
+                                ref_map_LC_classes = ref_map_LC_classes,
+                                ref_map_cell_area = ref_map_cell_area)
+
   new_ref_map <- new("LCMap",
                      LC_map = assigned_ref_map,
+                     agg_LC_map = agg_ref_map,
                      LC_classes = ref_map_LC_classes,
                      cell_area = ref_map_cell_area,
                      cell_resolution = ref_map_cell_resolution)
@@ -409,6 +416,36 @@ convertDiscreteLCToLCAreasOneCell <- function(LC_class,
   LC_areas[which(names(LC_areas) == LC_class)] <- ref_map_cell_area
 
   return(LC_areas)
+}
+
+aggregateLCMap <- function(ref_map,
+                           LC_deltas,
+                           ref_map_LC_classes,
+                           ref_map_cell_area) {
+
+  agg_ref_map <- LC_deltas[ , c("x", "y", "coarse_ID")]
+
+  agg_ref_map[ , ref_map_LC_classes] <- t(apply(agg_ref_map,
+                                                1,
+                                                FUN = aggregateLCMapOneCell,
+                                                ref_map = ref_map,
+                                                ref_map_LC_classes = ref_map_LC_classes,
+                                                ref_map_cell_area = ref_map_cell_area))
+
+  return(agg_ref_map)
+}
+
+aggregateLCMapOneCell <- function(coarse_cell,
+                                  ref_map,
+                                  ref_map_LC_classes,
+                                  ref_map_cell_area) {
+
+  coarse_cell_ID <- coarse_cell["coarse_ID"]
+  ref_map_cells <- ref_map[ref_map["coarse_ID"] == coarse_cell_ID, ]
+
+  agg_LC_areas <- colSums(ref_map_cells[ , ref_map_LC_classes])
+
+  return(agg_LC_areas)
 }
 
 #' Get discrete land cover classes from a land cover data frame containing the

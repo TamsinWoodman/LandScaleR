@@ -3,6 +3,8 @@
 #' @slot LC_map Data frame containing a land cover map. First two columns must
 #'   contain x- and y-coordinates for the map. Each subsequent column contains
 #'   the area of a given land cover class per cell.
+#' @slot agg_LC_map For fine-scale maps only, contains a copy of `LC_map` that
+#'   has been aggregated into coarse-scale grid cells.
 #' @slot LC_classes Vector of land cover classes in the `LC_map` slot. Must be
 #'   the same as land cover class column names in the `LC_map` data frame.
 #' @slot grid_cell_area Gives the area of each grid cell in the `LC_map` data
@@ -14,10 +16,12 @@
 #' @export
 setClass("LCMap",
          slots = c(LC_map = "data.frame",
+                   agg_LC_map = "data.frame",
                    LC_classes = "character",
                    cell_area = "numeric",
                    cell_resolution = "numeric"),
          prototype = c(LC_map = data.frame(),
+                       agg_LC_map = data.frame(),
                        LC_classes = NA_character_,
                        cell_area = NA_real_,
                        cell_resolution = NA_real_))
