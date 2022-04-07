@@ -1,3 +1,49 @@
+
+#' Check unallocated land cover change and the sum of land cover areas in each
+#'   reference map cell
+#'
+LCAllocationChecks <- function(LC_deltas_df,
+                               LC_classes,
+                               ref_map_df,
+                               ref_map_cell_area) {
+
+  # Check for unallocated land cover
+  unallocated_LC_deltas <- apply(LC_deltas_df,
+                                 1,
+                                 checkForUnallocatedLandCover,
+                                 LC_types = LC_classes)
+
+  # The apply function can return three objects:
+  #     1. NULL if no cells have unallocated land cover
+  #     2. A list if some cells have unallocated land cover
+  #     3. A matrix if all cells have unallocated land cover
+  # Handle all three cases below
+  if (is.null(unallocated_LC_deltas)) {
+
+    unallocated_LC_deltas_df <- unallocated_LC_deltas
+
+  } else if (is.list(unallocated_LC_deltas)) {
+
+    unallocated_LC_deltas_df <- do.call(rbind,
+                                        unallocated_LC_deltas)
+    unallocated_LC_deltas_df <- as.data.frame(unallocated_LC_deltas_df)
+
+  } else if (is.matrix(unallocated_LC_deltas)) {
+
+    unallocated_LC_deltas_df <- as.data.frame(t(unallocated_LC_deltas))
+
+  }
+
+  # Check land cover areas in the fine-scale map
+  apply(ref_map_df,
+        1,
+        checkLandCoverAreasInOneCell,
+        total_area = ref_map_cell_area,
+        LC_types = LC_classes)
+
+  return(unallocated_LC_deltas_df)
+}
+
 #' Check if sum of land cover area in one grid cell equals the expected total
 #'   area
 #'
@@ -44,7 +90,7 @@ checkLandCoverAreasInOneCell <- function(grid_cell,
 #' Checks whether there is any unallocated land cover change after all three
 #'   steps of the land cover allocation algorithm (intensification, expansion
 #'   and second round of intensification). Unallocated land cover change is
-#'   defined as remaining land cover change which is more than 0.01\% of the
+#'   defined as remaining land cover change which is more than 0.1\% of the
 #'   total area of the coarse-scale grid cell.
 #'
 #' @inheritParams checkLandCoverAreasInOneCell
@@ -55,20 +101,16 @@ checkForUnallocatedLandCover <- function(grid_cell,
                                          LC_types) {
 
   # Set the tolerance for unallocated land cover change
-  percent_tolerance <- 0.01
+  percent_tolerance <- 0.1
   area_tolerance <- (grid_cell["ref_map_area"] / 100) * percent_tolerance
 
   # Check if any LC_deltas are more than or equal to 0
   if (any(abs(grid_cell[LC_types]) > area_tolerance)) {
 
-    warning("Unallocated land cover change in grid cell (",
-            grid_cell["x"],
-            ", ",
-            grid_cell["y"],
-            "). See log file for more information.")
-    print("Unallocated land cover change in grid cell:")
-    print(grid_cell)
+    return(grid_cell)
+
+  } else {
+    return(invisible(NULL))
   }
 
-  return(invisible(NULL))
 }

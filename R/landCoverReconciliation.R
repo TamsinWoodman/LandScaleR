@@ -56,6 +56,8 @@ reconcileLCDeltas <- function(LC_deltas,
                             "LC_classes")
   LC_deltas_cell_area <- slot(LC_deltas,
                               "cell_area")
+  LC_deltas_cell_resolution <- slot(LC_deltas,
+                                    "cell_resolution")
   ref_map_df <- slot(ref_map,
                      "LC_map")
   ref_map_cell_area <- slot(ref_map,
@@ -90,7 +92,8 @@ reconcileLCDeltas <- function(LC_deltas,
   adj_LC_deltas <- new("LCMap",
                        LC_map = adj_LC_deltas_df,
                        LC_classes = LC_deltas_classes,
-                       cell_area = LC_deltas_cell_area)
+                       cell_area = LC_deltas_cell_area,
+                       cell_resolution = LC_deltas_cell_resolution)
 
   # Time check
   end_time <- Sys.time()
@@ -202,7 +205,9 @@ aggregateToFinalLCClasses <- function(final_LC_classes,
                            LC_map = agg_adj_LC_deltas_df,
                            LC_classes = new_LC_classes,
                            cell_area = slot(adj_LC_deltas,
-                                            "cell_area"))
+                                            "cell_area"),
+                           cell_resolution = slot(adj_LC_deltas,
+                                                  "cell_resolution"))
 
   # Time check
   end_time <- Sys.time()

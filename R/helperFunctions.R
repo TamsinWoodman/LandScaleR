@@ -160,3 +160,22 @@ timeCheckMessage <- function(start_time,
   print(paste0(message,
                time_taken))
 }
+
+#' Randomly sorts a data frame
+#'
+#' @param input_df Input data frame to be randomly ordered.
+#' @inheritParams downscaleLC
+#'
+#' @return Input data frame with randomly sorted rows.
+randomiseDataFrame <- function(input_df,
+                               random_seed) {
+
+  # Set a seed here so that the results are reproducible
+  set.seed(random_seed)
+
+  df_rows <- sample(nrow(input_df))
+
+  random_input_df <- input_df[df_rows, ]
+
+  return(random_input_df)
+}

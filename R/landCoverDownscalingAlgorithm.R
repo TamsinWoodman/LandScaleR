@@ -84,6 +84,7 @@ downscaleLC <- function(ref_map_file_name,
                         LC_deltas_file_list,
                         LC_deltas_classes,
                         LC_deltas_cell_area,
+                        LC_deltas_cell_resolution,
                         ref_map_type = "areas",
                         LC_column_name = "Land_cover",
                         ref_map_LC_classes,
@@ -107,7 +108,8 @@ downscaleLC <- function(ref_map_file_name,
     LC_deltas <- loadLCDeltas(LC_deltas_file_list = LC_deltas_file_list,
                               timestep = i,
                               LC_deltas_classes = LC_deltas_classes,
-                              LC_deltas_cell_area = LC_deltas_cell_area)
+                              LC_deltas_cell_area = LC_deltas_cell_area,
+                              LC_deltas_cell_resolution = LC_deltas_cell_resolution)
 
     ref_map <- loadRefMap(timestep = i,
                           ref_map_file_name = ref_map_file_name,
@@ -136,14 +138,17 @@ downscaleLC <- function(ref_map_file_name,
 
     new_LC_map <- runLCAllocation(LC_allocation_params)
 
+    # Run harmonisation with unallocated land cover change
+    harmonised_new_LC_map <- harmoniseUnallocatedLCDeltas(new_LC_map)
+
     # Add discrete land cover if specified
     if (discrete_output_map) {
-      new_LC_map <- getDiscreteLC(LC_map = new_LC_map,
-                                  ref_map_LC_classes = ref_map_LC_classes)
+      harmonised_new_LC_map <- getDiscreteLC(LC_map = harmonised_new_LC_map,
+                                             ref_map_LC_classes = ref_map_LC_classes)
     }
 
     # Save land cover map
-    saveLandCoverMapAsTable(new_LC_map,
+    saveLandCoverMapAsTable(harmonised_new_LC_map,
                             file_prefix = output_file_prefix,
                             dir_path = output_dir_path,
                             time_step = i)
@@ -185,7 +190,8 @@ createOutputDir <- function(output_dir_path) {
 loadLCDeltas <- function(LC_deltas_file_list,
                          timestep,
                          LC_deltas_classes,
-                         LC_deltas_cell_area) {
+                         LC_deltas_cell_area,
+                         LC_deltas_cell_resolution) {
 
   # Read one timestep of LC delta values from file
   LC_deltas_file_name <- LC_deltas_file_list[[timestep]]
@@ -202,7 +208,8 @@ loadLCDeltas <- function(LC_deltas_file_list,
   LC_deltas <- new("LCMap",
                    LC_map = LC_deltas_df,
                    LC_classes = LC_deltas_classes,
-                   cell_area = LC_deltas_cell_area)
+                   cell_area = LC_deltas_cell_area,
+                   cell_resolution = LC_deltas_cell_resolution)
 
   print(paste0("Loaded LC deltas file: ",
                LC_deltas_file_name))

@@ -42,24 +42,15 @@ calculateKernelDensitiesForOneCell <- function(grid_cell,
                                                LC_class,
                                                kernel_xy_dist) {
 
-  # Get x- and y- kernel distances
-  cell_x_dist <- kernel_xy_dist[1]
-  cell_y_dist <- kernel_xy_dist[2]
+  # Find neighbour cells for kernel density calculation
+  neighbour_cells <- findNeighbourCells(kernel_xy_dist = kernel_xy_dist,
+                                        grid_cell = grid_cell,
+                                        ref_map_df = ref_map_df)
 
   # Set the coordinates of the cell
   cell_x_coord <- grid_cell["x"]
   cell_y_coord <- grid_cell["y"]
   cell_coords <- c(cell_x_coord, cell_y_coord)
-
-  # Find neighbour cells
-  neighbour_cells <- ref_map_df[which(ref_map_df["x"] >= (cell_x_coord - cell_x_dist) &
-                                                    ref_map_df["x"] <= (cell_x_coord + cell_x_dist) &
-                                                    ref_map_df["y"] >= (cell_y_coord - cell_y_dist) &
-                                                    ref_map_df["y"] <= (cell_y_coord + cell_y_dist)), ]
-
-  # Remove focal cell from neighbour cells df
-  neighbour_cells <- neighbour_cells[-which(neighbour_cells["x"] == cell_x_coord &
-                                              neighbour_cells["y"] == cell_y_coord), ]
 
   # Calculate distance between focal cell and neighbour cells
   neighbour_cells[ , "distance"] <- raster::pointDistance(cell_coords,
@@ -72,6 +63,31 @@ calculateKernelDensitiesForOneCell <- function(grid_cell,
                                                       number_of_neighbour_cells = nrow(neighbour_cells))
 
   return(grid_cell_kernel_densities)
+}
+
+findNeighbourCells <- function(kernel_xy_dist,
+                               grid_cell,
+                               ref_map_df) {
+
+  # Get x- and y- kernel distances
+  cell_x_dist <- kernel_xy_dist[1]
+  cell_y_dist <- kernel_xy_dist[2]
+
+  # Set the coordinates of the cell
+  cell_x_coord <- grid_cell["x"]
+  cell_y_coord <- grid_cell["y"]
+
+  # Find neighbour cells
+  neighbour_cells <- ref_map_df[which(ref_map_df["x"] >= (cell_x_coord - cell_x_dist) &
+                                        ref_map_df["x"] <= (cell_x_coord + cell_x_dist) &
+                                        ref_map_df["y"] >= (cell_y_coord - cell_y_dist) &
+                                        ref_map_df["y"] <= (cell_y_coord + cell_y_dist)), ]
+
+  # Remove focal cell from neighbour cells df
+  neighbour_cells <- neighbour_cells[-which(neighbour_cells["x"] == cell_x_coord &
+                                              neighbour_cells["y"] == cell_y_coord), ]
+
+  return(neighbour_cells)
 }
 
 #' Calculate kernel density value for a single land cover class in a single cell
@@ -109,23 +125,4 @@ sortKernelDensities <- function(kernel_density_df) {
                                                       decreasing = TRUE), ]
 
   return(sorted_kernel_density_df)
-}
-
-#' Randomly sorts a data frame with a 'kernel_density' column
-#'
-#' @inheritParams sortKernelDensities
-#' @inheritParams downscaleLC
-#'
-#' @return Input data frame with randomly sorted grid cells.
-randomiseKernelDensities <- function(kernel_density_df,
-                                     random_seed) {
-
-  # Set a seed here so that the results are reproducible
-  set.seed(random_seed)
-
-  df_rows <- sample(nrow(kernel_density_df))
-
-  random_kernel_density_df <- kernel_density_df[df_rows, ]
-
-  return(random_kernel_density_df)
 }
