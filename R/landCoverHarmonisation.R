@@ -83,6 +83,17 @@ harmoniseUnallocatedLCDeltas <- function(LC_allocation_params) {
         LC_transitions <- getLCTransitions(LC_deltas_cell = unallocated_LC_deltas_df[i, ],
                                            LC_classes = LC_classes)
 
+        # Break the for loop if LC_transitions is NA
+        # This could happen if the sum of all LC deltas at the start of the
+        # algorithm did not equal 0
+        if (is.null(LC_transitions)) {
+
+          warning("Unable to allocated all land cover change in cell: ")
+          print(unallocated_LC_deltas_df[i, ])
+          break
+
+        }
+
         neighbour_cell <- neighbour_cells[order_index, ]
         neighbour_coarse_ID <- neighbour_cell[ , "coarse_ID"]
 
@@ -112,8 +123,8 @@ harmoniseUnallocatedLCDeltas <- function(LC_allocation_params) {
         harmonised_agg_ref_map_df[harmonised_agg_ref_map_df$coarse_ID == neighbour_coarse_ID, ] <- harmonised_LC_maps[["agg_ref_map_cell"]]
         unallocated_LC_deltas_df[i, ] <- t(harmonised_LC_maps[["LC_deltas_cell"]])
 
-        # Break if all land cover change has been allocated after downscaling in this cell#
-        if (all(round(harmonised_LC_maps[["LC_deltas_cell"]][ , LC_classes], 8) == 0)) {
+        # Break if all land cover change has been allocated after downscaling in this cell
+        if (all(round(unallocated_LC_deltas_df[i, LC_classes], 8) == 0)) {
           break
         }
 

@@ -53,21 +53,54 @@ runLCAllocation <- function(LC_allocation_params) {
                      "LC_classes")
   ref_map_cell_resolution <- slot(ref_map,
                                   "cell_resolution")
-  ref_map_cell_area <- slot(ref_map,
-                            "cell_area")
 
   kernel_xy_dist <- calculateXYKernelDistances(ref_map_cell_resolution = ref_map_cell_resolution,
                                                kernel_radius = kernel_radius)
 
+  ## Set up cluster for parallelisation
+  number_cores <- parallel::detectCores() - 1
+  print(paste0("Using ",
+               number_cores,
+               " threads for land cover allocation"))
+  downscaling_cluster <- parallel::makeCluster(number_cores)
+
+  ## Export functions needed for downscaling to each node
+  parallel::clusterExport(cl = downscaling_cluster,
+                          varlist = c("getLCTransitions",
+                                      "allocateLCTransitions",
+                                      "calculateLCDeltaProportion",
+                                      "getCellsForAllocation",
+                                      "calculateKernelDensitiesForOneCell",
+                                      "findNeighbourCells",
+                                      "kernelDensityFunction",
+                                      "sortKernelDensities",
+                                      "sortCellsForAllocation",
+                                      "getCellsForAllocationKdNotZero",
+                                      "getCellsForAllocationKdZero",
+                                      "randomiseDataFrame",
+                                      "getActualConversions",
+                                      "updateRefMapWithLCConversions",
+                                      "updateOneRefMapCellWithLCConversions",
+                                      "updateOneAggRefMapCellWithLCConversions",
+                                      "updateOneLCDeltasCellWithLCConversions",
+                                      "updateLCToDelta",
+                                      "updateLCFromDelta"))
+  parallel::clusterEvalQ(cl = downscaling_cluster,
+                         {library("raster")})
+
   # Loop through the rows in the updated_LC_deltas_df data frame
-  updated_LC_maps_list <- apply(LC_deltas_df,
-                                1,
-                                FUN = downscaleLCForOneCoarseCell,
-                                ref_map_df = ref_map_df,
-                                agg_ref_map_df = agg_ref_map_df,
-                                LC_classes = LC_classes,
-                                kernel_xy_dist = kernel_xy_dist,
-                                random_seed = random_seed)
+  updated_LC_maps_list <- parallel::parApply(cl = downscaling_cluster,
+                                             LC_deltas_df,
+                                             1,
+                                             FUN = downscaleLCForOneCoarseCell,
+                                             ref_map_df = ref_map_df,
+                                             agg_ref_map_df = agg_ref_map_df,
+                                             LC_classes = LC_classes,
+                                             kernel_xy_dist = kernel_xy_dist,
+                                             random_seed = random_seed)
+
+  # Stop the cluster
+  parallel::stopCluster(downscaling_cluster)
 
   # Combine the lists back into the three LC maps
   updated_ref_map_df <- do.call(rbind,
@@ -117,7 +150,6 @@ downscaleLCForOneCoarseCell <- function(LC_deltas_cell,
 
   # get cell ID and cell
   coarse_ID <- LC_deltas_cell["coarse_ID"]
-  print(paste0("Downscaling cell ", coarse_ID))
 
   # Get reference map cells that are assigned to this coarse-scale cell
   assigned_ref_map_cells <- ref_map_df[ref_map_df$coarse_ID == coarse_ID, ]
@@ -162,7 +194,7 @@ getLCTransitions <- function(LC_deltas_cell,
 
   # Can't allocated any land cover if the LC deltas are 0, so return NA
   if (length(inc_LC_deltas) == 0 | length(dec_LC_deltas) == 0) {
-    return(NA)
+    return(NULL)
   }
 
   # Sort increasing and decreasing LC deltas
@@ -217,61 +249,64 @@ allocateLCTransitions <- function(LC_transitions,
   updated_agg_ref_map_cell <- agg_ref_map_cell
   updated_LC_deltas_cell <- LC_deltas_cell
 
-  for (i in 1:nrow(LC_transitions)) {
+  if (!is.null(LC_transitions)) {
 
-    LC_to_name <- LC_transitions[i , "LC_to_name"]
-    LC_from_name <- LC_transitions[i , "LC_from_name"]
-    LC_conversion_area <- abs(LC_transitions[i , "LC_conversion"])
+    for (i in 1:nrow(LC_transitions)) {
 
-    # Check if aggregated reference map cell contains the land cover class to be converted
-    if (updated_agg_ref_map_cell[ , LC_from_name] > 0) {
+      LC_to_name <- LC_transitions[i , "LC_to_name"]
+      LC_from_name <- LC_transitions[i , "LC_from_name"]
+      LC_conversion_area <- abs(LC_transitions[i , "LC_conversion"])
 
-      # Get cells for land cover allocation
-      cells_for_allocation <- getCellsForAllocation(ref_map_df = updated_assigned_ref_map_cells,
-                                                    LC_from_name = LC_from_name,
-                                                    coarse_ID = coarse_ID)
+      # Check if aggregated reference map cell contains the land cover class to be converted
+      if (updated_agg_ref_map_cell[ , LC_from_name] > 0) {
 
-      if (nrow(cells_for_allocation) >= 1) {
-
-        # Calculate kernel densities
-        cells_for_allocation[ , "kernel_density"] <- apply(cells_for_allocation,
-                                                           1,
-                                                           calculateKernelDensitiesForOneCell,
-                                                           ref_map_df = initial_ref_map_df,
-                                                           LC_class = LC_to_name,
-                                                           kernel_xy_dist = kernel_xy_dist)
-
-        # Sort for cells for allocation depending on whether kernel density > 0 or kernel density == 0
-        cells_for_allocation_sorted <- sortCellsForAllocation(cells_for_allocation = cells_for_allocation,
-                                                              random_seed = random_seed)
-
-        # Allocate land cover change
-        cells_with_allocation <- getActualConversions(cells_for_allocation = cells_for_allocation_sorted,
+        # Get cells for land cover allocation
+        cells_for_allocation <- getCellsForAllocation(ref_map_df = updated_assigned_ref_map_cells,
                                                       LC_from_name = LC_from_name,
-                                                      LC_conversion_area = LC_conversion_area)
+                                                      coarse_ID = coarse_ID)
 
-        # Update the coarse-scale cell and all corresponding fine-scale cells
-        # Update the reference map with new land cover areas
-        updated_assigned_ref_map_cells <- updateRefMapWithLCConversions(ref_map_df = updated_assigned_ref_map_cells,
-                                                                        LC_conversion_df = cells_with_allocation,
-                                                                        LC_from_name = LC_from_name,
-                                                                        LC_to_name = LC_to_name)
+        if (nrow(cells_for_allocation) >= 1) {
 
-        # Calculate total conversion value
-        total_conversion <- sum(cells_with_allocation$actual_conversion)
+          # Calculate kernel densities
+          cells_for_allocation[ , "kernel_density"] <- apply(cells_for_allocation,
+                                                             1,
+                                                             calculateKernelDensitiesForOneCell,
+                                                             ref_map_df = initial_ref_map_df,
+                                                             LC_class = LC_to_name,
+                                                             kernel_xy_dist = kernel_xy_dist)
 
-        # Update aggregated reference map
-        updated_agg_ref_map_cell <- updateOneAggRefMapCellWithLCConversions(agg_ref_map_cell = updated_agg_ref_map_cell,
-                                                                            total_conversion = total_conversion,
-                                                                            LC_from_name = LC_from_name,
-                                                                            LC_to_name = LC_to_name)
+          # Sort for cells for allocation depending on whether kernel density > 0 or kernel density == 0
+          cells_for_allocation_sorted <- sortCellsForAllocation(cells_for_allocation = cells_for_allocation,
+                                                                random_seed = random_seed)
 
-        # Update LC deltas
-        updated_LC_deltas_cell <- updateOneLCDeltasCellWithLCConversions(LC_deltas_cell = updated_LC_deltas_cell,
-                                                                         LC_to_name = LC_to_name,
-                                                                         LC_from_name = LC_from_name,
-                                                                         total_conversion = total_conversion)
+          # Allocate land cover change
+          cells_with_allocation <- getActualConversions(cells_for_allocation = cells_for_allocation_sorted,
+                                                        LC_from_name = LC_from_name,
+                                                        LC_conversion_area = LC_conversion_area)
 
+          # Update the coarse-scale cell and all corresponding fine-scale cells
+          # Update the reference map with new land cover areas
+          updated_assigned_ref_map_cells <- updateRefMapWithLCConversions(ref_map_df = updated_assigned_ref_map_cells,
+                                                                          LC_conversion_df = cells_with_allocation,
+                                                                          LC_from_name = LC_from_name,
+                                                                          LC_to_name = LC_to_name)
+
+          # Calculate total conversion value
+          total_conversion <- sum(cells_with_allocation$actual_conversion)
+
+          # Update aggregated reference map
+          updated_agg_ref_map_cell <- updateOneAggRefMapCellWithLCConversions(agg_ref_map_cell = updated_agg_ref_map_cell,
+                                                                              total_conversion = total_conversion,
+                                                                              LC_from_name = LC_from_name,
+                                                                              LC_to_name = LC_to_name)
+
+          # Update LC deltas
+          updated_LC_deltas_cell <- updateOneLCDeltasCellWithLCConversions(LC_deltas_cell = updated_LC_deltas_cell,
+                                                                           LC_to_name = LC_to_name,
+                                                                           LC_from_name = LC_from_name,
+                                                                           total_conversion = total_conversion)
+
+        }
       }
     }
   }
