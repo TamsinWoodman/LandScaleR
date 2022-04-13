@@ -46,7 +46,7 @@ calculateLCDeltas <- function(LC_map_1,
   }
 
   # Set up x and y in data frame
-  LC_map_coords <- LC_map_1_sorted[ , coord_cols]
+  LC_map_coords <- LC_map_1_sorted[ , !names(LC_map_1_sorted) %in% LC_classes]
 
   # Set up two LC-only data frame
   LC_map_1_sorted_LC <- LC_map_1_sorted[ , LC_classes]
