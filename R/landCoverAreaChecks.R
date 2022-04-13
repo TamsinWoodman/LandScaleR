@@ -3,9 +3,26 @@
 #'   reference map cell
 #'
 LCAllocationChecks <- function(LC_deltas_df,
+                               LC_deltas_cell_area,
                                LC_classes,
                                ref_map_df,
                                ref_map_cell_area) {
+
+  # Check land cover areas in the fine-scale map
+  apply(ref_map_df,
+        1,
+        checkLandCoverAreasInOneCell,
+        input_map = "reference",
+        total_area = ref_map_cell_area,
+        LC_types = LC_classes)
+
+  # Check land cover areas in the aggregated ref map
+  # apply(agg_ref_map,
+  #       1,
+  #       checkLandCoverAreasInOneCell,
+  #       input_map = "coarse-scale",
+  #       total_area = LC_deltas_cell_area,
+  #       LC_types = LC_classes)
 
   # Check for unallocated land cover
   unallocated_LC_deltas <- apply(LC_deltas_df,
@@ -34,13 +51,6 @@ LCAllocationChecks <- function(LC_deltas_df,
 
   }
 
-  # Check land cover areas in the fine-scale map
-  apply(ref_map_df,
-        1,
-        checkLandCoverAreasInOneCell,
-        total_area = ref_map_cell_area,
-        LC_types = LC_classes)
-
   return(unallocated_LC_deltas_df)
 }
 
@@ -60,11 +70,23 @@ LCAllocationChecks <- function(LC_deltas_df,
 #'   grid cell is > 0.1\% different to the expected total area of land in the
 #'   cell.
 checkLandCoverAreasInOneCell <- function(grid_cell,
+                                         input_map,
                                          total_area,
                                          LC_types) {
 
-  # Can throw error if land cover types are not present in grid_cell names,
+  # Should throw error if land cover types are not present in grid_cell names,
   # and if grid_cell is not a named vector
+
+  # Set the cell area according to the map being checked and its projection
+  if (input_map == "coarse-scale") {
+    total_area <- grid_cell["ref_map_area"]
+
+  } else if (input_map == "reference" & is.na(total_area)) {
+    total_area <- grid_cell["cell_area"]
+
+  } else if (input_map == "reference" & !is.na(total_area)) {
+    total_area <- total_area
+  }
 
   # Set the tolerance for land cover differences
   percent_tolerance <- 0.1
@@ -78,7 +100,12 @@ checkLandCoverAreasInOneCell <- function(grid_cell,
     x_coord <- grid_cell["x"]
     y_coord <- grid_cell["y"]
 
-    warning(paste0("Total land cover in grid cell ", x_coord, ", ", y_coord,
+    warning(paste0("Total land cover in ",
+                   input_map,
+                   " grid cell ",
+                   x_coord,
+                   ", ",
+                   y_coord,
                    " is >0.1% different to expected land cover area"))
   }
 

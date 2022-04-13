@@ -15,6 +15,8 @@ harmoniseUnallocatedLCDeltas <- function(LC_allocation_params) {
 
   harmonised_LC_deltas_df <- slot(LC_deltas,
                                   "LC_map")
+  LC_deltas_cell_area <- slot(LC_deltas,
+                              "cell_area")
   initial_ref_map_df <- slot(ref_map,
                              "LC_map")
   LC_classes <- slot(ref_map,
@@ -24,6 +26,7 @@ harmoniseUnallocatedLCDeltas <- function(LC_allocation_params) {
 
   # Get a data frame of unallocated land cover deltas
   unallocated_LC_deltas_df <- LCAllocationChecks(LC_deltas_df = harmonised_LC_deltas_df,
+                                                 LC_deltas_cell_area = LC_deltas_cell_area,
                                                  LC_classes = LC_classes,
                                                  ref_map_df = initial_ref_map_df,
                                                  ref_map_cell_area = ref_map_cell_area)
@@ -87,11 +90,7 @@ harmoniseUnallocatedLCDeltas <- function(LC_allocation_params) {
         # This could happen if the sum of all LC deltas at the start of the
         # algorithm did not equal 0
         if (is.null(LC_transitions)) {
-
-          warning("Unable to allocated all land cover change in cell: ")
-          print(unallocated_LC_deltas_df[i, ])
           break
-
         }
 
         neighbour_cell <- neighbour_cells[order_index, ]
@@ -133,6 +132,7 @@ harmoniseUnallocatedLCDeltas <- function(LC_allocation_params) {
 
     # Check if there is any unallocated land cover change after harmonisation
     unallocated_LC_deltas_post_harmonisation <- LCAllocationChecks(LC_deltas_df = as.data.frame(unallocated_LC_deltas_df),
+                                                                   LC_deltas_cell_area = LC_deltas_cell_area,
                                                                    LC_classes = LC_classes,
                                                                    ref_map_df = harmonised_ref_map_df,
                                                                    ref_map_cell_area = ref_map_cell_area)

@@ -82,6 +82,7 @@
 #'   will be appended to the output.
 downscaleLC <- function(ref_map_file_name,
                         LC_deltas_file_list,
+                        equal_area = TRUE,
                         LC_deltas_classes,
                         LC_deltas_cell_area,
                         LC_deltas_cell_resolution,
@@ -107,6 +108,7 @@ downscaleLC <- function(ref_map_file_name,
 
     LC_deltas <- loadLCDeltas(LC_deltas_file_list = LC_deltas_file_list,
                               timestep = i,
+                              equal_area = equal_area,
                               LC_deltas_classes = LC_deltas_classes,
                               LC_deltas_cell_area = LC_deltas_cell_area,
                               LC_deltas_cell_resolution = LC_deltas_cell_resolution)
@@ -114,6 +116,7 @@ downscaleLC <- function(ref_map_file_name,
     ref_map <- loadRefMap(timestep = i,
                           ref_map_file_name = ref_map_file_name,
                           ref_map_type = ref_map_type,
+                          equal_area = equal_area,
                           ref_map_LC_classes = ref_map_LC_classes,
                           ref_map_cell_area = ref_map_cell_area,
                           ref_map_cell_resolution = ref_map_cell_resolution,
@@ -188,6 +191,7 @@ createOutputDir <- function(output_dir_path) {
 #' @return An `LCMap` object containing the LC deltas data frame and associated
 #'   information.
 loadLCDeltas <- function(LC_deltas_file_list,
+                         equal_area,
                          timestep,
                          LC_deltas_classes,
                          LC_deltas_cell_area,
@@ -201,6 +205,13 @@ loadLCDeltas <- function(LC_deltas_file_list,
                               sep = "\t",
                               check.names = FALSE)
 
+  # Check cell areas column is present if map is not equal area
+  if (!equal_area) {
+    if (!"cell_area" %in% colnames(LC_deltas_raw)) {
+      stop("Equal area projection is false but cell areas have not been provided.")
+    }
+  }
+
   # Add the coarse ID values here
   LC_deltas_df <- addCellIDs(LC_df = LC_deltas_raw,
                              ID_column_name = "coarse_ID")
@@ -208,8 +219,13 @@ loadLCDeltas <- function(LC_deltas_file_list,
   LC_deltas <- new("LCMap",
                    LC_map = LC_deltas_df,
                    LC_classes = LC_deltas_classes,
-                   cell_area = LC_deltas_cell_area,
                    cell_resolution = LC_deltas_cell_resolution)
+
+  # Add cell area if map is not an equal area projection
+  if (equal_area) {
+    slot(LC_deltas,
+         "cell_area") <- LC_deltas_cell_area
+  }
 
   print(paste0("Loaded LC deltas file: ",
                LC_deltas_file_name))
@@ -253,6 +269,7 @@ addCellIDs <- function(LC_df,
 loadRefMap <- function(timestep,
                        ref_map_file_name,
                        ref_map_type,
+                       equal_area,
                        ref_map_LC_classes,
                        ref_map_cell_area,
                        ref_map_cell_resolution,
@@ -272,6 +289,13 @@ loadRefMap <- function(timestep,
     ref_map_raw <- read.table(ref_map_file_name,
                               header = TRUE,
                               sep = "\t")
+
+    # Check cell areas column is present if map is not equal area
+    if (!equal_area) {
+      if (!"cell_area" %in% colnames(LC_deltas_df)) {
+        stop("Equal area projection is false but cell areas have not been provided.")
+      }
+    }
 
     # Convert discrete map into fractional map
     if (ref_map_type == "discrete") {
@@ -303,6 +327,13 @@ loadRefMap <- function(timestep,
                                    sep = "\t",
                                    check.names = FALSE)
 
+    # Check cell areas column is present if map is not equal area
+    if (!equal_area) {
+      if (!"cell_area" %in% colnames(LC_deltas_df)) {
+        stop("Equal area projection is false but cell areas have not been provided.")
+      }
+    }
+
     # Remove discrete LC column if discrete_output_map is TRUE
     if (discrete_output_map) {
       assigned_ref_map <- assigned_ref_map[ , !names(assigned_ref_map) == "Discrete_LC_class"]
@@ -315,15 +346,19 @@ loadRefMap <- function(timestep,
   # Create aggregated version of reference map to make land cover allocation quicker
   agg_ref_map <- aggregateLCMap(ref_map = assigned_ref_map,
                                 LC_deltas = LC_deltas_df,
-                                ref_map_LC_classes = ref_map_LC_classes,
-                                ref_map_cell_area = ref_map_cell_area)
+                                ref_map_LC_classes = ref_map_LC_classes)
 
   new_ref_map <- new("LCMap",
                      LC_map = assigned_ref_map,
                      agg_LC_map = agg_ref_map,
                      LC_classes = ref_map_LC_classes,
-                     cell_area = ref_map_cell_area,
                      cell_resolution = ref_map_cell_resolution)
+
+  # Add cell area if map is an equal area projection
+  if (equal_area) {
+    slot(new_ref_map,
+         "cell_area") <- ref_map_cell_area
+  }
 
   return(new_ref_map)
 }
@@ -388,10 +423,17 @@ convertDiscreteLCToLCAreas <- function(ref_map_df,
 
   ref_map_LC_areas <- ref_map_df[ , c("x", "y")]
 
-  ref_map_LC_areas[ , ref_map_LC_classes] <- t(sapply(ref_map_df[ , LC_column_name],
-                                                      convertDiscreteLCToLCAreasOneCell,
-                                                      ref_map_LC_classes = ref_map_LC_classes,
-                                                      ref_map_cell_area = ref_map_cell_area))
+  ref_map_LC_areas[ , ref_map_LC_classes] <- t(apply(ref_map_df,
+                                                     1,
+                                                     convertDiscreteLCToLCAreasOneCell,
+                                                     LC_column_name = LC_column_name,
+                                                     ref_map_LC_classes = ref_map_LC_classes,
+                                                     ref_map_cell_area = ref_map_cell_area))
+
+
+  if(is.na(ref_map_cell_area)) {
+    ref_map_LC_areas[ , "cell_area"] <- ref_map_df[ , "cell_area"]
+  }
 
   return(ref_map_LC_areas)
 }
@@ -407,28 +449,36 @@ convertDiscreteLCToLCAreas <- function(ref_map_df,
 #'
 #' @return A vector with the area of each of the specified land cover classes in
 #'   the given grid cell.
-convertDiscreteLCToLCAreasOneCell <- function(LC_class,
+convertDiscreteLCToLCAreasOneCell <- function(grid_cell,
+                                              LC_column_name,
                                               ref_map_LC_classes,
                                               ref_map_cell_area) {
+
+  # Set grid cell area and LC class
+  LC_class <- grid_cell[LC_column_name]
+
+  if (is.na(ref_map_cell_area)) {
+    ref_map_cell_area <- grid_cell["cell_area"]
+  }
 
   if (!LC_class %in% ref_map_LC_classes) {
     stop(paste0(LC_class, " is not a land cover class in the ref_map_LC_classes vector"))
   }
 
-  # Set up new data frame
+  # Set up new vector
   LC_areas <- rep(0,
                   length(ref_map_LC_classes))
   names(LC_areas) <- ref_map_LC_classes
 
-  LC_areas[which(names(LC_areas) == LC_class)] <- ref_map_cell_area
+  # Fill the new vector with areas
+  LC_areas[which(names(LC_areas) == LC_class)] <- as.numeric(ref_map_cell_area)
 
   return(LC_areas)
 }
 
 aggregateLCMap <- function(ref_map,
                            LC_deltas,
-                           ref_map_LC_classes,
-                           ref_map_cell_area) {
+                           ref_map_LC_classes) {
 
   agg_ref_map <- LC_deltas[ , c("x", "y", "coarse_ID")]
 
@@ -436,16 +486,14 @@ aggregateLCMap <- function(ref_map,
                                                 1,
                                                 FUN = aggregateLCMapOneCell,
                                                 ref_map = ref_map,
-                                                ref_map_LC_classes = ref_map_LC_classes,
-                                                ref_map_cell_area = ref_map_cell_area))
+                                                ref_map_LC_classes = ref_map_LC_classes))
 
   return(agg_ref_map)
 }
 
 aggregateLCMapOneCell <- function(coarse_cell,
                                   ref_map,
-                                  ref_map_LC_classes,
-                                  ref_map_cell_area) {
+                                  ref_map_LC_classes) {
 
   coarse_cell_ID <- coarse_cell["coarse_ID"]
   ref_map_cells <- ref_map[ref_map["coarse_ID"] == coarse_cell_ID, ]

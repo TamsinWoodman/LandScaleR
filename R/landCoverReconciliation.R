@@ -71,16 +71,26 @@ reconcileLCDeltas <- function(LC_deltas,
                          ref_map_cell_area = ref_map_cell_area)
 
   # Adjust coarse land-use areas using equation 1 from Le Page et al. (2016)
-  adj_LC_deltas_df <- LC_deltas_df[ , 1:2]
+  adj_LC_deltas_df <- LC_deltas_df[ , c("x",
+                                        "y",
+                                        "coarse_ID")]
+  if (is.na(LC_deltas_cell_area)) {
+    LC_deltas_cell_area <- LC_deltas_df[ , "cell_area"]
+  }
+
   adj_LC_deltas_df[ , LC_deltas_classes] <- apply(LC_deltas_df[ , LC_deltas_classes],
                                                  2,
                                                  adjustCoarseLCAreas,
                                                  ref_map_areas = ref_map_areas,
                                                  LC_deltas_cell_area = LC_deltas_cell_area)
 
-  # Add coarse IDs and fine-scale areas to output df
-  adj_LC_deltas_df$coarse_ID <- LC_deltas_df$coarse_ID
+  # Add ref map areas and coarse cell areas if needed
   adj_LC_deltas_df$ref_map_area <- ref_map_areas
+
+  if (is.na(slot(LC_deltas,
+                 "cell_area"))) {
+    adj_LC_deltas_df$cell_area <- LC_deltas_df$cell_area
+  }
 
   ### Need to add some kind of check in here to make sure that the sum of the
   ### new land-use areas is equal to the fine-scale area for that cell
@@ -123,11 +133,20 @@ calculateRefMapAreaForCoarseCell <- function(coarse_cell,
   # Set coarse cell ID
   coarse_ID <- coarse_cell["coarse_ID"]
 
-  # Get number of fine-scale cells assigned to coarse cell
-  number_ref_map_cells <- nrow(ref_map_df[which(ref_map_df["coarse_ID"] == coarse_ID), ])
+  # Get fine-scale cells assigned to coarse cell
+  assigned_ref_map_cells <- ref_map_df[which(ref_map_df["coarse_ID"] == coarse_ID), ]
 
-  # Calculate area of fine-scale cells assigned to coarse cell
-  area_ref_map_cells <- number_ref_map_cells * ref_map_cell_area
+  # Calculate area of ref map cells assigned to the coarse-scale cell depending
+  # on whether the projection is equal area
+  if (is.na(ref_map_cell_area)) {
+
+    area_ref_map_cells <- sum(assigned_ref_map_cells[ , "cell_area"])
+
+  } else {
+
+    area_ref_map_cells <- nrow(assigned_ref_map_cells) * ref_map_cell_area
+
+  }
 
   return(area_ref_map_cells)
 }
