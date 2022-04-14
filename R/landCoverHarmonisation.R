@@ -98,7 +98,6 @@ harmoniseUnallocatedLCDeltas <- function(LC_allocation_params) {
 
         # Get reference map cells that are assigned to this coarse-scale cell
         assigned_ref_map_cells <- harmonised_ref_map_df[harmonised_ref_map_df$coarse_ID == neighbour_coarse_ID, ]
-        #agg_ref_map_cell <- harmonised_agg_ref_map_df[harmonised_agg_ref_map_df$coarse_ID == coarse_ID, ]
 
         harmonised_LC_maps <- allocateLCTransitions(LC_transitions = LC_transitions,
                                                     agg_ref_map_cell = neighbour_cell,
