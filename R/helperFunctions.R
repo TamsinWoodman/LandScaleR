@@ -18,6 +18,9 @@ saveLandCoverMapAsTable <- function(LC_map,
                                       file_prefix = file_prefix,
                                       time_step = time_step)
 
+  LC_map[ , "x"] <- as.character(LC_map[ , "x"])
+  LC_map[ , "y"] <- as.character(LC_map[ , "y"])
+
   write.table(LC_map,
               file = file_path,
               sep = "\t",
