@@ -47,20 +47,31 @@ calculateKernelDensitiesForOneCell <- function(grid_cell,
                                         grid_cell = grid_cell,
                                         ref_map_df = ref_map_df)
 
-  # Set the coordinates of the cell
-  cell_x_coord <- grid_cell["x"]
-  cell_y_coord <- grid_cell["y"]
-  cell_coords <- c(cell_x_coord, cell_y_coord)
+  if (nrow(neighbour_cells) == 0) {
+    grid_cell_kernel_densities <- 0
 
-  # Calculate distance between focal cell and neighbour cells
-  neighbour_cells[ , "distance"] <- raster::pointDistance(cell_coords,
-                                                    neighbour_cells[ , c("x", "y")],
-                                                    lonlat = FALSE)
+  } else if (nrow(neighbour_cells) >= 1) {
 
-  # Find kernel density for each land-use type
-  grid_cell_kernel_densities <- kernelDensityFunction(LC_areas = neighbour_cells[ , LC_class],
-                                                      distance_values = neighbour_cells[ , "distance"],
-                                                      number_of_neighbour_cells = nrow(neighbour_cells))
+    # Set the coordinates of the cell
+    cell_x_coord <- grid_cell["x"]
+    cell_y_coord <- grid_cell["y"]
+    cell_coords <- c(cell_x_coord, cell_y_coord)
+
+    # Calculate distance between focal cell and neighbour cells
+    # lonlat is set to the opposite of equal_area
+    # This means when the user specifies an equal area projection
+    # (equal_area = TRUE), then lonlat = FALSE to show that the projection is
+    # not latitude-longitude
+    neighbour_cells[ , "distance"] <- raster::pointDistance(cell_coords,
+                                                            neighbour_cells[ , c("x", "y")],
+                                                            lonlat = FALSE)
+
+    # Find kernel density for each land-use type
+    grid_cell_kernel_densities <- kernelDensityFunction(LC_areas = neighbour_cells[ , LC_class],
+                                                        distance_values = neighbour_cells[ , "distance"],
+                                                        number_of_neighbour_cells = nrow(neighbour_cells))
+
+  }
 
   return(grid_cell_kernel_densities)
 }
