@@ -1,0 +1,10 @@
+x	y	managedForest	unmanagedForest	otherNatural	cropland	pasture	barren	urban	cell_area
+5	5	4	5	2	-13	2	0	0	100
+5	15	-2	-8	-9	7	12	0	0	100
+5	25	11	-6	3	0	-8	0	0	100
+15	5	-3	-8	-3	12	2	0	0	100
+15	15	2	-3	3	-11	9	0	0	100
+15	25	2	2	-2	-6	4	0	0	100
+25	5	3	1	5	-6	-3	0	0	100
+25	15	-11	5	7	1	-2	0	0	100
+25	25	-9	3	11	-1	-4	0	0	100
