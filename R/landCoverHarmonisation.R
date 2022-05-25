@@ -82,7 +82,7 @@ harmoniseUnallocatedLCDeltas <- function(LC_allocation_params) {
         order_index <- neighbour_cells_index[j]
 
         # Calculate transition matrix here
-        LC_transitions <- getLCTransitions(LC_deltas_cell = unallocated_LC_deltas_df[i, ],
+        LC_transitions <- getLCTransitions(LC_deltas_cell = unlist(unallocated_LC_deltas_df[i, ]),
                                            LC_classes = LC_classes)
 
         # Break the for loop if LC_transitions is NA

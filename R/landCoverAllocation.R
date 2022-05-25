@@ -194,8 +194,7 @@ getLCTransitions <- function(LC_deltas_cell,
                              LC_classes) {
 
   # Get delta values only
-  LC_deltas_vector <- unlist(LC_deltas_cell)
-  LC_deltas_only <- LC_deltas_vector[LC_classes]
+  LC_deltas_only <- LC_deltas_cell[LC_classes]
 
   # Get increasing and decreasing LC deltas
   inc_LC_deltas <- LC_deltas_only[LC_deltas_only > 0]
@@ -214,17 +213,24 @@ getLCTransitions <- function(LC_deltas_cell,
   # Sum LC deltas
   total_cell_LC_deltas <- sum(inc_LC_deltas_sorted)
 
-  LC_transitions <- data.frame(LC_to_name = rep(names(inc_LC_deltas_sorted),
-                                                each = length(dec_LC_deltas_sorted)),
-                               LC_from_name = rep(names(dec_LC_deltas_sorted),
-                                                  times = length(inc_LC_deltas_sorted)))
+  # Get vectors of LC classes and LC deltas
+  LC_to_names <- rep(names(inc_LC_deltas_sorted),
+                     each = length(dec_LC_deltas_sorted))
+  LC_to_values <- rep(inc_LC_deltas_sorted,
+                      each = length(dec_LC_deltas_sorted))
+  LC_from_names <- rep(names(dec_LC_deltas_sorted),
+                       times = length(inc_LC_deltas_sorted))
+  LC_from_values <- rep(dec_LC_deltas_sorted,
+                        times = length(inc_LC_deltas_sorted))
 
-  LC_transitions$LC_conversion <- apply(LC_transitions,
-                                        1,
-                                        calculateLCDeltaProportion,
-                                        inc_LC_deltas = inc_LC_deltas_sorted,
-                                        total_cell_LC_deltas = total_cell_LC_deltas,
-                                        dec_LC_deltas = dec_LC_deltas_sorted)
+  # Calculate LC conversions
+  LC_conversions <- LC_from_values * (LC_to_values / total_cell_LC_deltas)
+
+  # Create data frame with conversions for each LC combination
+  LC_transitions <- data.frame(LC_to_name = LC_to_names,
+                               LC_from_name = LC_from_names,
+                               LC_conversion = LC_conversions,
+                               row.names = NULL)
 
   return(LC_transitions)
 }
