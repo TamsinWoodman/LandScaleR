@@ -102,6 +102,15 @@ runLCAllocation <- function(LC_allocation_params) {
   # Stop the cluster
   parallel::stopCluster(downscaling_cluster)
 
+  # updated_LC_maps_list <- apply(LC_deltas_df,
+  #                                            1,
+  #                                            FUN = downscaleLCForOneCoarseCell,
+  #                                            ref_map_df = ref_map_df,
+  #                                            agg_ref_map_df = agg_ref_map_df,
+  #                                            LC_classes = LC_classes,
+  #                                            kernel_xy_dist = kernel_xy_dist,
+  #                                            random_seed = random_seed)
+
   # Combine the lists back into the three LC maps
   updated_ref_map_df <- do.call(rbind,
                                 lapply(updated_LC_maps_list,
