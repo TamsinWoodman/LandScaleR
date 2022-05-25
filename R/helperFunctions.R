@@ -12,11 +12,19 @@
 saveLandCoverMapAsTable <- function(LC_map,
                                     file_prefix = "",
                                     dir_path = "",
-                                    time_step) {
+                                    time_step,
+                                    discrete_output_map,
+                                    LC_classes) {
 
   file_path <- generateOutputFilePath(dir_path = dir_path,
                                       file_prefix = file_prefix,
                                       time_step = time_step)
+
+  # Add discrete land cover if specified
+  if (discrete_output_map) {
+    LC_map <- getDiscreteLC(LC_map,
+                            ref_map_LC_classes = LC_classes)
+  }
 
   LC_map[ , "x"] <- as.character(LC_map[ , "x"])
   LC_map[ , "y"] <- as.character(LC_map[ , "y"])

@@ -118,18 +118,23 @@ downscaleLC <- function(ref_map_file_name,
                               LC_deltas_cell_area = LC_deltas_cell_area,
                               LC_deltas_cell_resolution = LC_deltas_cell_resolution)
 
-    ref_map <- loadRefMap(timestep = i,
-                          ref_map_file_name = ref_map_file_name,
-                          ref_map_type = ref_map_type,
-                          equal_area = equal_area,
-                          ref_map_LC_classes = ref_map_LC_classes,
-                          ref_map_cell_area = ref_map_cell_area,
-                          ref_map_cell_resolution = ref_map_cell_resolution,
-                          LC_column_name = LC_column_name,
-                          LC_deltas = LC_deltas,
-                          discrete_output_map = discrete_output_map,
-                          output_dir_path = output_dir_path,
-                          output_file_prefix = output_file_prefix)
+    if (i == 1) {
+
+      # Load the reference map for the first time step only
+      # In subsequent time steps the reference map is the downscaled fine-scale
+      # map from the previous time step, which remains loaded in memory
+      ref_map <- loadRefMap(ref_map_file_name = ref_map_file_name,
+                            ref_map_type = ref_map_type,
+                            equal_area = equal_area,
+                            ref_map_LC_classes = ref_map_LC_classes,
+                            ref_map_cell_area = ref_map_cell_area,
+                            ref_map_cell_resolution = ref_map_cell_resolution,
+                            LC_column_name = LC_column_name,
+                            LC_deltas = LC_deltas,
+                            discrete_output_map = discrete_output_map,
+                            output_dir_path = output_dir_path,
+                            output_file_prefix = output_file_prefix)
+    }
 
     # Reconcile areas of LC deltas and aggregate to final LC types
     processed_LC_deltas <- processLCDeltas(LC_deltas = LC_deltas,
@@ -147,19 +152,16 @@ downscaleLC <- function(ref_map_file_name,
     new_LC_map <- runLCAllocation(LC_allocation_params)
 
     # Run harmonisation with unallocated land cover change
-    harmonised_new_LC_map <- harmoniseUnallocatedLCDeltas(new_LC_map)
-
-    # Add discrete land cover if specified
-    if (discrete_output_map) {
-      harmonised_new_LC_map <- getDiscreteLC(LC_map = harmonised_new_LC_map,
-                                             ref_map_LC_classes = ref_map_LC_classes)
-    }
+    ref_map <- harmoniseUnallocatedLCDeltas(new_LC_map)
 
     # Save land cover map
-    saveLandCoverMapAsTable(harmonised_new_LC_map,
+    saveLandCoverMapAsTable(LC_map = slot(ref_map,
+                                          "LC_map"),
                             file_prefix = output_file_prefix,
                             dir_path = output_dir_path,
-                            time_step = i)
+                            time_step = i,
+                            discrete_output_map = discrete_output_map,
+                            LC_classes = ref_map_LC_classes)
 
     print(paste0("Completed downscaling timestep ",
                  i))
@@ -272,8 +274,7 @@ addCellIDs <- function(LC_df,
 #'
 #' @return An `LCMap` object containing the reference map data frame for the
 #'   given timestep and associated information.
-loadRefMap <- function(timestep,
-                       ref_map_file_name,
+loadRefMap <- function(ref_map_file_name,
                        ref_map_type,
                        equal_area,
                        ref_map_LC_classes,
@@ -288,66 +289,37 @@ loadRefMap <- function(timestep,
   LC_deltas_df <- slot(LC_deltas,
                        "LC_map")
 
-  # If this is the first timestep
-  if (timestep == 1) {
+  # Read in the reference map from file
+  ref_map_raw <- read.table(ref_map_file_name,
+                            header = TRUE,
+                            sep = "\t",
+                            check.names = FALSE)
 
-    # Read in the reference map from file
-    ref_map_raw <- read.table(ref_map_file_name,
-                              header = TRUE,
-                              sep = "\t")
-
-    # Check cell areas column is present if map is not equal area
-    if (!equal_area) {
-      if (!"cell_area" %in% colnames(LC_deltas_df)) {
-        stop("Equal area projection is false but cell areas have not been provided.")
-      }
+  # Check cell areas column is present if map is not equal area
+  if (!equal_area) {
+    if (!"cell_area" %in% colnames(LC_deltas_df)) {
+      stop("Equal area projection is false but cell areas have not been provided.")
     }
-
-    # Convert discrete map into fractional map
-    if (ref_map_type == "discrete") {
-      ref_map_raw <- convertDiscreteLCToLCAreas(ref_map_df = ref_map_raw,
-                                                ref_map_LC_classes = ref_map_LC_classes,
-                                                ref_map_cell_area = ref_map_cell_area,
-                                                LC_column_name = LC_column_name)
-    }
-
-    # Add IDs column
-    ref_map_df <- addCellIDs(LC_df = ref_map_raw,
-                             ID_column_name = "ref_ID")
-
-    print(paste0("Loaded reference map: ",
-                 ref_map_file_name))
-
-    # Assign fine-scale cells
-    assigned_ref_map <- assignRefMapCells(ref_map_df = ref_map_df,
-                                          LC_deltas_df = LC_deltas_df)
-  } else {
-
-    # Read in fine-scale map from previous timestep
-    previous_ref_map_file_path <- generateOutputFilePath(dir_path = output_dir_path,
-                                                         file_prefix = output_file_prefix,
-                                                         time_step = timestep - 1)
-
-    assigned_ref_map <- read.table(previous_ref_map_file_path,
-                                   header = TRUE,
-                                   sep = "\t",
-                                   check.names = FALSE)
-
-    # Check cell areas column is present if map is not equal area
-    if (!equal_area) {
-      if (!"cell_area" %in% colnames(LC_deltas_df)) {
-        stop("Equal area projection is false but cell areas have not been provided.")
-      }
-    }
-
-    # Remove discrete LC column if discrete_output_map is TRUE
-    if (discrete_output_map) {
-      assigned_ref_map <- assigned_ref_map[ , !names(assigned_ref_map) == "Discrete_LC_class"]
-    }
-
-    print(paste0("Loaded reference map: ",
-                 previous_ref_map_file_path))
   }
+
+  # Convert discrete map into fractional map
+  if (ref_map_type == "discrete") {
+    ref_map_raw <- convertDiscreteLCToLCAreas(ref_map_df = ref_map_raw,
+                                              ref_map_LC_classes = ref_map_LC_classes,
+                                              ref_map_cell_area = ref_map_cell_area,
+                                              LC_column_name = LC_column_name)
+  }
+
+  # Add IDs column
+  ref_map_df <- addCellIDs(LC_df = ref_map_raw,
+                           ID_column_name = "ref_ID")
+
+  print(paste0("Loaded reference map: ",
+               ref_map_file_name))
+
+  # Assign fine-scale cells
+  assigned_ref_map <- assignRefMapCells(ref_map_df = ref_map_df,
+                                        LC_deltas_df = LC_deltas_df)
 
   # Create aggregated version of reference map to make land cover allocation quicker
   agg_ref_map <- aggregateLCMap(ref_map = assigned_ref_map,

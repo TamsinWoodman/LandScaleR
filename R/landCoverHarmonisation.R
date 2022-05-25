@@ -42,10 +42,9 @@ harmoniseUnallocatedLCDeltas <- function(LC_allocation_params) {
 
     LC_deltas_cell_resolution <- slot(LC_deltas,
                                       "cell_resolution")
-    harmonised_ref_map_df <- slot(ref_map,
-                               "LC_map")
+    harmonised_ref_map_df <- initial_ref_map_df
     harmonised_agg_ref_map_df <- slot(ref_map,
-                                   "agg_LC_map")
+                                      "agg_LC_map")
     ref_map_cell_resolution <- slot(ref_map,
                                     "cell_resolution")
 
@@ -147,16 +146,16 @@ harmoniseUnallocatedLCDeltas <- function(LC_allocation_params) {
                      harmonisation_end_time,
                      "Completed harmonisation in ")
 
-  } else {
+    slot(ref_map,
+         "LC_map") <- harmonised_ref_map_df
+    slot(ref_map,
+         "agg_LC_map") <- harmonised_agg_ref_map_df
 
-    ref_map <- slot(LC_allocation_params,
-                    "ref_map")
-    harmonised_ref_map_df <- slot(ref_map,
-                                  "LC_map")
+  } else {
 
     print("No harmonisation required")
 
   }
 
-  return(harmonised_ref_map_df)
+  return(ref_map)
 }
