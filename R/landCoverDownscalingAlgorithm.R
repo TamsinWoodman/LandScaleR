@@ -469,10 +469,6 @@ convertDiscreteLCToLCAreasOneCell <- function(grid_cell,
     ref_map_cell_area <- grid_cell["cell_area"]
   }
 
-  if (!LC_class %in% ref_map_LC_classes) {
-    stop(paste0(LC_class, " is not a land cover class in the ref_map_LC_classes vector"))
-  }
-
   # Set up new vector
   LC_areas <- rep(0,
                   length(ref_map_LC_classes))
