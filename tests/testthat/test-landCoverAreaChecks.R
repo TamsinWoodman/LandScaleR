@@ -50,14 +50,14 @@ test_that("checkLandCoverAreasInOneCell gives warning if area is >0.1% different
                  " is >0.1% different to expected land cover area")
 })
 
-test_that("checkForUnallocatedLandCover returns invisible NULL", {
-  test_grid_cell <- data.frame(x = 1,
-                               y = 1,
-                               LC1 = 0,
-                               LC2 = 0,
-                               LC3 = 0,
-                               coarse_ID = 1,
-                               ref_map_area = 10)
+test_that("checkForUnallocatedLandCover returns invisible NULL if all land cover is allocated", {
+  test_grid_cell <- c(x = 1,
+                      y = 1,
+                      LC1 = 0,
+                      LC2 = 0,
+                      LC3 = 0,
+                      coarse_ID = 1,
+                      ref_map_area = 10)
   LC_types <- c("LC1",
                 "LC2",
                 "LC3")
@@ -68,13 +68,13 @@ test_that("checkForUnallocatedLandCover returns invisible NULL", {
 })
 
 test_that("checkForUnallocatedLandCover returns invisible NULL if unallocated land cover change is 0.01%", {
-  test_grid_cell <- data.frame(x = 1,
-                               y = 1,
-                               LC1 = 0.001,
-                               LC2 = 0.001,
-                               LC3 = 0,
-                               coarse_ID = 1,
-                               ref_map_area = 10)
+  test_grid_cell <- c(x = 1,
+                     y = 1,
+                     LC1 = 0.001,
+                     LC2 = 0.001,
+                     LC3 = 0,
+                     coarse_ID = 1,
+                     ref_map_area = 10)
   LC_types <- c("LC1",
                 "LC2",
                 "LC3")
@@ -84,19 +84,19 @@ test_that("checkForUnallocatedLandCover returns invisible NULL if unallocated la
                invisible(NULL))
 })
 
-test_that("checkForUnallocatedLandCover returns gives warning if unallocated land cover change is >0.01%", {
-  test_grid_cell <- data.frame(x = 1,
-                               y = 1,
-                               LC1 = 0.0015,
-                               LC2 = 0,
-                               LC3 = 0,
-                               coarse_ID = 1,
-                               ref_map_area = 10)
+test_that("checkForUnallocatedLandCover returns grid cell if unallocated land cover change is >0.1%", {
+  test_grid_cell <- c(x = 1,
+                      y = 1,
+                      LC1 = 0.015,
+                      LC2 = 0,
+                      LC3 = 0,
+                      coarse_ID = 1,
+                      ref_map_area = 10)
   LC_types <- c("LC1",
                 "LC2",
                 "LC3")
 
-  expect_warning(checkForUnallocatedLandCover(test_grid_cell,
+  expect_equal(checkForUnallocatedLandCover(test_grid_cell,
                                               LC_types),
-                 "Unallocated land cover change in grid cell ")
+                 test_grid_cell)
 })

@@ -215,12 +215,13 @@ test_that("calculateLCDeltas stops if the coordinates in two land cover maps do 
                "Coordinates differ between the two timesteps")
 })
 
-test_that("calculateLCDeltas throws warning and ignores extra land cover columns in data frames", {
+test_that("calculateLCDeltas adds extra columns in first data frame to output data frame", {
   LC_map_1 <- data.frame(x = c(0, 1),
                          y = c(0, 2),
                          pri = c(0.5, 0.5),
                          sec = c(2, 3),
-                         urb = c(1, 4))
+                         urb = c(1, 4),
+                         cell_area = c(3.5, 7.5))
   LC_map_2 <- data.frame(x = c(0, 1),
                          y = c(0, 2),
                          pri = c(0.5, 0.5),
@@ -229,6 +230,8 @@ test_that("calculateLCDeltas throws warning and ignores extra land cover columns
 
   expected_LC_deltas <- data.frame(x = c(0, 1),
                                    y = c(0, 2),
+                                   urb = c(1, 4),
+                                   cell_area = c(3.5, 7.5),
                                    pri = c(0, 0),
                                    sec = c(-1, -2))
 
