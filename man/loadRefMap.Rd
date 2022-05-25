@@ -8,6 +8,7 @@ loadRefMap(
   timestep,
   ref_map_file_name,
   ref_map_type,
+  equal_area,
   ref_map_LC_classes,
   ref_map_cell_area,
   ref_map_cell_resolution,
@@ -29,6 +30,9 @@ the resolution of the output downscaled land cover maps.}
 \item{ref_map_type}{Specifies whether the reference map is discrete (contains
 one land cover class per cell) or area-based (provides the area of each
 land cover class in each cell). Must be one of "areas" or "discrete".}
+
+\item{equal_area}{Logical. 'TRUE' indicates that input maps are in an equal
+area projection, 'FALSE' means they are not.}
 
 \item{ref_map_LC_classes}{Vector of land cover types in the reference map. For
 an area-based reference map, all land cover types should be column names in

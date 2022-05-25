@@ -6,9 +6,11 @@
 \usage{
 loadLCDeltas(
   LC_deltas_file_list,
+  equal_area,
   timestep,
   LC_deltas_classes,
-  LC_deltas_cell_area
+  LC_deltas_cell_area,
+  LC_deltas_cell_resolution
 )
 }
 \arguments{
@@ -19,6 +21,9 @@ extension. The list must be ordered by time, with the first time step being
 the first file in the list, the second time step the second file, and so
 on. Land cover change files can be generated using the `calculateLCDeltas`
 function from this package.}
+
+\item{equal_area}{Logical. 'TRUE' indicates that input maps are in an equal
+area projection, 'FALSE' means they are not.}
 
 \item{timestep}{Timestep of land cover change to be downscaled.}
 

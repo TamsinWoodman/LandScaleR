@@ -21,6 +21,6 @@ Invisible 'NULL'. Throws a warning if a grid cell contains
 Checks whether there is any unallocated land cover change after all three
   steps of the land cover allocation algorithm (intensification, expansion
   and second round of intensification). Unallocated land cover change is
-  defined as remaining land cover change which is more than 0.01\% of the
+  defined as remaining land cover change which is more than 0.1\% of the
   total area of the coarse-scale grid cell.
 }

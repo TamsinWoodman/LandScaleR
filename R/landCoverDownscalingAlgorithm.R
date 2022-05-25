@@ -37,6 +37,8 @@
 #'   the first file in the list, the second time step the second file, and so
 #'   on. Land cover change files can be generated using the `calculateLCDeltas`
 #'   function from this package.
+#' @param equal_area Logical. 'TRUE' indicates that input maps are in an equal
+#'   area projection, 'FALSE' means they are not.
 #' @param LC_deltas_classes Vector of land cover classes in the land cover change
 #'   maps. Each land cover class should be a column name in every land cover
 #'   change file.
@@ -80,6 +82,9 @@
 #'   downscaling. If `discrete_output_map = FALSE`, a column named
 #'   'Discrete_LC_class' containing the discrete land cover class for each cell
 #'   will be appended to the output.
+#' @importFrom methods new slot slot<-
+#' @importFrom utils read.table stack write.table
+#' @export
 downscaleLC <- function(ref_map_file_name,
                         LC_deltas_file_list,
                         equal_area = TRUE,
@@ -248,6 +253,7 @@ loadLCDeltas <- function(LC_deltas_file_list,
 #'
 #' @return The input data frame with an added column called 'ID_column_name'
 #'   that contains an identification number for each grid cell.
+#' @export
 addCellIDs <- function(LC_df,
                        ID_column_name) {
 
@@ -375,6 +381,7 @@ loadRefMap <- function(timestep,
 #' @return A copy of the reference map data frame with an extra column
 #'   containing the ID of the coarse-scale cell to which each reference map cell
 #'   belongs.
+#' @export
 assignRefMapCells <- function(ref_map_df,
                               LC_deltas_df) {
 
@@ -411,6 +418,7 @@ assignRefMapCells <- function(ref_map_df,
 #' @return A data frame of land cover areas per grid cell. The first two columns
 #'   give the x- and y-coordinates of each cell. Remaining columns give the area
 #'   of each land cover class in each cell.
+#' @export
 convertDiscreteLCToLCAreas <- function(ref_map_df,
                                        ref_map_LC_classes,
                                        ref_map_cell_area,
@@ -476,6 +484,17 @@ convertDiscreteLCToLCAreasOneCell <- function(grid_cell,
   return(LC_areas)
 }
 
+#' Aggregate a fine-scale map to the same resolution as a coarser-scale map
+#'
+#' @param ref_map Data frame of a fine-scale map, which must contain 'x', 'y',
+#'   and 'coarse_ID'. The 'coarse_ID' column specifies the closest coarse-scale
+#'   grid cell to each fine-scale grid cell. This column can be generated using
+#'   the `assignRefMap` function.
+#' @param LC_deltas Data frame of a coarse-scale map, which must have 'x', 'y',
+#'   and 'coarse_ID' columns.
+#' @inheritParams downscaleLC
+#'
+#' @export
 aggregateLCMap <- function(ref_map,
                            LC_deltas,
                            ref_map_LC_classes) {

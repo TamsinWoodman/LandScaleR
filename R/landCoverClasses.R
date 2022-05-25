@@ -12,8 +12,6 @@
 #' @slot resolution Vector with the x- and y-dimensions of each grid cell where
 #'   all grid cells have the same resolution. Should be provided in the format
 #'   `c(x, y)`.
-#'
-#' @export
 setClass("LCMap",
          slots = c(LC_map = "data.frame",
                    agg_LC_map = "data.frame",
@@ -38,8 +36,6 @@ setClass("LCMap",
 #'   densities for each land cover and grid cell.
 #' @slot intensification_ratio Value giving the ratio of land cover to be
 #'   allocated via intensification.
-#'
-#' @export
 setClass("LCAllocationParams",
          slots = c(LC_deltas = "LCMap",
                    ref_map = "LCMap",

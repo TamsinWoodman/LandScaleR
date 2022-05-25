@@ -78,7 +78,6 @@ fillLandUseMatrix <- function(land_use_df,
 #' @return A raster of the given land-use type. Default is a raster of 0.5
 #'   degree grid cells, each one containing the fraction of cropland in that
 #'   cell for the PLUMv2 timestep.
-#' @export
 makeLandUseRaster <- function(land_use_df,
                               land_use_type = "cropland",
                               cell_resolution = c(0.5, 0.5),
@@ -133,7 +132,6 @@ makeLandUseRaster <- function(land_use_df,
 #'   be one of the column names in `land_use_df`.
 #'
 #' @return A raster stack with each layer corresponding to one land-use.
-#' @export
 makeLandUseRasterStack <- function(land_use_df,
                                    raster_layers = c("suitable_fraction",
                                                      "pa_fraction",
@@ -186,7 +184,7 @@ makeLandUseRasterStack <- function(land_use_df,
 convertFractionsToAreas <- function(fractions_raster,
                                     cell_area) {
 
-  areas_raster <- calc(fractions_raster,
+  areas_raster <- raster::calc(fractions_raster,
                        fun = function(x) {x * cell_area})
 
   names(areas_raster) <- names(fractions_raster)

@@ -14,6 +14,9 @@ S4 class to hold a land cover map with associated properties
 contain x- and y-coordinates for the map. Each subsequent column contains
 the area of a given land cover class per cell.}
 
+\item{\code{agg_LC_map}}{For fine-scale maps only, contains a copy of `LC_map` that
+has been aggregated into coarse-scale grid cells.}
+
 \item{\code{LC_classes}}{Vector of land cover classes in the `LC_map` slot. Must be
 the same as land cover class column names in the `LC_map` data frame.}
 

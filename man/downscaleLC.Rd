@@ -7,8 +7,10 @@
 downscaleLC(
   ref_map_file_name,
   LC_deltas_file_list,
+  equal_area = TRUE,
   LC_deltas_classes,
   LC_deltas_cell_area,
+  LC_deltas_cell_resolution,
   ref_map_type = "areas",
   LC_column_name = "Land_cover",
   ref_map_LC_classes,
@@ -35,6 +37,9 @@ extension. The list must be ordered by time, with the first time step being
 the first file in the list, the second time step the second file, and so
 on. Land cover change files can be generated using the `calculateLCDeltas`
 function from this package.}
+
+\item{equal_area}{Logical. 'TRUE' indicates that input maps are in an equal
+area projection, 'FALSE' means they are not.}
 
 \item{LC_deltas_classes}{Vector of land cover classes in the land cover change
 maps. Each land cover class should be a column name in every land cover
