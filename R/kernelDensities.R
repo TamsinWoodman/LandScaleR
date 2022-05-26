@@ -53,15 +53,14 @@ calculateKernelDensitiesForOneCell <- function(grid_cell,
   } else if (nrow(neighbour_cells) >= 1) {
 
     # Set the coordinates of the cell
-    cell_x_coord <- grid_cell["x"]
-    cell_y_coord <- grid_cell["y"]
-    cell_coords <- c(cell_x_coord, cell_y_coord)
+    cell_coords <- c(grid_cell["x"], grid_cell["y"])
 
     # Calculate distance between focal cell and neighbour cells
-    # lonlat is set to the opposite of equal_area
-    # This means when the user specifies an equal area projection
-    # (equal_area = TRUE), then lonlat = FALSE to show that the projection is
-    # not latitude-longitude
+    # Note that distance is calculated as Euclidean distance between points,
+    # even if the projection is not equal area (e.g. lon lat projection).
+    # This means that there will be a preference to place land cover in cells
+    # nearer the equator with a larger area
+    # This decision could be changed in the future
     neighbour_cells[ , "distance"] <- raster::pointDistance(cell_coords,
                                                             neighbour_cells[ , c("x", "y")],
                                                             lonlat = FALSE)
