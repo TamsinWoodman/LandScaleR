@@ -64,6 +64,7 @@ setGeneric("sumRefCells", function(x) standardGeneric("sumRefCells"))
 setGeneric("sumRefCells<-", function(x, value) standardGeneric("sumRefCells<-"))
 setGeneric("refCellsArea", function(x) standardGeneric("refCellsArea"))
 setGeneric("refCellsArea<-", function(x, value) standardGeneric("refCellsArea<-"))
+setGeneric("reconcileLCDeltas", function(x, match_LC_classes) standardGeneric("reconcileLCDeltas"))
 
 # Methods for CoarseCell class
 setMethod("id", "CoarseCell", function(x) x@id)
@@ -96,3 +97,13 @@ setMethod("refCellsArea<-", "CoarseCell", function(x, value) {
   x@ref_cells_area <- value
   x
 })
+
+# Methods to reconcile LC deltas
+setMethod("reconcileLCDeltas", "CoarseCell", function(x, match_LC_classes) {
+  adjusted_LC_deltas <- x@LC_deltas * (x@ref_cells_area / x@cell_area)
+  matched_LC_deltas <- colSums(match_LC_classes * adjusted_LC_deltas)
+
+  x@LC_deltas <- matched_LC_deltas
+  x
+})
+
