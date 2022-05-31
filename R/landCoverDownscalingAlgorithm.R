@@ -96,7 +96,7 @@ downscaleLC <- function(ref_map_file_name,
                         ref_map_LC_classes,
                         ref_map_cell_area,
                         ref_map_cell_resolution,
-                        final_LC_classes,
+                        match_LC_classes,
                         kernel_radius,
                         discrete_output_map = FALSE,
                         random_seed = as.numeric(Sys.time()),
@@ -111,12 +111,10 @@ downscaleLC <- function(ref_map_file_name,
   # Loop through LC delta files
   for (i in 1:length(LC_deltas_file_list)) {
 
-    LC_deltas <- loadLCDeltas(LC_deltas_file_list = LC_deltas_file_list,
-                              timestep = i,
-                              equal_area = equal_area,
-                              LC_deltas_classes = LC_deltas_classes,
-                              LC_deltas_cell_area = LC_deltas_cell_area,
-                              LC_deltas_cell_resolution = LC_deltas_cell_resolution)
+    LC_deltas_df <- loadLCDeltas(LC_deltas_file_list = LC_deltas_file_list,
+                                 timestep = i,
+                                 equal_area = equal_area,
+                                 LC_deltas_cell_area = LC_deltas_cell_area)
 
     if (i == 1) {
 
@@ -130,16 +128,28 @@ downscaleLC <- function(ref_map_file_name,
                             ref_map_cell_area = ref_map_cell_area,
                             ref_map_cell_resolution = ref_map_cell_resolution,
                             LC_column_name = LC_column_name,
-                            LC_deltas = LC_deltas,
+                            LC_deltas = LC_deltas_df,
                             discrete_output_map = discrete_output_map,
                             output_dir_path = output_dir_path,
                             output_file_prefix = output_file_prefix)
+
+      # Set up coarse cells list
+      coarse_cells <- apply(LC_deltas_df,
+                            1,
+                            CoarseCellFromDFRow,
+                            cell_resolution = LC_deltas_cell_resolution,
+                            LC_deltas_classes = LC_deltas_classes,
+                            LC_deltas_cell_area = LC_deltas_cell_area,
+                            ref_map = ref_map,
+                            ref_map_LC_classes = ref_map_LC_classes)
+    } else {
+      ## will need to update coarse_cells with the new LC_deltas values
+
     }
 
-    # Reconcile areas of LC deltas and aggregate to final LC types
-    processed_LC_deltas <- processLCDeltas(LC_deltas = LC_deltas,
-                                           ref_map = ref_map,
-                                           final_LC_classes = final_LC_classes)
+    processed_coarse_cells <- lapply(coarse_cells,
+                                     reconcileLCDeltas,
+                                     match_LC_classes = match_LC_classes)
 
     # Allocate land cover change
     # Set up object for LC allocation
@@ -153,6 +163,7 @@ downscaleLC <- function(ref_map_file_name,
 
     # Run harmonisation with unallocated land cover change
     ref_map <- harmoniseUnallocatedLCDeltas(new_LC_map)
+    #ref_map <- harmoniseUnallocatedLCDeltas(LC_allocation_params)
 
     # Save land cover map
     saveLandCoverMapAsTable(LC_map = slot(ref_map,
@@ -200,9 +211,7 @@ createOutputDir <- function(output_dir_path) {
 loadLCDeltas <- function(LC_deltas_file_list,
                          equal_area,
                          timestep,
-                         LC_deltas_classes,
-                         LC_deltas_cell_area,
-                         LC_deltas_cell_resolution) {
+                         LC_deltas_cell_area) {
 
   # Read one timestep of LC delta values from file
   LC_deltas_file_name <- LC_deltas_file_list[[timestep]]
@@ -222,17 +231,6 @@ loadLCDeltas <- function(LC_deltas_file_list,
   # Add the coarse ID values here
   LC_deltas_df <- addCellIDs(LC_df = LC_deltas_raw,
                              ID_column_name = "coarse_ID")
-
-  LC_deltas <- new("LCMap",
-                   LC_map = LC_deltas_df,
-                   LC_classes = LC_deltas_classes,
-                   cell_resolution = LC_deltas_cell_resolution)
-
-  # Add cell area if map is not an equal area projection
-  if (equal_area) {
-    slot(LC_deltas,
-         "cell_area") <- LC_deltas_cell_area
-  }
 
   print(paste0("Loaded LC deltas file: ",
                LC_deltas_file_name))
@@ -286,9 +284,6 @@ loadRefMap <- function(ref_map_file_name,
                        output_dir_path,
                        output_file_prefix) {
 
-  LC_deltas_df <- slot(LC_deltas,
-                       "LC_map")
-
   # Read in the reference map from file
   ref_map_raw <- read.table(ref_map_file_name,
                             header = TRUE,
@@ -320,23 +315,6 @@ loadRefMap <- function(ref_map_file_name,
   # Assign fine-scale cells
   assigned_ref_map <- assignRefMapCells(ref_map_df = ref_map_df,
                                         LC_deltas_df = LC_deltas_df)
-
-  # Create aggregated version of reference map to make land cover allocation quicker
-  agg_ref_map <- aggregateLCMap(ref_map = assigned_ref_map,
-                                LC_deltas = LC_deltas_df,
-                                ref_map_LC_classes = ref_map_LC_classes)
-
-  new_ref_map <- new("LCMap",
-                     LC_map = assigned_ref_map,
-                     agg_LC_map = agg_ref_map,
-                     LC_classes = ref_map_LC_classes,
-                     cell_resolution = ref_map_cell_resolution)
-
-  # Add cell area if map is an equal area projection
-  if (equal_area) {
-    slot(new_ref_map,
-         "cell_area") <- ref_map_cell_area
-  }
 
   return(new_ref_map)
 }
@@ -450,44 +428,6 @@ convertDiscreteLCToLCAreasOneCell <- function(grid_cell,
   LC_areas[which(names(LC_areas) == LC_class)] <- as.numeric(ref_map_cell_area)
 
   return(LC_areas)
-}
-
-#' Aggregate a fine-scale map to the same resolution as a coarser-scale map
-#'
-#' @param ref_map Data frame of a fine-scale map, which must contain 'x', 'y',
-#'   and 'coarse_ID'. The 'coarse_ID' column specifies the closest coarse-scale
-#'   grid cell to each fine-scale grid cell. This column can be generated using
-#'   the `assignRefMap` function.
-#' @param LC_deltas Data frame of a coarse-scale map, which must have 'x', 'y',
-#'   and 'coarse_ID' columns.
-#' @inheritParams downscaleLC
-#'
-#' @export
-aggregateLCMap <- function(ref_map,
-                           LC_deltas,
-                           ref_map_LC_classes) {
-
-  agg_ref_map <- LC_deltas[ , c("x", "y", "coarse_ID")]
-
-  agg_ref_map[ , ref_map_LC_classes] <- t(apply(agg_ref_map,
-                                                1,
-                                                FUN = aggregateLCMapOneCell,
-                                                ref_map = ref_map,
-                                                ref_map_LC_classes = ref_map_LC_classes))
-
-  return(agg_ref_map)
-}
-
-aggregateLCMapOneCell <- function(coarse_cell,
-                                  ref_map,
-                                  ref_map_LC_classes) {
-
-  coarse_cell_ID <- coarse_cell["coarse_ID"]
-  ref_map_cells <- ref_map[ref_map["coarse_ID"] == coarse_cell_ID, ]
-
-  agg_LC_areas <- colSums(ref_map_cells[ , ref_map_LC_classes])
-
-  return(agg_LC_areas)
 }
 
 #' Get discrete land cover classes from a land cover data frame containing the
