@@ -51,7 +51,4 @@ setClass("CoarseCell",
                           cell_area = NA_real_,
                           ref_cells = data.frame(),
                           sum_ref_cells = NA_real_,
-                          ref_cells_area = NA_real_),
-         contains = c("MidCoords",
-                      "OuterCoords",
-                      "NeighbourCells"))
+                          ref_cells_area = NA_real_))
