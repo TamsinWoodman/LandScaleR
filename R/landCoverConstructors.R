@@ -19,7 +19,8 @@ CoarseCellFromDFRow <- function(grid_cell,
   }
 
   ref_cells <- ref_map[ref_map$coarse_ID == coarse_ID, ]
-  sum_ref_cells <- colSums(ref_cells[ , ref_map_LC_classes])
+  sum_ref_cells <- sumLCAreasInRefCells(ref_cells = ref_cells,
+                                        LC_classes = ref_map_LC_classes)
   ref_cells_area <- sum(sum_ref_cells)
 
   coarse_cell <- new("CoarseCell",
