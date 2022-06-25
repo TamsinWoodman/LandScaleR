@@ -108,6 +108,12 @@ downscaleLC <- function(ref_map_file_name,
   # Create output directory if it doesn't exist
   createOutputDir(output_dir_path = output_dir_path)
 
+  # Calculate x- and y-distances for finding neighbour cells
+  ref_kernel_xy_dist <- calculateXYKernelDistances(ref_map_cell_resolution = ref_map_cell_resolution,
+                                                   kernel_radius = kernel_radius)
+  coarse_kernel_xy_dist <- calculateXYKernelDistances(ref_map_cell_resolution = LC_deltas_cell_resolution,
+                                                      kernel_radius = 2)
+
   # Loop through LC delta files
   for (i in 1:length(LC_deltas_file_list)) {
 
@@ -128,7 +134,7 @@ downscaleLC <- function(ref_map_file_name,
                             ref_map_cell_area = ref_map_cell_area,
                             ref_map_cell_resolution = ref_map_cell_resolution,
                             LC_column_name = LC_column_name,
-                            LC_deltas = LC_deltas_df,
+                            LC_deltas_df = LC_deltas_df,
                             discrete_output_map = discrete_output_map,
                             output_dir_path = output_dir_path,
                             output_file_prefix = output_file_prefix)
@@ -147,19 +153,13 @@ downscaleLC <- function(ref_map_file_name,
 
     }
 
-    processed_coarse_cells <- lapply(coarse_cells,
-                                     reconcileLCDeltas,
-                                     match_LC_classes = match_LC_classes)
+    downscaled_coarse_cells <- lapply(coarse_cells,
+                                      downscaleLCForOneCoarseCell,
+                                      match_LC_classes = match_LC_classes,
+                                      kernel_xy_dist = ref_kernel_xy_dist,
+                                      random_seed = random_seed)
 
-    # Allocate land cover change
-    # Set up object for LC allocation
-    LC_allocation_params <- new("LCAllocationParams",
-                                LC_deltas = processed_LC_deltas,
-                                ref_map = ref_map,
-                                kernel_radius = kernel_radius,
-                                random_seed = random_seed)
-
-    new_LC_map <- runLCAllocation(LC_allocation_params)
+    print(downscaled_coarse_cells)
 
     # Run harmonisation with unallocated land cover change
     ref_map <- harmoniseUnallocatedLCDeltas(new_LC_map)
@@ -279,7 +279,7 @@ loadRefMap <- function(ref_map_file_name,
                        ref_map_cell_area,
                        ref_map_cell_resolution,
                        LC_column_name,
-                       LC_deltas,
+                       LC_deltas_df,
                        discrete_output_map,
                        output_dir_path,
                        output_file_prefix) {
@@ -292,7 +292,7 @@ loadRefMap <- function(ref_map_file_name,
 
   # Check cell areas column is present if map is not equal area
   if (!equal_area) {
-    if (!"cell_area" %in% colnames(LC_deltas)) {
+    if (!"cell_area" %in% colnames(LC_deltas_df)) {
       stop("Equal area projection is false but cell areas have not been provided.")
     }
   }
@@ -316,7 +316,7 @@ loadRefMap <- function(ref_map_file_name,
   assigned_ref_map <- assignRefMapCells(ref_map_df = ref_map_df,
                                         LC_deltas_df = LC_deltas_df)
 
-  return(new_ref_map)
+  return(assigned_ref_map)
 }
 
 #' Assign reference map cells to coarse-scale grid cells

@@ -39,7 +39,7 @@ calculateXYKernelDistances <- function(ref_map_cell_resolution,
 #'   grid cell.
 calculateKernelDensitiesForOneCell <- function(grid_cell,
                                                ref_map_df,
-                                               LC_class,
+                                               LC_to_name,
                                                kernel_xy_dist) {
 
   # Find neighbour cells for kernel density calculation
@@ -66,13 +66,13 @@ calculateKernelDensitiesForOneCell <- function(grid_cell,
                                                             lonlat = FALSE)
 
     # Find kernel density for each land-use type
-    grid_cell_kernel_densities <- kernelDensityFunction(LC_areas = neighbour_cells[ , LC_class],
-                                                        distance_values = neighbour_cells[ , "distance"],
-                                                        number_of_neighbour_cells = nrow(neighbour_cells))
+    grid_cell_kernel_density <- kernelDensityFunction(LC_areas = neighbour_cells[ , LC_to_name],
+                                                      distance_values = neighbour_cells[ , "distance"],
+                                                      number_of_neighbour_cells = nrow(neighbour_cells))
 
   }
 
-  return(grid_cell_kernel_densities)
+  return(grid_cell_kernel_density)
 }
 
 findNeighbourCells <- function(kernel_xy_dist,
