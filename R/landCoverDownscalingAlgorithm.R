@@ -216,21 +216,21 @@ loadLCDeltas <- function(LC_deltas_file_list,
   # Read one timestep of LC delta values from file
   LC_deltas_file_name <- LC_deltas_file_list[[timestep]]
 
-  LC_deltas_raw <- read.table(LC_deltas_file_name,
-                              header = TRUE,
-                              sep = "\t",
-                              check.names = FALSE)
+  LC_deltas <- read.table(LC_deltas_file_name,
+                          header = TRUE,
+                          sep = "\t",
+                          check.names = FALSE)
 
   # Check cell areas column is present if map is not equal area
   if (!equal_area) {
-    if (!"cell_area" %in% colnames(LC_deltas_raw)) {
+    if (!"cell_area" %in% colnames(LC_deltas)) {
       stop("Equal area projection is false but cell areas have not been provided.")
     }
   }
 
   # Add the coarse ID values here
-  LC_deltas_df <- addCellIDs(LC_df = LC_deltas_raw,
-                             ID_column_name = "coarse_ID")
+  LC_deltas <- addCellIDs(LC_df = LC_deltas,
+                          ID_column_name = "coarse_ID")
 
   print(paste0("Loaded LC deltas file: ",
                LC_deltas_file_name))
@@ -292,7 +292,7 @@ loadRefMap <- function(ref_map_file_name,
 
   # Check cell areas column is present if map is not equal area
   if (!equal_area) {
-    if (!"cell_area" %in% colnames(LC_deltas_df)) {
+    if (!"cell_area" %in% colnames(LC_deltas)) {
       stop("Equal area projection is false but cell areas have not been provided.")
     }
   }
