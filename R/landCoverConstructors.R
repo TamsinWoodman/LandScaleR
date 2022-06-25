@@ -39,16 +39,17 @@ CoarseCellFromDFRow <- function(grid_cell,
 OuterCoordsFromMidCoords <- function(mid_coords,
                                      cell_resolution) {
 
-  half_cell_resolution <- cell_resolution / 2
+  x_half_resolution <- cell_resolution[1] / 2
+  y_half_resolution <- cell_resolution[2] / 2
 
   mid_x <- midX(mid_coords)
   mid_y <- midY(mid_coords)
 
   outer_coords <- new("OuterCoords",
-                      min_x = mid_x - half_cell_resolution,
-                      max_x = mid_x + half_cell_resolution,
-                      min_y = mid_y - half_cell_resolution,
-                      max_y = mid_y + half_cell_resolution)
+                      min_x = mid_x - x_half_resolution,
+                      max_x = mid_x + x_half_resolution,
+                      min_y = mid_y - y_half_resolution,
+                      max_y = mid_y + y_half_resolution)
 
   return(outer_coords)
 }
