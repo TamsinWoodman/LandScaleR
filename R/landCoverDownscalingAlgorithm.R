@@ -87,15 +87,10 @@
 #' @export
 downscaleLC <- function(ref_map_file_name,
                         LC_deltas_file_list,
-                        equal_area = TRUE,
                         LC_deltas_classes,
                         LC_deltas_cell_area,
-                        LC_deltas_cell_resolution,
                         ref_map_type = "areas",
-                        LC_column_name = "Land_cover",
                         ref_map_LC_classes,
-                        ref_map_cell_area,
-                        ref_map_cell_resolution,
                         match_LC_classes,
                         kernel_radius,
                         discrete_output_map = FALSE,
@@ -105,61 +100,81 @@ downscaleLC <- function(ref_map_file_name,
 
   start_time <- Sys.time()
 
+  #### Set up
   # Create output directory if it doesn't exist
   createOutputDir(output_dir_path = output_dir_path)
 
-  # Calculate x- and y-distances for finding neighbour cells
-  ref_kernel_xy_dist <- calculateXYKernelDistances(ref_map_cell_resolution = ref_map_cell_resolution,
-                                                   kernel_radius = kernel_radius)
-  coarse_kernel_xy_dist <- calculateXYKernelDistances(ref_map_cell_resolution = LC_deltas_cell_resolution,
-                                                      kernel_radius = 2)
+  # Calculate distance matrix
+  distance_mat <- getDistMatrix(kernel_radius = kernel_radius)
 
-  # Loop through LC delta files
-  for (i in 1:length(LC_deltas_file_list)) {
+  #### Loop through time points
+  for (timestep in 1:length(LC_deltas_file_list)) {
 
-    LC_deltas_df <- loadLCDeltas(LC_deltas_file_list = LC_deltas_file_list,
-                                 timestep = i,
-                                 equal_area = equal_area,
-                                 LC_deltas_cell_area = LC_deltas_cell_area)
+    #### Set up within timestep 1
+    if (timestep == 1) {
 
-    if (i == 1) {
+      # Load LC_deltas file
+      LC_deltas <- loadLCDeltas(LC_deltas_file_list = LC_deltas_file_list,
+                                timestep = timestep)
 
-      # Load the reference map for the first time step only
-      # In subsequent time steps the reference map is the downscaled fine-scale
-      # map from the previous time step, which remains loaded in memory
+      # Load ref map file
       ref_map <- loadRefMap(ref_map_file_name = ref_map_file_name,
                             ref_map_type = ref_map_type,
-                            equal_area = equal_area,
-                            ref_map_LC_classes = ref_map_LC_classes,
-                            ref_map_cell_area = ref_map_cell_area,
-                            ref_map_cell_resolution = ref_map_cell_resolution,
-                            LC_column_name = LC_column_name,
-                            LC_deltas_df = LC_deltas_df,
-                            discrete_output_map = discrete_output_map,
-                            output_dir_path = output_dir_path,
-                            output_file_prefix = output_file_prefix)
-
-      # Set up coarse cells list
-      coarse_cells <- apply(LC_deltas_df,
-                            1,
-                            CoarseCellFromDFRow,
-                            cell_resolution = LC_deltas_cell_resolution,
-                            LC_deltas_classes = LC_deltas_classes,
-                            LC_deltas_cell_area = LC_deltas_cell_area,
-                            ref_map = ref_map,
                             ref_map_LC_classes = ref_map_LC_classes)
+
+      # Assign ref map cells to LC_deltas cells
+      LC_deltas_coords <- crds(LC_deltas)
+      LC_deltas_cell_numbers <- cellFromXY(LC_deltas,
+                                           LC_deltas_coords)
+
+      # Get polygons of ref map cells for each coarse cell
+      ref_map_polygons <- assignRefMapCells(ref_map = ref_map,
+                                            LC_deltas_coords = LC_deltas_coords,
+                                            LC_deltas_cell_numbers = LC_deltas_cell_numbers)
+
+      # Calculate kernel densities
+      kernel_densities <- calculateKernelDensities(ref_map = ref_map,
+                                                   distance_mat = distance_mat)
+
+      # Get a list of coarse-scale cells
+      coarse_cell_list <- lapply(LC_deltas_cell_numbers,
+                                 FUN = CoarseCellFromRaster,
+                                 LC_deltas = LC_deltas,
+                                 LC_deltas_classes = LC_deltas_classes,
+                                 ref_map_polygons = ref_map_polygons,
+                                 ref_map = ref_map,
+                                 kernel_densities = kernel_densities)
     } else {
-      ## will need to update coarse_cells with the new LC_deltas values
+
+      # Load LC_deltas file
+      LC_deltas <- loadLCDeltas(LC_deltas_file_list = LC_deltas_file_list,
+                                timestep = timestep)
+
+      # Calculate kernel densities
+      kernel_densities <- calculateKernelDensities(ref_map = ref_map,
+                                                   distance_mat = distance_mat)
+
+      # Get list of coarse-scale cells
+      coarse_cell_list <- lapply(LC_deltas_cell_numbers,
+                                 FUN = updateCoarseCell,
+                                 LC_deltas = LC_deltas,
+                                 LC_deltas_classes = LC_deltas_classes,
+                                 kernel_densities = kernel_densities,
+                                 ref_map_polygons = ref_map_polygons)
 
     }
 
-    downscaled_coarse_cells <- lapply(coarse_cells,
-                                      downscaleLCForOneCoarseCell,
-                                      match_LC_classes = match_LC_classes,
-                                      kernel_xy_dist = ref_kernel_xy_dist,
-                                      random_seed = random_seed)
+    #### Run downscaling
+    ####### Next step is to fix the code to run downscaling with SpatRasters
+    coarse_cell_list <- lapply(coarse_cell_list,
+                               downscaleLCForOneCoarseCell,
+                               match_LC_classes = match_LC_classes,
+                               distance_mat = distance_mat,
+                               random_seed = random_seed)
+    print(coarse_cell_list)
 
-    print(downscaled_coarse_cells)
+
+  }
 
     # Run harmonisation with unallocated land cover change
     ref_map <- harmoniseUnallocatedLCDeltas(new_LC_map)
@@ -199,153 +214,57 @@ createOutputDir <- function(output_dir_path) {
   }
 }
 
-#' Load an LC deltas data frame
-#'
-#' Loads an LC deltas data frame for the given timestep.
-#'
-#' @inheritParams downscaleLC
-#' @param timestep Timestep of land cover change to be downscaled.
-#'
-#' @return An `LCMap` object containing the LC deltas data frame and associated
-#'   information.
 loadLCDeltas <- function(LC_deltas_file_list,
-                         equal_area,
-                         timestep,
-                         LC_deltas_cell_area) {
+                         timestep) {
 
-  # Read one timestep of LC delta values from file
-  LC_deltas_file_name <- LC_deltas_file_list[[timestep]]
+  # Load LC_deltas file
+  LC_deltas <- rast(LC_deltas_file_list[[timestep]])
 
-  LC_deltas <- read.table(LC_deltas_file_name,
-                          header = TRUE,
-                          sep = "\t",
-                          check.names = FALSE)
-
-  # Check cell areas column is present if map is not equal area
-  if (!equal_area) {
-    if (!"cell_area" %in% colnames(LC_deltas)) {
-      stop("Equal area projection is false but cell areas have not been provided.")
-    }
+  # If cell_area layer is not present, calculate the area of each cell
+  if (!"cell_area" %in% names(LC_deltas)) {
+    LC_deltas <- c(LC_deltas,
+                   cellSize(LC_deltas))
+    names(LC_deltas)[nlyr(LC_deltas)] <- "cell_area"
   }
-
-  # Add the coarse ID values here
-  LC_deltas <- addCellIDs(LC_df = LC_deltas,
-                          ID_column_name = "coarse_ID")
-
-  print(paste0("Loaded LC deltas file: ",
-               LC_deltas_file_name))
 
   return(LC_deltas)
 }
 
-#' Add cell IDs to a data frame
-#'
-#' Sorts a data frame by x-coordinates, followed by y-coordinates. Adds a
-#'   column with a user-defined name to the data frame containing an
-#'   identification number for each grid cell. A grid cell corresponds to one
-#'   row in the data frame.
-#'
-#' @param LC_df Data frame of land cover map. Must have a minimum of two
-#'   columns. First column must be called 'x' and contain x-coordinates of the
-#'   map. Second column must be name 'y' and contain y-coordinates of the map.
-#' @param ID_column_name Character string giving the name of the column that
-#'   will be added to the data frame.
-#'
-#' @return The input data frame with an added column called 'ID_column_name'
-#'   that contains an identification number for each grid cell.
-#' @export
-addCellIDs <- function(LC_df,
-                       ID_column_name) {
-
-  LC_df_sorted <- LC_df[order(LC_df[ , "x"], LC_df[ , "y"]), ]
-  LC_df_sorted[ , ID_column_name] <- seq(1:nrow(LC_df))
-
-  return(LC_df_sorted)
-}
-
-#' Load a reference map into R
-#'
-#' @inheritParams downscaleLC
-#' @inheritParams loadLCDeltas
-#' @param LC_deltas An `LCMap` object containing land cover change areas for the
-#'   given timestep.
-#'
-#' @return An `LCMap` object containing the reference map data frame for the
-#'   given timestep and associated information.
 loadRefMap <- function(ref_map_file_name,
                        ref_map_type,
-                       equal_area,
-                       ref_map_LC_classes,
-                       ref_map_cell_area,
-                       ref_map_cell_resolution,
-                       LC_column_name,
-                       LC_deltas_df,
-                       discrete_output_map,
-                       output_dir_path,
-                       output_file_prefix) {
+                       ref_map_LC_classes) {
 
-  # Read in the reference map from file
-  ref_map_raw <- read.table(ref_map_file_name,
-                            header = TRUE,
-                            sep = "\t",
-                            check.names = FALSE)
+  ref_map <- rast(ref_map_file_name)
 
-  # Check cell areas column is present if map is not equal area
-  if (!equal_area) {
-    if (!"cell_area" %in% colnames(LC_deltas_df)) {
-      stop("Equal area projection is false but cell areas have not been provided.")
-    }
-  }
-
-  # Convert discrete map into fractional map
   if (ref_map_type == "discrete") {
-    ref_map_raw <- convertDiscreteLCToLCAreas(ref_map_df = ref_map_raw,
-                                              ref_map_LC_classes = ref_map_LC_classes,
-                                              ref_map_cell_area = ref_map_cell_area,
-                                              LC_column_name = LC_column_name)
+    ref_map <- segregate(ref_map) * cellSize(ref_map,
+                                             unit = "km")
   }
 
-  # Add IDs column
-  ref_map_df <- addCellIDs(LC_df = ref_map_raw,
-                           ID_column_name = "ref_ID")
+  names(ref_map) <- ref_map_LC_classes
 
-  print(paste0("Loaded reference map: ",
-               ref_map_file_name))
-
-  # Assign fine-scale cells
-  assigned_ref_map <- assignRefMapCells(ref_map_df = ref_map_df,
-                                        LC_deltas_df = LC_deltas_df)
-
-  return(assigned_ref_map)
+  return(ref_map)
 }
 
-#' Assign reference map cells to coarse-scale grid cells
-#'
-#' Assigns fine-scale cells on an reference land cover map to coarse-scale grid
-#'   cells from a land cover change map using a nearest-neighbour method.
-#'
-#' @param ref_map_df Data frame of the reference map for the current timestep.
-#' @param LC_deltas_df Data frame of coarse-scale land cover change areas for
-#'   the current timestep.
-#'
-#' @return A copy of the reference map data frame with an extra column
-#'   containing the ID of the coarse-scale cell to which each reference map cell
-#'   belongs.
-#' @export
-assignRefMapCells <- function(ref_map_df,
-                              LC_deltas_df) {
+assignRefMapCells <- function(ref_map,
+                              LC_deltas_coords,
+                              LC_deltas_cell_numbers) {
 
   start_time <- Sys.time()
 
-  # Calculate nearest neighbours
-  nearest_neighbours <- FNN::get.knnx(LC_deltas_df[ , 1:2],
-                                      ref_map_df[ , 1:2],
-                                      1,
-                                      algorithm = "kd_tree")
-
-  # Add nearest neighbours to fine-scale cell df
-  ref_map_with_nn <- ref_map_df
-  ref_map_with_nn$coarse_ID <- as.integer(nearest_neighbours$nn.index)
+  ref_map_coords <- crds(ref_map)
+  ref_map_assigned <- get.knnx(LC_deltas_coords,
+                               ref_map_coords,
+                               1,
+                               algorithm = "kd_tree")
+  ref_map_assigned <- cbind(ref_map_coords,
+                            LC_deltas_cell_numbers[ref_map_assigned$nn.index])
+  colnames(ref_map_assigned) <- c("x",
+                                  "y",
+                                  "coarse_ID")
+  ref_map_assigned_raster <- c(rast(ref_map_assigned,
+                               type = "xyz"))
+  ref_map_polygons <- as.polygons(ref_map_assigned_raster)
 
   # Time check
   end_time <- Sys.time()
@@ -353,82 +272,9 @@ assignRefMapCells <- function(ref_map_df,
                    end_time,
                    "Assigned reference map cells to coarse-scale map cells in ")
 
-  return(ref_map_with_nn)
+  return(ref_map_polygons)
 }
 
-#' Convert a discrete land cover map to one containing the area of each land
-#'   cover class per cell
-#'
-#' Takes a land cover map with one land cover class per grid cell, and converts
-#'   it to a map with the area of each land cover class per cell.
-#'
-#' @inheritParams assignRefMapCells
-#' @inheritParams downscaleLC
-#'
-#' @return A data frame of land cover areas per grid cell. The first two columns
-#'   give the x- and y-coordinates of each cell. Remaining columns give the area
-#'   of each land cover class in each cell.
-#' @export
-convertDiscreteLCToLCAreas <- function(ref_map_df,
-                                       ref_map_LC_classes,
-                                       ref_map_cell_area,
-                                       LC_column_name) {
-
-  if (!LC_column_name %in% colnames(ref_map_df)) {
-    stop(paste0(LC_column_name,
-                " was not found as a column name in the reference map"))
-  }
-
-  ref_map_LC_areas <- ref_map_df[ , c("x", "y")]
-
-  ref_map_LC_areas[ , ref_map_LC_classes] <- t(apply(ref_map_df,
-                                                     1,
-                                                     convertDiscreteLCToLCAreasOneCell,
-                                                     LC_column_name = LC_column_name,
-                                                     ref_map_LC_classes = ref_map_LC_classes,
-                                                     ref_map_cell_area = ref_map_cell_area))
-
-
-  if(is.na(ref_map_cell_area)) {
-    ref_map_LC_areas[ , "cell_area"] <- ref_map_df[ , "cell_area"]
-  }
-
-  return(ref_map_LC_areas)
-}
-
-#' Convert discrete land cover in one grid cell to a vector with the area of
-#'   land cover classes
-#'
-#' Converts a discrete land cover class for one grid cell to a vector containing
-#'   the area of user-specified land cover classes in that cell.
-#'
-#' @param LC_class Discrete land cover class that the grid cell contains.
-#' @inheritParams downscaleLC
-#'
-#' @return A vector with the area of each of the specified land cover classes in
-#'   the given grid cell.
-convertDiscreteLCToLCAreasOneCell <- function(grid_cell,
-                                              LC_column_name,
-                                              ref_map_LC_classes,
-                                              ref_map_cell_area) {
-
-  # Set grid cell area and LC class
-  LC_class <- grid_cell[LC_column_name]
-
-  if (is.na(ref_map_cell_area)) {
-    ref_map_cell_area <- grid_cell["cell_area"]
-  }
-
-  # Set up new vector
-  LC_areas <- rep(0,
-                  length(ref_map_LC_classes))
-  names(LC_areas) <- ref_map_LC_classes
-
-  # Fill the new vector with areas
-  LC_areas[which(names(LC_areas) == LC_class)] <- as.numeric(ref_map_cell_area)
-
-  return(LC_areas)
-}
 
 #' Get discrete land cover classes from a land cover data frame containing the
 #'   area of each land cover class per grid cell

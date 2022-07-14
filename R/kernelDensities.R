@@ -1,125 +1,58 @@
 
-#' Calculates the x- and y- distances for the kernel density radius
-#'
-#' @inheritParams downscaleLC
-#'
-#' @return Vector in the format `c(x, y)` that gives the radius of
-#'   the cell neighbourhood in the x- and y- directions.
-calculateXYKernelDistances <- function(ref_map_cell_resolution,
-                                       kernel_radius) {
+getDistMatrix <- function(kernel_radius) {
 
-  # Set up the radius in the x and y directions
-  x_size <- ref_map_cell_resolution[1]
-  y_size <- ref_map_cell_resolution[2]
+  ncol_and_nrow <- (kernel_radius * 2) + 1
+  distance_res <- 1
+  distance_raster <- rast(nrows = ncol_and_nrow,
+                          ncols = ncol_and_nrow,
+                          xmin = -(ncol_and_nrow * distance_res) / 2,
+                          xmax = (ncol_and_nrow * distance_res) / 2,
+                          ymin = -(ncol_and_nrow * distance_res) / 2,
+                          ymax = (ncol_and_nrow * distance_res) / 2)
+  central_coords <- kernel_radius + 1
+  distance_raster[central_coords, central_coords] <- 1
+  distance_vec <- distance(crds(distance_raster),
+                           crds(distance_raster,
+                                na.rm = FALSE),
+                           lonlat = FALSE)
+  distance_mat <- matrix(distance_vec,
+                         nrow = ncol_and_nrow,
+                         ncol = ncol_and_nrow,
+                         byrow = TRUE)
+  distance_mat[central_coords, central_coords] <- NA
+  distance_mat <- 1 / (distance_mat ^ 2)
 
-  cell_x_dist <- kernel_radius * x_size
-  cell_y_dist <- kernel_radius * y_size
-
-  kernel_xy_dist <- c(cell_x_dist,
-                      cell_y_dist)
-
-  return(kernel_xy_dist)
+  return(distance_mat)
 }
 
-#' Calculate kernel densities for one land cover class in one cell
-#'
-#' Calculates the kernel density values for one land cover class in a single
-#'   grid cell.
-#'
-#' @param grid_cell Single row from the `ref_map_cells_df` data frame with x-
-#'   and y-coordinates and the area of each land cover class in that cell.
-#' @param LC_class Single land cover class for which to calculate kernel
-#'   densities. Must be a column name in `ref_map_cells_df` and
-#'   `ref_map`.
-#' @param kernel_xy_dist Vector in the format `c(x, y)` that gives the radius of
-#'   the cell neighbourhood in the x- and y- directions.
-#' @inheritParams assignRefMapCells
-#'
-#' @return The kernel density value for the user-specified land cover class and
-#'   grid cell.
-calculateKernelDensitiesForOneCell <- function(grid_cell,
-                                               ref_map_df,
-                                               LC_to_name,
-                                               kernel_xy_dist) {
+kernelDensities <- function(x,
+                            cell_distances,
+                            ...) {
 
-  # Find neighbour cells for kernel density calculation
-  neighbour_cells <- findNeighbourCells(kernel_xy_dist = kernel_xy_dist,
-                                        grid_cell = grid_cell,
-                                        ref_map_df = ref_map_df)
-
-  if (nrow(neighbour_cells) == 0) {
-    grid_cell_kernel_densities <- 0
-
-  } else if (nrow(neighbour_cells) >= 1) {
-
-    # Set the coordinates of the cell
-    cell_coords <- c(grid_cell["x"], grid_cell["y"])
-
-    # Calculate distance between focal cell and neighbour cells
-    # Note that distance is calculated as Euclidean distance between points,
-    # even if the projection is not equal area (e.g. lon lat projection).
-    # This means that there will be a preference to place land cover in cells
-    # nearer the equator with a larger area
-    # This decision could be changed in the future
-    neighbour_cells[ , "distance"] <- raster::pointDistance(cell_coords,
-                                                            neighbour_cells[ , c("x", "y")],
-                                                            lonlat = FALSE)
-
-    # Find kernel density for each land-use type
-    grid_cell_kernel_density <- kernelDensityFunction(LC_areas = neighbour_cells[ , LC_to_name],
-                                                      distance_values = neighbour_cells[ , "distance"],
-                                                      number_of_neighbour_cells = nrow(neighbour_cells))
-
-  }
-
-  return(grid_cell_kernel_density)
-}
-
-findNeighbourCells <- function(kernel_xy_dist,
-                               grid_cell,
-                               ref_map_df) {
-
-  # Get x- and y- kernel distances
-  cell_x_dist <- kernel_xy_dist[1]
-  cell_y_dist <- kernel_xy_dist[2]
-
-  # Set the coordinates of the cell
-  cell_x_coord <- grid_cell["x"]
-  cell_y_coord <- grid_cell["y"]
-
-  # Find neighbour cells
-  neighbour_cells <- ref_map_df[which(ref_map_df["x"] >= (cell_x_coord - cell_x_dist) &
-                                        ref_map_df["x"] <= (cell_x_coord + cell_x_dist) &
-                                        ref_map_df["y"] >= (cell_y_coord - cell_y_dist) &
-                                        ref_map_df["y"] <= (cell_y_coord + cell_y_dist)), ]
-
-  # Remove focal cell from neighbour cells df
-  neighbour_cells <- neighbour_cells[-which(neighbour_cells["x"] == cell_x_coord &
-                                              neighbour_cells["y"] == cell_y_coord), ]
-
-  return(neighbour_cells)
-}
-
-#' Calculate kernel density value for a single land cover class in a single cell
-#'
-#' Calculates the kernel density value for a single land cover class in a single
-#'   reference map grid cell.
-#'
-#' @param LC_areas Vector of areas for one land cover class within each
-#'   neighbour cell.
-#' @param distance_values Vector giving the distance of each neighbour cell
-#'   from the focal cell, should be the same length as `LC_values`.
-#' @param number_of_neighbour_cells Number of neighbour cells.
-#'
-#' @return The kernel density of the given land-use in the focal cell.
-kernelDensityFunction <- function(LC_areas,
-                                  distance_values,
-                                  number_of_neighbour_cells) {
-
-  # Fix for NA values included here
-  kernel_density <- (1 / number_of_neighbour_cells) * sum(LC_areas / distance_values^2, na.rm = TRUE)
+  focal_vals_matrix <- matrix(x,
+                              nrow = nrow(cell_distances),
+                              ncol = ncol(cell_distances),
+                              byrow = TRUE)
+  values_over_distance <- focal_vals_matrix / cell_distances
+  kernel_density <- sum(values_over_distance, na.rm = TRUE) / sum(!is.na(values_over_distance))
 
   return(kernel_density)
+}
+
+calculateKernelDensities <- function(ref_map,
+                                     distance_mat) {
+
+  kernel_densities <- ref_map
+
+  for (i in 1:nlyr(kernel_densities)) {
+    kernel_densities[[i]] <- focal(kernel_densities[[i]],
+                                   w = ncol(distance_mat),
+                                   fun = kernelDensities,
+                                   cell_distances = distance_mat,
+                                   na.policy = "omit")
+  }
+
+  return(kernel_densities)
 }
 
 #' Sort a data frame with a 'kernel_density' column from highest to lowest
