@@ -20,14 +20,14 @@ getDistMatrix <- function(kernel_radius) {
                          ncol = ncol_and_nrow,
                          byrow = TRUE)
   distance_mat[central_coords, central_coords] <- NA
-  distance_mat <- 1 / (distance_mat ^ 2)
+  distance_mat <- (distance_mat ^ 2)
 
   return(distance_mat)
 }
 
-kernelDensities <- function(x,
-                            cell_distances,
-                            ...) {
+kernelDensitiesEquation <- function(x,
+                                    cell_distances,
+                                    ...) {
 
   focal_vals_matrix <- matrix(x,
                               nrow = nrow(cell_distances),
@@ -47,7 +47,7 @@ calculateKernelDensities <- function(ref_map,
   for (i in 1:nlyr(kernel_densities)) {
     kernel_densities[[i]] <- focal(kernel_densities[[i]],
                                    w = ncol(distance_mat),
-                                   fun = kernelDensities,
+                                   fun = kernelDensitiesEquation,
                                    cell_distances = distance_mat,
                                    na.policy = "omit")
   }

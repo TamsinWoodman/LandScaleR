@@ -8,6 +8,8 @@ setGeneric("cellArea", function(x) standardGeneric("cellArea"))
 setGeneric("cellArea<-", function(x, value) standardGeneric("cellArea<-"))
 setGeneric("refCells", function(x) standardGeneric("refCells"))
 setGeneric("refCells<-", function(x, value) standardGeneric("refCells<-"))
+setGeneric("kernelDensities", function(x) standardGeneric("kernelDensities"))
+setGeneric("kernelDensities<-", function(x, value) standardGeneric("kernelDensities<-"))
 setGeneric("aggRefCells", function(x) standardGeneric("aggRefCells"))
 setGeneric("aggRefCells<-", function(x, value) standardGeneric("aggRefCells<-"))
 setGeneric("refCellsArea", function(x) standardGeneric("refCellsArea"))
@@ -36,6 +38,11 @@ setMethod("refCells<-", "CoarseCell", function(x, value) {
   x@ref_cells <- value
   x
 })
+setMethod("kernelDensities", "CoarseCell", function(x) x@kernel_densities)
+setMethod("kernelDensities<-", "CoarseCell", function(x, value) {
+  x@kernel_densities <- value
+  x
+})
 setMethod("aggRefCells", "CoarseCell", function(x) x@agg_ref_cells)
 setMethod("aggRefCells<-", "CoarseCell", function(x, value) {
   x@agg_ref_cells <- value
@@ -46,6 +53,8 @@ setMethod("refCellsArea<-", "CoarseCell", function(x, value) {
   x@ref_cells_area <- value
   x
 })
+
+# Method to update a coarse-scale cell
 setMethod("updateCoarseCell", "CoarseCell", function(x,
                                                      LC_deltas,
                                                      LC_deltas_classes,
@@ -57,7 +66,8 @@ setMethod("updateCoarseCell", "CoarseCell", function(x,
   x@LC_deltas <- cell_LC_deltas
 
   kernel_densities_crop <- crop(kernel_densities,
-                                ref_map_polygons[ref_map_polygons$coarse_ID == x@cell_number])
+                                ref_map_polygons[ref_map_polygons$coarse_ID == x@cell_number],
+                                mask = TRUE)
   x@kernel_densities <- kernel_densities_crop
 
   x

@@ -166,15 +166,10 @@ downscaleLC <- function(ref_map_file_name,
 
     #### Run downscaling
     ####### Next step is to fix the code to run downscaling with SpatRasters
-    coarse_cell_list <- lapply(coarse_cell_list,
+    ds_coarse_cell_list <- lapply(coarse_cell_list,
                                downscaleLCForOneCoarseCell,
                                match_LC_classes = match_LC_classes,
-                               distance_mat = distance_mat,
                                random_seed = random_seed)
-    print(coarse_cell_list)
-
-
-  }
 
     # Run harmonisation with unallocated land cover change
     ref_map <- harmoniseUnallocatedLCDeltas(new_LC_map)
@@ -253,10 +248,10 @@ assignRefMapCells <- function(ref_map,
   start_time <- Sys.time()
 
   ref_map_coords <- crds(ref_map)
-  ref_map_assigned <- get.knnx(LC_deltas_coords,
-                               ref_map_coords,
-                               1,
-                               algorithm = "kd_tree")
+  ref_map_assigned <- FNN::get.knnx(LC_deltas_coords,
+                                    ref_map_coords,
+                                    1,
+                                    algorithm = "kd_tree")
   ref_map_assigned <- cbind(ref_map_coords,
                             LC_deltas_cell_numbers[ref_map_assigned$nn.index])
   colnames(ref_map_assigned) <- c("x",
