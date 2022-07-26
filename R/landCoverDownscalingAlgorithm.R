@@ -144,6 +144,8 @@ downscaleLC <- function(ref_map_file_name,
                                  ref_map_polygons = ref_map_polygons,
                                  ref_map = ref_map,
                                  kernel_densities = kernel_densities)
+      names(coarse_cell_list) <- LC_deltas_cell_numbers
+
     } else {
 
       # Load LC_deltas file
@@ -165,24 +167,39 @@ downscaleLC <- function(ref_map_file_name,
     }
 
     #### Run downscaling
-    ####### Next step is to fix the code to run downscaling with SpatRasters
-    ds_coarse_cell_list <- lapply(coarse_cell_list,
+    coarse_cell_list <- lapply(coarse_cell_list,
                                downscaleLCForOneCoarseCell,
                                match_LC_classes = match_LC_classes,
                                random_seed = random_seed)
 
     # Run harmonisation with unallocated land cover change
-    ref_map <- harmoniseUnallocatedLCDeltas(new_LC_map)
-    #ref_map <- harmoniseUnallocatedLCDeltas(LC_allocation_params)
+    coarse_cell_list <- harmoniseUnallocatedLC(coarse_cell_list = ds_coarse_cell_list)
+
+    # Create the downscaled map
+    downscaled_map <- mosaic(sprc(lapply(coarse_cell_list,
+                                         FUN = refCells)))
 
     # Save land cover map
-    saveLandCoverMapAsTable(LC_map = slot(ref_map,
-                                          "LC_map"),
-                            file_prefix = output_file_prefix,
-                            dir_path = output_dir_path,
-                            time_step = i,
-                            discrete_output_map = discrete_output_map,
-                            LC_classes = ref_map_LC_classes)
+    writeRaster(downscaled_map,
+                filename = paste0(output_dir_path,
+                                  file_prefix,
+                                  "_Time",
+                                  time_step,
+                                  ".tif"),
+                overwrite = TRUE)
+
+    if (discrete_output_map) {
+      cat_downscaled_map <- which.max(downscaled_map)
+      levels(cat_downscaled_map) <- data.frame(id = 1:terra::nlyr(ref_map),
+                                               value = names(ref_map))
+      writeRaster(cat_downscaled_map,
+                  filename = paste0(output_dir_path,
+                                    file_prefix,
+                                    "_Discrete_Time",
+                                    time_step,
+                                    ".tif"),
+                  overwrite = TRUE)
+    }
 
     print(paste0("Completed downscaling timestep ",
                  i))
@@ -268,56 +285,4 @@ assignRefMapCells <- function(ref_map,
                    "Assigned reference map cells to coarse-scale map cells in ")
 
   return(ref_map_polygons)
-}
-
-
-#' Get discrete land cover classes from a land cover data frame containing the
-#'   area of each land cover class per grid cell
-#'
-#' Takes a land cover data frame containing the area of each land cover class
-#'   per grid cell and adds a column with a discrete land cover class for each
-#'   grid cell. The discrete land cover class for a cell is calculated as the
-#'   land cover class with the highest area in that cell.
-#'
-#' @param LC_map Land cover data frame with the area of each land cover class
-#'   per grid cell.
-#' @inheritParams downscaleLC
-#'
-#' @return The land cover data frame with an additional column called
-#'   'Discrete_LC_class' that gives a discrete land cover class for each grid
-#'   cell.
-getDiscreteLC <- function(LC_map,
-                          ref_map_LC_classes) {
-
-  if (!all(ref_map_LC_classes %in% colnames(LC_map))) {
-    stop("Not all land cover classes are columns in the land cover data frame.")
-  }
-
-  LC_map$Discrete_LC_class <- apply(LC_map[ , ref_map_LC_classes],
-                                        1,
-                                        getMaxLCClassInOneCell)
-
-  return(LC_map)
-}
-
-#' Get the land cover class with highest area in one grid cell
-#'
-#' Takes a named vector with the area of each land cover class in one grid cell,
-#'   and returns the land cover class with the highest area.
-#'
-#' @param grid_cell_LC Named vector containing area of land cover classes in one
-#'   grid cell. Names should correspond to the land cover classes in that grid
-#'   cell.
-#'
-#' @return Character string of the land cover class with the greatest coverage
-#'   in the given grid cell.
-getMaxLCClassInOneCell <- function(grid_cell_LC) {
-
-  max_LC_class <- names(grid_cell_LC)[which(grid_cell_LC == max(grid_cell_LC))]
-
-  if (length(max_LC_class) > 1) {
-    max_LC_class <- sample(max_LC_class, 1)
-  }
-
-  return(max_LC_class)
 }

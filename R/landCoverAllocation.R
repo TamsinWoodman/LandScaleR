@@ -9,11 +9,11 @@ downscaleLCForOneCoarseCell <- function(coarse_cell,
   # Get transition matrix showing area of LU conversion between each LC class
   LC_transitions <- getLCTransitions(LC_deltas = lcDeltas(coarse_cell))
 
-  updated_LC_maps <- allocateLCTransitions(coarse_cell = coarse_cell,
-                                           LC_transitions = LC_transitions,
-                                           random_seed = random_seed)
+  updated_coarse_cell <- allocateLCTransitions(coarse_cell = coarse_cell,
+                                               LC_transitions = LC_transitions,
+                                               random_seed = random_seed)
 
-  return(updated_LC_maps)
+  return(updated_coarse_cell)
 }
 
 #' Get the transition matrix for one cell
@@ -74,7 +74,6 @@ allocateLCTransitions <- function(coarse_cell,
   if (!is.null(LC_transitions)) {
 
     updated_ref_cells <- refCells(coarse_cell)
-    LC_classes <- names(lcDeltas(coarse_cell))
     updated_LC_deltas <- lcDeltas(coarse_cell)
     updated_agg_ref_cells <- aggRefCells(coarse_cell)
     kernel_densities <- kernelDensities(coarse_cell)
@@ -95,20 +94,11 @@ allocateLCTransitions <- function(coarse_cell,
 
         if (length(cell_numbers_for_allocation) >= 1) {
 
-          # Set up data frame
-          cells_for_allocation <- data.frame(cell_number = cell_numbers_for_allocation,
-                                             dec_LC_area = data.frame(updated_ref_cells[cell_numbers_for_allocation])[LC_from_name],
-                                             inc_LC_area = data.frame(updated_ref_cells[cell_numbers_for_allocation])[LC_to_name],
-                                             kernel_density = data.frame(kernel_densities[cell_numbers_for_allocation])[LC_to_name],
-                                             actual_conversion = 0)
-          colnames(cells_for_allocation)[4] <- "kernel_density"
-
-          # Put fix in to convert NaN kernel density values to 0
-          # A kernel density of NaN can occur if all the cells surrounding a
-          # focal cell are empty (NaN or NA)
-          cells_for_allocation$kernel_density <- ifelse(is.na(cells_for_allocation$kernel_density),
-                                                        0,
-                                                        cells_for_allocation$kernel_density)
+          cells_for_allocation <- getAllocationDF(cell_numbers_for_allocation = cell_numbers_for_allocation,
+                                                  updated_ref_cells = updated_ref_cells,
+                                                  LC_from_name = LC_from_name,
+                                                  LC_to_name = LC_to_name,
+                                                  kernel_densities = kernel_densities)
 
           # Sort for cells for allocation depending on whether kernel density > 0 or kernel density == 0
           cells_for_allocation <- sortCellsForAllocation(cells_for_allocation = cells_for_allocation,
@@ -121,30 +111,34 @@ allocateLCTransitions <- function(coarse_cell,
 
           # Update the coarse-scale cell and all corresponding fine-scale cells
           # Update the reference map with new land cover areas
-          cell_numbers_for_allocation <- cells_for_allocation$cell_number
-          actual_conversions <- cells_for_allocation$actual_conversion
-          updated_ref_cells[[LC_to_name]][cell_numbers_for_allocation] <- updated_ref_cells[[LC_to_name]][cell_numbers_for_allocation] + actual_conversions
-          updated_ref_cells[[LC_from_name]][cell_numbers_for_allocation] <- updated_ref_cells[[LC_from_name]][cell_numbers_for_allocation] - actual_conversions
+          updated_ref_cells <- updateRefCells(cells_for_allocation = cells_for_allocation,
+                                              updated_ref_cells = updated_ref_cells,
+                                              LC_to_name = LC_to_name,
+                                              LC_from_name = LC_from_name)
 
           # Calculate total conversion value
-          total_conversion <- sum(cells_for_allocation$actual_conversion)
+          total_conversion <- getTotalConversion(cells_for_allocation = cells_for_allocation)
 
           # Update aggregated reference map
-          updated_agg_ref_cells[LC_to_name] <- updated_agg_ref_cells[LC_to_name] - total_conversion
-          updated_agg_ref_cells[LC_from_name] <- updated_agg_ref_cells[LC_from_name] + total_conversion
+          updated_agg_ref_cells <- updateAggRefCells(updated_agg_ref_cells = updated_agg_ref_cells,
+                                                     LC_to_name = LC_to_name,
+                                                     total_conversion = total_conversion,
+                                                     LC_from_name = LC_from_name)
 
           # Update LC deltas
-          updated_LC_deltas[LC_to_name] <- updated_LC_deltas[LC_to_name] - total_conversion
-          updated_LC_deltas[LC_from_name] <- updated_LC_deltas[LC_from_name] + total_conversion
+          updated_LC_deltas <- updateLCDeltas(updated_LC_deltas = updated_LC_deltas,
+                                              LC_to_name = LC_to_name,
+                                              total_conversion = total_conversion,
+                                              LC_from_name = LC_from_name)
 
         }
       }
     }
-  }
 
-  lcDeltas(coarse_cell) <- updated_LC_deltas
-  refCells(coarse_cell) <- updated_ref_cells
-  aggRefCells(coarse_cell) <- updated_agg_ref_cells
+    lcDeltas(coarse_cell) <- updated_LC_deltas
+    refCells(coarse_cell) <- updated_ref_cells
+    aggRefCells(coarse_cell) <- updated_agg_ref_cells
+  }
 
   return(coarse_cell)
 }
@@ -166,6 +160,29 @@ getCellsForAllocation <- function(ref_map,
                                       1,
                                       NA)
   cells_for_allocation <- terra::cells(cells_for_allocation_raster)
+
+  return(cells_for_allocation)
+}
+
+getAllocationDF <- function(cell_numbers_for_allocation,
+                            updated_ref_cells,
+                            LC_from_name,
+                            LC_to_name,
+                            kernel_densities) {
+
+  # Set up data frame
+  cells_for_allocation <- data.frame(cell_number = cell_numbers_for_allocation,
+                                     dec_LC_area = data.frame(updated_ref_cells[cell_numbers_for_allocation])[LC_from_name],
+                                     kernel_density = data.frame(kernel_densities[cell_numbers_for_allocation])[LC_to_name],
+                                     actual_conversion = 0)
+  colnames(cells_for_allocation)[3] <- "kernel_density"
+
+  # Put fix in to convert NaN kernel density values to 0
+  # A kernel density of NaN can occur if all the cells surrounding a
+  # focal cell are empty (NaN or NA)
+  cells_for_allocation$kernel_density <- ifelse(is.na(cells_for_allocation$kernel_density),
+                                                0,
+                                                cells_for_allocation$kernel_density)
 
   return(cells_for_allocation)
 }
@@ -267,4 +284,47 @@ getActualConversions <- function(cells_for_allocation,
   }
 
   return(cells_for_allocation)
+}
+
+updateRefCells <- function(cells_for_allocation,
+                           updated_ref_cells,
+                           LC_to_name,
+                           LC_from_name) {
+
+  cell_numbers_for_allocation <- cells_for_allocation$cell_number
+  actual_conversions <- cells_for_allocation$actual_conversion
+
+  updated_ref_cells[[LC_to_name]][cell_numbers_for_allocation] <- updated_ref_cells[[LC_to_name]][cell_numbers_for_allocation] + actual_conversions
+  updated_ref_cells[[LC_from_name]][cell_numbers_for_allocation] <- updated_ref_cells[[LC_from_name]][cell_numbers_for_allocation] - actual_conversions
+
+  return(updated_ref_cells)
+}
+
+getTotalConversion <- function(cells_for_allocation) {
+
+  total_conversion <- sum(cells_for_allocation$actual_conversion)
+
+  return(total_conversion)
+}
+
+updateAggRefCells <- function(updated_agg_ref_cells,
+                              LC_to_name,
+                              total_conversion,
+                              LC_from_name) {
+
+  updated_agg_ref_cells[LC_to_name] <- updated_agg_ref_cells[LC_to_name] - total_conversion
+  updated_agg_ref_cells[LC_from_name] <- updated_agg_ref_cells[LC_from_name] + total_conversion
+
+  return(updated_agg_ref_cells)
+}
+
+updateLCDeltas <- function(updated_LC_deltas,
+                           LC_to_name,
+                           total_conversion,
+                           LC_from_name) {
+
+  updated_LC_deltas[LC_to_name] <- updated_LC_deltas[LC_to_name] - total_conversion
+  updated_LC_deltas[LC_from_name] <- updated_LC_deltas[LC_from_name] + total_conversion
+
+  return(updated_LC_deltas)
 }
