@@ -157,7 +157,7 @@ downscaleLC <- function(ref_map_file_name,
                                                    distance_mat = distance_mat)
 
       # Get list of coarse-scale cells
-      coarse_cell_list <- lapply(LC_deltas_cell_numbers,
+      coarse_cell_list <- lapply(coarse_cell_list,
                                  FUN = updateCoarseCell,
                                  LC_deltas = LC_deltas,
                                  LC_deltas_classes = LC_deltas_classes,
@@ -173,7 +173,7 @@ downscaleLC <- function(ref_map_file_name,
                                random_seed = random_seed)
 
     # Run harmonisation with unallocated land cover change
-    coarse_cell_list <- harmoniseUnallocatedLC(coarse_cell_list = ds_coarse_cell_list)
+    coarse_cell_list <- harmoniseUnallocatedLC(coarse_cell_list = coarse_cell_list)
 
     # Create the downscaled map
     downscaled_map <- mosaic(sprc(lapply(coarse_cell_list,
@@ -182,27 +182,27 @@ downscaleLC <- function(ref_map_file_name,
     # Save land cover map
     writeRaster(downscaled_map,
                 filename = paste0(output_dir_path,
-                                  file_prefix,
+                                  output_file_prefix,
                                   "_Time",
-                                  time_step,
+                                  timestep,
                                   ".tif"),
                 overwrite = TRUE)
 
     if (discrete_output_map) {
-      cat_downscaled_map <- which.max(downscaled_map)
+      cat_downscaled_map <- terra::which.max(downscaled_map)
       levels(cat_downscaled_map) <- data.frame(id = 1:terra::nlyr(ref_map),
                                                value = names(ref_map))
       writeRaster(cat_downscaled_map,
                   filename = paste0(output_dir_path,
-                                    file_prefix,
+                                    output_file_prefix,
                                     "_Discrete_Time",
-                                    time_step,
+                                    timestep,
                                     ".tif"),
                   overwrite = TRUE)
     }
 
     print(paste0("Completed downscaling timestep ",
-                 i))
+                 timestep))
   }
 
   end_time <- Sys.time()
