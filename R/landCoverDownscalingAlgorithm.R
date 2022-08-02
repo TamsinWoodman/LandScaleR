@@ -91,6 +91,7 @@ downscaleLC <- function(ref_map_file_name,
                         LC_deltas_cell_area,
                         ref_map_type = "areas",
                         ref_map_LC_classes,
+                        cell_size_unit = "m",
                         match_LC_classes,
                         kernel_radius,
                         discrete_output_map = FALSE,
@@ -120,7 +121,8 @@ downscaleLC <- function(ref_map_file_name,
       # Load ref map file
       ref_map <- loadRefMap(ref_map_file_name = ref_map_file_name,
                             ref_map_type = ref_map_type,
-                            ref_map_LC_classes = ref_map_LC_classes)
+                            ref_map_LC_classes = ref_map_LC_classes,
+                            cell_size_unit = cell_size_unit)
 
       # Assign ref map cells to LC_deltas cells
       LC_deltas_coords <- crds(LC_deltas)
@@ -135,7 +137,7 @@ downscaleLC <- function(ref_map_file_name,
       # Calculate kernel densities
       kernel_densities <- calculateKernelDensities(ref_map = ref_map,
                                                    distance_mat = distance_mat)
-
+      
       # Get a list of coarse-scale cells
       coarse_cell_list <- lapply(LC_deltas_cell_numbers,
                                  FUN = CoarseCellFromRaster,
@@ -153,7 +155,7 @@ downscaleLC <- function(ref_map_file_name,
                                 timestep = timestep)
 
       # Calculate kernel densities
-      kernel_densities <- calculateKernelDensities(ref_map = ref_map,
+      kernel_densities <- calculateKernelDensities(ref_map = downscaled_map,
                                                    distance_mat = distance_mat)
 
       # Get list of coarse-scale cells
@@ -173,7 +175,8 @@ downscaleLC <- function(ref_map_file_name,
                                random_seed = random_seed)
 
     # Run harmonisation with unallocated land cover change
-    coarse_cell_list <- harmoniseUnallocatedLC(coarse_cell_list = coarse_cell_list)
+    coarse_cell_list <- harmoniseUnallocatedLC(coarse_cell_list = coarse_cell_list,
+                                               random_seed = random_seed)
 
     # Create the downscaled map
     downscaled_map <- mosaic(sprc(lapply(coarse_cell_list,
@@ -244,13 +247,14 @@ loadLCDeltas <- function(LC_deltas_file_list,
 
 loadRefMap <- function(ref_map_file_name,
                        ref_map_type,
-                       ref_map_LC_classes) {
+                       ref_map_LC_classes,
+                       cell_size_unit) {
 
   ref_map <- rast(ref_map_file_name)
 
   if (ref_map_type == "discrete") {
     ref_map <- segregate(ref_map) * cellSize(ref_map,
-                                             unit = "km")
+                                             unit = cell_size_unit)
   }
 
   names(ref_map) <- ref_map_LC_classes
