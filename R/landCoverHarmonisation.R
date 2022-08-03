@@ -2,7 +2,8 @@
 # During harmonisation, the algorithm looks for nearby cells in which to put any
 # land cover change that was not allocated to a specific coarse-scale cell
 
-harmoniseUnallocatedLC <- function(coarse_cell_list) {
+harmoniseUnallocatedLC <- function(coarse_cell_list,
+                                   random_seed) {
 
   for (i in 1:length(coarse_cell_list)) {
 
@@ -11,7 +12,6 @@ harmoniseUnallocatedLC <- function(coarse_cell_list) {
       # Get the unallocated land cover change and neighbour cells
       updated_LC_deltas <- lcDeltas(coarse_cell_list[[i]])
       neighbour_cells <- neighbourCells(coarse_cell_list[[i]])
-      print(neighbour_cells)
 
       for (j in 1:length(neighbour_cells)) {
 
@@ -26,8 +26,6 @@ harmoniseUnallocatedLC <- function(coarse_cell_list) {
 
           # Set the cell where you will try to allocated LC change
           neighbour_cell <- coarse_cell_list[[as.character(neighbour_cells[j])]]
-
-          print(neighbour_cells[j])
 
           updated_ref_cells <- refCells(neighbour_cell)
           updated_agg_ref_cells <- aggRefCells(neighbour_cell)
@@ -110,8 +108,14 @@ harmoniseUnallocatedLC <- function(coarse_cell_list) {
   for (m in 1:length(coarse_cell_list)) {
 
     if (isUnallocatedLC(coarse_cell_list[[m]])) {
+      
+      cell_LC_deltas <- lcDeltas(coarse_cell_list[[m]])
 
-      warning("There is unallocated land cover change in grid cell: ")
+      warning("There is ",
+              sum(cell_LC_deltas[cell_LC_deltas > 0]),
+              " and ",
+              sum(cell_LC_deltas[cell_LC_deltas < 0]),
+              " unallocated land cover change in grid cell: ")
       print(lcDeltasAndCoords(coarse_cell_list[[m]]))
 
     }
