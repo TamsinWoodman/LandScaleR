@@ -69,8 +69,6 @@ allocateLCTransitions <- function(coarse_cell,
                                   LC_transitions,
                                   random_seed) {
 
-  print(coarse_cell@cell_number)
-
   if (!is.null(LC_transitions)) {
 
     updated_ref_cells <- refCells(coarse_cell)
@@ -81,7 +79,7 @@ allocateLCTransitions <- function(coarse_cell,
     for (i in 1:nrow(LC_transitions)) {
 
       LC_from_name <- LC_transitions[i, "LC_from_name"]
-
+      
       # Check if aggregated reference map cell contains the land cover class to be converted
       if (updated_agg_ref_cells[LC_from_name] > 0 & !is.na(updated_agg_ref_cells[LC_from_name])) {
 
@@ -311,10 +309,10 @@ updateAggRefCells <- function(updated_agg_ref_cells,
                               LC_to_name,
                               total_conversion,
                               LC_from_name) {
-
-  updated_agg_ref_cells[LC_to_name] <- updated_agg_ref_cells[LC_to_name] - total_conversion
-  updated_agg_ref_cells[LC_from_name] <- updated_agg_ref_cells[LC_from_name] + total_conversion
-
+  
+  updated_agg_ref_cells[LC_to_name] <- updated_agg_ref_cells[LC_to_name] + total_conversion
+  updated_agg_ref_cells[LC_from_name] <- updated_agg_ref_cells[LC_from_name] - total_conversion
+  
   return(updated_agg_ref_cells)
 }
 
@@ -322,9 +320,9 @@ updateLCDeltas <- function(updated_LC_deltas,
                            LC_to_name,
                            total_conversion,
                            LC_from_name) {
-
+  
   updated_LC_deltas[LC_to_name] <- updated_LC_deltas[LC_to_name] - total_conversion
   updated_LC_deltas[LC_from_name] <- updated_LC_deltas[LC_from_name] + total_conversion
-
+  
   return(updated_LC_deltas)
 }
