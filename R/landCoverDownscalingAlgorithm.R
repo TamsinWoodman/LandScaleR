@@ -194,7 +194,7 @@ downscaleLC <- function(ref_map_file_name,
     if (discrete_output_map) {
       cat_downscaled_map <- terra::which.max(downscaled_map)
       levels(cat_downscaled_map) <- data.frame(id = 1:terra::nlyr(ref_map),
-                                               value = names(ref_map))
+                                               Land_cover = names(ref_map))
       writeRaster(cat_downscaled_map,
                   filename = paste0(output_dir_path,
                                     output_file_prefix,
