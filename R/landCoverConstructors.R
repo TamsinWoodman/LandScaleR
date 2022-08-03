@@ -49,7 +49,5 @@ CoarseCellFromRaster <- function(cell_number,
                      agg_ref_cells = agg_ref_cells,
                      ref_cells_area = ref_cells_area)
 
-  print(cell_number)
-
   return(coarse_cell)
 }

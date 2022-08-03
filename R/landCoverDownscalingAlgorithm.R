@@ -169,14 +169,30 @@ downscaleLC <- function(ref_map_file_name,
     }
 
     #### Run downscaling
+    allocation_start <- Sys.time()
+    print("Starting land cover allocation...")
+    
     coarse_cell_list <- lapply(coarse_cell_list,
                                downscaleLCForOneCoarseCell,
                                match_LC_classes = match_LC_classes,
                                random_seed = random_seed)
+    
+    allocation_end <- Sys.time()
+    timeCheckMessage(allocation_start,
+                     allocation_end,
+                     "Completed land-use allocation in ")
 
     # Run harmonisation with unallocated land cover change
+    harmonisation_start <- Sys.time()
+    print("Starting harmonisation...")
+    
     coarse_cell_list <- harmoniseUnallocatedLC(coarse_cell_list = coarse_cell_list,
                                                random_seed = random_seed)
+    
+    harmonisation_end <- Sys.time()
+    timeCheckMessage(harmonisation_start,
+                     harmonisation_end,
+                     "Completed harmonisation in ")
 
     # Create the downscaled map
     downscaled_map <- mosaic(sprc(lapply(coarse_cell_list,
