@@ -154,9 +154,9 @@ allocateLCTransitions <- function(coarse_cell,
 getCellsForAllocation <- function(ref_map,
                                   LC_from_name) {
 
-  cells_for_allocation_raster <- ifel(ref_map[[LC_from_name]] > 0,
-                                      1,
-                                      NA)
+  cells_for_allocation_raster <- terra::ifel(ref_map[[LC_from_name]] > 0,
+                                             1,
+                                             NA)
   cells_for_allocation <- terra::cells(cells_for_allocation_raster)
 
   return(cells_for_allocation)

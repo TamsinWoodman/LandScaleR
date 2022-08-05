@@ -80,9 +80,9 @@ setMethod("updateCoarseCell", "CoarseCell", function(x,
   cell_LC_deltas <- cell_LC_deltas[LC_deltas_classes]
   x@LC_deltas <- cell_LC_deltas
 
-  kernel_densities_crop <- crop(kernel_densities,
-                                ref_map_polygons[ref_map_polygons$coarse_ID == x@cell_number],
-                                mask = TRUE)
+  kernel_densities_crop <- terra::crop(kernel_densities,
+                                       ref_map_polygons[ref_map_polygons$coarse_ID == x@cell_number],
+                                       mask = TRUE)
   x@kernel_densities <- kernel_densities_crop
 
   x

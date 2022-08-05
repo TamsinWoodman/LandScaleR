@@ -125,9 +125,9 @@ downscaleLC <- function(ref_map_file_name,
                             cell_size_unit = cell_size_unit)
 
       # Assign ref map cells to LC_deltas cells
-      LC_deltas_coords <- crds(LC_deltas)
-      LC_deltas_cell_numbers <- cellFromXY(LC_deltas,
-                                           LC_deltas_coords)
+      LC_deltas_coords <- terra::crds(LC_deltas)
+      LC_deltas_cell_numbers <- terra::cellFromXY(LC_deltas,
+                                                  LC_deltas_coords)
 
       # Get polygons of ref map cells for each coarse cell
       ref_map_polygons <- assignRefMapCells(ref_map = ref_map,
@@ -137,6 +137,7 @@ downscaleLC <- function(ref_map_file_name,
       # Calculate kernel densities
       kernel_densities <- calculateKernelDensities(ref_map = ref_map,
                                                    distance_mat = distance_mat)
+      print("Calculated kernel densities")
       
       # Get a list of coarse-scale cells
       coarse_cell_list <- lapply(LC_deltas_cell_numbers,
@@ -195,29 +196,29 @@ downscaleLC <- function(ref_map_file_name,
                      "Completed harmonisation in ")
 
     # Create the downscaled map
-    downscaled_map <- mosaic(sprc(lapply(coarse_cell_list,
-                                         FUN = refCells)))
+    downscaled_map <- terra::mosaic(terra::sprc(lapply(coarse_cell_list,
+                                                       FUN = refCells)))
 
     # Save land cover map
-    writeRaster(downscaled_map,
-                filename = paste0(output_dir_path,
-                                  output_file_prefix,
-                                  "_Time",
-                                  timestep,
-                                  ".tif"),
-                overwrite = TRUE)
+    terra::writeRaster(downscaled_map,
+                       filename = paste0(output_dir_path,
+                                         output_file_prefix,
+                                         "_Time",
+                                         timestep,
+                                         ".tif"),
+                       overwrite = TRUE)
 
     if (discrete_output_map) {
       cat_downscaled_map <- terra::which.max(downscaled_map)
       levels(cat_downscaled_map) <- data.frame(id = 1:terra::nlyr(ref_map),
                                                Land_cover = names(ref_map))
-      writeRaster(cat_downscaled_map,
-                  filename = paste0(output_dir_path,
-                                    output_file_prefix,
-                                    "_Discrete_Time",
-                                    timestep,
-                                    ".tif"),
-                  overwrite = TRUE)
+      terra::writeRaster(cat_downscaled_map,
+                         filename = paste0(output_dir_path,
+                                           output_file_prefix,
+                                           "_Discrete_Time",
+                                           timestep,
+                                           ".tif"),
+                         overwrite = TRUE)
     }
 
     print(paste0("Completed downscaling timestep ",
@@ -249,13 +250,13 @@ loadLCDeltas <- function(LC_deltas_file_list,
                          timestep) {
 
   # Load LC_deltas file
-  LC_deltas <- rast(LC_deltas_file_list[[timestep]])
+  LC_deltas <- terra::rast(LC_deltas_file_list[[timestep]])
 
   # If cell_area layer is not present, calculate the area of each cell
   if (!"cell_area" %in% names(LC_deltas)) {
     LC_deltas <- c(LC_deltas,
                    cellSize(LC_deltas))
-    names(LC_deltas)[nlyr(LC_deltas)] <- "cell_area"
+    names(LC_deltas)[terra::nlyr(LC_deltas)] <- "cell_area"
   }
 
   return(LC_deltas)
@@ -266,11 +267,11 @@ loadRefMap <- function(ref_map_file_name,
                        ref_map_LC_classes,
                        cell_size_unit) {
 
-  ref_map <- rast(ref_map_file_name)
+  ref_map <- terra::rast(ref_map_file_name)
 
   if (ref_map_type == "discrete") {
-    ref_map <- segregate(ref_map) * cellSize(ref_map,
-                                             unit = cell_size_unit)
+    ref_map <- terra::segregate(ref_map) * terra::cellSize(ref_map,
+                                                           unit = cell_size_unit)
   }
 
   names(ref_map) <- ref_map_LC_classes
@@ -284,7 +285,7 @@ assignRefMapCells <- function(ref_map,
 
   start_time <- Sys.time()
 
-  ref_map_coords <- crds(ref_map)
+  ref_map_coords <- terra::crds(ref_map)
   ref_map_assigned <- FNN::get.knnx(LC_deltas_coords,
                                     ref_map_coords,
                                     1,
@@ -294,9 +295,9 @@ assignRefMapCells <- function(ref_map,
   colnames(ref_map_assigned) <- c("x",
                                   "y",
                                   "coarse_ID")
-  ref_map_assigned_raster <- c(rast(ref_map_assigned,
-                               type = "xyz"))
-  ref_map_polygons <- as.polygons(ref_map_assigned_raster)
+  ref_map_assigned_raster <- terra::rast(ref_map_assigned,
+                                         type = "xyz")
+  ref_map_polygons <- terra::as.polygons(ref_map_assigned_raster)
 
   # Time check
   end_time <- Sys.time()
