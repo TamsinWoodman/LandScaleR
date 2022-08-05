@@ -7,16 +7,12 @@
 downscaleLC(
   ref_map_file_name,
   LC_deltas_file_list,
-  equal_area = TRUE,
   LC_deltas_classes,
   LC_deltas_cell_area,
-  LC_deltas_cell_resolution,
   ref_map_type = "areas",
-  LC_column_name = "Land_cover",
   ref_map_LC_classes,
-  ref_map_cell_area,
-  ref_map_cell_resolution,
-  final_LC_classes,
+  cell_size_unit = "m",
+  match_LC_classes,
   kernel_radius,
   discrete_output_map = FALSE,
   random_seed = as.numeric(Sys.time()),
@@ -38,9 +34,6 @@ the first file in the list, the second time step the second file, and so
 on. Land cover change files can be generated using the `calculateLCDeltas`
 function from this package.}
 
-\item{equal_area}{Logical. 'TRUE' indicates that input maps are in an equal
-area projection, 'FALSE' means they are not.}
-
 \item{LC_deltas_classes}{Vector of land cover classes in the land cover change
 maps. Each land cover class should be a column name in every land cover
 change file.}
@@ -51,24 +44,9 @@ change file.}
 one land cover class per cell) or area-based (provides the area of each
 land cover class in each cell). Must be one of "areas" or "discrete".}
 
-\item{LC_column_name}{For a discrete reference map, gives the name of the
-column containing the land cover class for each grid cell.}
-
 \item{ref_map_LC_classes}{Vector of land cover types in the reference map. For
 an area-based reference map, all land cover types should be column names in
 the reference map.}
-
-\item{ref_map_cell_area}{Area of a single reference map grid cell.}
-
-\item{ref_map_cell_resolution}{Resolution of one cell in the reference map,
-in the form `c(x, y)`.}
-
-\item{final_LC_classes}{A matrix containing the fraction of each coarse-scale
-land cover class that contributes to each reference map land cover class.
-Columns should contain reference map land cover classes, and rows are the
-coarse-scale land cover classes. Each cell should contain the proportion of
-the coarse-scale land cover class that contributes to the fine-scale class in
-the output map.}
 
 \item{kernel_radius}{Radius of cells to include in the kernel density
 calculation. A value of 1 means that the neighbour cells used to calculate
@@ -86,6 +64,24 @@ date and time when the function is called.}
 
 \item{output_dir_path}{Path to directory in which to save the downscaled
 land cover map files. Will be created if it does not already exist.}
+
+\item{equal_area}{Logical. 'TRUE' indicates that input maps are in an equal
+area projection, 'FALSE' means they are not.}
+
+\item{LC_column_name}{For a discrete reference map, gives the name of the
+column containing the land cover class for each grid cell.}
+
+\item{ref_map_cell_area}{Area of a single reference map grid cell.}
+
+\item{ref_map_cell_resolution}{Resolution of one cell in the reference map,
+in the form `c(x, y)`.}
+
+\item{final_LC_classes}{A matrix containing the fraction of each coarse-scale
+land cover class that contributes to each reference map land cover class.
+Columns should contain reference map land cover classes, and rows are the
+coarse-scale land cover classes. Each cell should contain the proportion of
+the coarse-scale land cover class that contributes to the fine-scale class in
+the output map.}
 }
 \value{
 Tab-separated text files containing downscaled land cover maps, with

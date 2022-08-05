@@ -2,22 +2,10 @@
 % Please edit documentation in R/landCoverDownscalingAlgorithm.R
 \name{assignRefMapCells}
 \alias{assignRefMapCells}
-\title{Assign reference map cells to coarse-scale grid cells}
+\title{Assign fine resolution cells to a coarse resolution map}
 \usage{
-assignRefMapCells(ref_map_df, LC_deltas_df)
-}
-\arguments{
-\item{ref_map_df}{Data frame of the reference map for the current timestep.}
-
-\item{LC_deltas_df}{Data frame of coarse-scale land cover change areas for
-the current timestep.}
-}
-\value{
-A copy of the reference map data frame with an extra column
-  containing the ID of the coarse-scale cell to which each reference map cell
-  belongs.
+assignRefMapCells(ref_map, LC_deltas_coords, LC_deltas_cell_numbers)
 }
 \description{
-Assigns fine-scale cells on an reference land cover map to coarse-scale grid
-  cells from a land cover change map using a nearest-neighbour method.
+Assign fine resolution cells to a coarse resolution map
 }

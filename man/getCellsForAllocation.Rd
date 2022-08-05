@@ -4,16 +4,11 @@
 \alias{getCellsForAllocation}
 \title{Get a data frame of candidate fine-scale cells for land cover allocation}
 \usage{
-getCellsForAllocation(ref_map_df, LC_from_name, coarse_ID)
+getCellsForAllocation(ref_map, LC_from_name)
 }
 \arguments{
-\item{ref_map_df}{Data frame of the reference map for the current timestep.}
-
 \item{LC_from_name}{Name of the land cover class that is being converted to
 `LC_to_name`.}
-
-\item{coarse_ID}{Identification number of the coarse-scale cell within which
-`LC_to_name` has increased.}
 }
 \value{
 Data frame of fine-scale cells that contain `LC_from_name`.

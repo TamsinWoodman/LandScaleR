@@ -279,6 +279,8 @@ loadRefMap <- function(ref_map_file_name,
   return(ref_map)
 }
 
+#' Assign fine resolution cells to a coarse resolution map
+#' @export
 assignRefMapCells <- function(ref_map,
                               LC_deltas_coords,
                               LC_deltas_cell_numbers) {

@@ -4,16 +4,13 @@
 \alias{getLCTransitions}
 \title{Get the transition matrix for one cell}
 \usage{
-getLCTransitions(LC_deltas_cell, LC_classes)
+getLCTransitions(LC_deltas)
 }
 \arguments{
-\item{LC_deltas_cell}{One row of a land cover deltas data frame, which
-corresponds to one coarse-scale grid cell.}
-
-\item{LC_classes}{Vector of land cover classes in the coarse-scale grid cell.}
+\item{LC_deltas}{}
 }
 \value{
-Data frame giving order and magniture of land cover transitions.
+Data frame giving order and magnitude of land cover transitions.
 }
 \description{
 The transition matrix determines the area of land cover change that is
