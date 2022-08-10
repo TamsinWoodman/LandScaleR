@@ -196,8 +196,27 @@ downscaleLC <- function(ref_map_file_name,
                      "Completed harmonisation in ")
 
     # Create the downscaled map
-    downscaled_map <- terra::mosaic(terra::sprc(lapply(coarse_cell_list,
-                                                       FUN = refCells)))
+    ## Split the list of tiles into chunks which each contain 100 tiles
+    ## Mosaic each chunk, then mosaic the resulting chunks to speed up/reduce
+    ## memory requirements
+    downscaled_tiles <- lapply(coarse_cell_list,
+                               FUN = refCells)
+    mosaic_chunks <- round(length(downscaled_tiles) / 100)
+    downscaled_chunks <- vector(mode = "list",
+                                length = length(mosaic_chunks))
+    
+    for (chunk in 1:mosaic_chunks) {
+      
+      end_pos <- chunk * 100
+      start_pos <- end_pos - 99
+      end_pos <- ifelse(end_pos > length(downscaled_tiles),
+                        length(downscaled_tiles),
+                        end_pos)
+      
+      downscaled_chunks[[chunk]] <- terra::mosaic(terra::sprc(downscaled_tiles[start_pos:end_pos]))
+    }
+    
+    downscaled_map <- terra::mosaic(terra::sprc(downscaled_chunks))
 
     # Save land cover map
     terra::writeRaster(downscaled_map,
