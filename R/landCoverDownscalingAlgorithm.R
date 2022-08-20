@@ -138,7 +138,7 @@ downscaleLC <- function(ref_map_file_name,
       kernel_densities <- calculateKernelDensities(ref_map = ref_map,
                                                    distance_mat = distance_mat)
       print("Calculated kernel densities")
-      
+
       # Get a list of coarse-scale cells
       coarse_cell_list <- lapply(LC_deltas_cell_numbers,
                                  FUN = CoarseCellFromRaster,
@@ -172,12 +172,12 @@ downscaleLC <- function(ref_map_file_name,
     #### Run downscaling
     allocation_start <- Sys.time()
     print("Starting land cover allocation...")
-    
+
     coarse_cell_list <- lapply(coarse_cell_list,
                                downscaleLCForOneCoarseCell,
                                match_LC_classes = match_LC_classes,
                                random_seed = random_seed)
-    
+
     allocation_end <- Sys.time()
     timeCheckMessage(allocation_start,
                      allocation_end,
@@ -186,37 +186,46 @@ downscaleLC <- function(ref_map_file_name,
     # Run harmonisation with unallocated land cover change
     harmonisation_start <- Sys.time()
     print("Starting harmonisation...")
-    
+
     coarse_cell_list <- harmoniseUnallocatedLC(coarse_cell_list = coarse_cell_list,
                                                random_seed = random_seed)
-    
+
     harmonisation_end <- Sys.time()
     timeCheckMessage(harmonisation_start,
                      harmonisation_end,
                      "Completed harmonisation in ")
 
     # Create the downscaled map
-    ## Split the list of tiles into chunks which each contain 100 tiles
+    ## if there are more than 100 tiles, pplit the list of tiles into chunks
+    ## which each contain 100 tiles
     ## Mosaic each chunk, then mosaic the resulting chunks to speed up/reduce
     ## memory requirements
     downscaled_tiles <- lapply(coarse_cell_list,
                                FUN = refCells)
     mosaic_chunks <- round(length(downscaled_tiles) / 100)
-    downscaled_chunks <- vector(mode = "list",
-                                length = length(mosaic_chunks))
-    
-    for (chunk in 1:mosaic_chunks) {
-      
-      end_pos <- chunk * 100
-      start_pos <- end_pos - 99
-      end_pos <- ifelse(end_pos > length(downscaled_tiles),
-                        length(downscaled_tiles),
-                        end_pos)
-      
-      downscaled_chunks[[chunk]] <- terra::mosaic(terra::sprc(downscaled_tiles[start_pos:end_pos]))
+
+    if (mosaic_chunks == 0) {
+
+      downscaled_map <- terra::mosaic(sprc(downscaled_tiles))
+
+    } else if (mosaic_chunks > 0) {
+
+      downscaled_chunks <- vector(mode = "list",
+                                  length = length(mosaic_chunks))
+
+      for (chunk in 1:mosaic_chunks) {
+
+        end_pos <- chunk * 100
+        start_pos <- end_pos - 99
+        end_pos <- ifelse(end_pos > length(downscaled_tiles),
+                          length(downscaled_tiles),
+                          end_pos)
+
+        downscaled_chunks[[chunk]] <- terra::mosaic(terra::sprc(downscaled_tiles[start_pos:end_pos]))
+      }
+
+      downscaled_map <- terra::mosaic(terra::sprc(downscaled_chunks))
     }
-    
-    downscaled_map <- terra::mosaic(terra::sprc(downscaled_chunks))
 
     # Save land cover map
     terra::writeRaster(downscaled_map,
