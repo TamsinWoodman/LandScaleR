@@ -2,7 +2,8 @@
 # During harmonisation, the algorithm looks for nearby cells in which to put any
 # land cover change that was not allocated to a specific coarse-scale cell
 
-harmoniseUnallocatedLC <- function(coarse_cell_list) {
+harmoniseUnallocatedLC <- function(coarse_cell_list,
+                                   simulation_type) {
 
   for (i in 1:length(coarse_cell_list)) {
 
@@ -52,8 +53,11 @@ harmoniseUnallocatedLC <- function(coarse_cell_list) {
                                                         LC_to_name = LC_to_name,
                                                         kernel_densities = kernel_densities)
 
-                # Sort for cells for allocation depending on whether kernel density > 0 or kernel density == 0
-                cells_for_allocation <- sortCellsForAllocation(cells_for_allocation = cells_for_allocation)
+                # Sort the cells for allocation and add deviations if simulation type is fuzzy
+                cells_for_allocation <- switch(simulation_type,
+                                               "null_model" = randomiseDataFrame(input_df = cells_for_allocation),
+                                               "deterministic" = sortCellsForAllocation(cells_for_allocation = cells_for_allocation),
+                                               "fuzzy" = getFuzzyKernelDensities(cells_for_allocation = cells_for_allocation))
 
                 # Allocate land cover change
                 cells_for_allocation <- getActualConversions(cells_for_allocation = cells_for_allocation,

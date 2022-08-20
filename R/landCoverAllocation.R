@@ -1,6 +1,7 @@
 
 downscaleLCForOneCoarseCell <- function(coarse_cell,
-                                        match_LC_classes) {
+                                        match_LC_classes,
+                                        simulation_type) {
 
   coarse_cell <- reconcileLCDeltas(x = coarse_cell,
                                    match_LC_classes = match_LC_classes)
@@ -9,7 +10,8 @@ downscaleLCForOneCoarseCell <- function(coarse_cell,
   LC_transitions <- getLCTransitions(LC_deltas = lcDeltas(coarse_cell))
 
   updated_coarse_cell <- allocateLCTransitions(coarse_cell = coarse_cell,
-                                               LC_transitions = LC_transitions)
+                                               LC_transitions = LC_transitions,
+                                               simulation_type = simulation_type)
 
   return(updated_coarse_cell)
 }
@@ -96,14 +98,25 @@ allocateLCTransitions <- function(coarse_cell,
                                                   LC_to_name = LC_to_name,
                                                   kernel_densities = kernel_densities)
 
-          # Sort for cells for allocation depending on whether kernel density > 0 or kernel density == 0
-          cells_for_allocation <- sortCellsForAllocation(cells_for_allocation = cells_for_allocation)
+          # print("Original:")
+          # print(cells_for_allocation$kernel_density)
+          # hist(cells_for_allocation$kernel_density)#
+
+          # Sort the cells for allocation and add deviations if simulation type is fuzzy
+          cells_for_allocation <- switch(simulation_type,
+                                         "null_model" = randomiseDataFrame(input_df = cells_for_allocation),
+                                         "deterministic" = sortCellsForAllocation(cells_for_allocation = cells_for_allocation),
+                                         "fuzzy" = getFuzzyKernelDensities(cells_for_allocation = cells_for_allocation))
+
+          # print("New:")
+          # print(cells_for_allocation$kernel_density)
+          # hist(cells_for_allocation$kernel_density)
 
           # Allocate land cover change
           cells_for_allocation <- getActualConversions(cells_for_allocation = cells_for_allocation,
                                                        LC_from_name = LC_from_name,
                                                        LC_conversion_area = LC_conversion_area)
-
+          print(cells_for_allocation)
           # Update the coarse-scale cell and all corresponding fine-scale cells
           # Update the reference map with new land cover areas
           updated_ref_cells <- updateRefCells(cells_for_allocation = cells_for_allocation,
@@ -210,6 +223,29 @@ sortCellsForAllocation <- function(cells_for_allocation) {
   return(cells_for_allocation_sorted)
 }
 
+getFuzzyKernelDensities <- function(cells_for_allocation) {
+
+  tmp <- data.frame(old = cells_for_allocation$kernel_density,
+                    new = NA)
+
+  # Add deviations drawn from a Normal distribution to the kernel density values
+  # This introduces stochasticity to the simulation
+  if (length(cells_for_allocation$kernel_density) > 1) {
+
+    cells_for_allocation$kernel_density <- cells_for_allocation$kernel_density + rnorm(length(cells_for_allocation$kernel_density),
+                                                                                       mean = 0,
+                                                                                       sd = sd(cells_for_allocation$kernel_density,
+                                                                                               na.rm = TRUE))
+    tmp$new <- cells_for_allocation$kernel_density
+    plot(tmp$old, tmp$new)
+
+    cells_for_allocation <- sortCellsForAllocation(cells_for_allocation = cells_for_allocation)
+
+  }
+
+  return(cells_for_allocation)
+}
+
 #' Return a data frame of fine-scale cells with kernel density greater than 0
 #'
 #' @inheritParams sortCellsForAllocation
@@ -301,10 +337,10 @@ updateAggRefCells <- function(updated_agg_ref_cells,
                               LC_to_name,
                               total_conversion,
                               LC_from_name) {
-  
+
   updated_agg_ref_cells[LC_to_name] <- updated_agg_ref_cells[LC_to_name] + total_conversion
   updated_agg_ref_cells[LC_from_name] <- updated_agg_ref_cells[LC_from_name] - total_conversion
-  
+
   return(updated_agg_ref_cells)
 }
 
@@ -312,9 +348,9 @@ updateLCDeltas <- function(updated_LC_deltas,
                            LC_to_name,
                            total_conversion,
                            LC_from_name) {
-  
+
   updated_LC_deltas[LC_to_name] <- updated_LC_deltas[LC_to_name] - total_conversion
   updated_LC_deltas[LC_from_name] <- updated_LC_deltas[LC_from_name] + total_conversion
-  
+
   return(updated_LC_deltas)
 }
