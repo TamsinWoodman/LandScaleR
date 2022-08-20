@@ -11,9 +11,9 @@ getDistMatrix <- function(kernel_radius) {
                           ymax = (ncol_and_nrow * distance_res) / 2)
   central_coords <- kernel_radius + 1
   distance_raster[central_coords, central_coords] <- 1
-  distance_vec <- distance(crds(distance_raster),
-                           crds(distance_raster,
-                                na.rm = FALSE),
+  distance_vec <- terra::distance(crds(distance_raster),
+                                  crds(distance_raster,
+                                  na.rm = FALSE),
                            lonlat = FALSE)
   distance_mat <- matrix(distance_vec,
                          nrow = ncol_and_nrow,
@@ -45,11 +45,11 @@ calculateKernelDensities <- function(ref_map,
   kernel_densities <- ref_map
 
   for (i in 1:nlyr(kernel_densities)) {
-    kernel_densities[[i]] <- focal(kernel_densities[[i]],
-                                   w = ncol(distance_mat),
-                                   fun = kernelDensitiesEquation,
-                                   cell_distances = distance_mat,
-                                   na.policy = "omit")
+    kernel_densities[[i]] <- terra::focal(kernel_densities[[i]],
+                                          w = ncol(distance_mat),
+                                          fun = kernelDensitiesEquation,
+                                          cell_distances = distance_mat,
+                                          na.policy = "omit")
   }
 
   return(kernel_densities)
