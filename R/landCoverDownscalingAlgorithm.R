@@ -108,6 +108,9 @@ downscaleLC <- function(ref_map_file_name,
   # Calculate distance matrix
   distance_mat <- getDistMatrix(kernel_radius = kernel_radius)
 
+  # set the seed
+  set.seed(random_seed)
+
   #### Loop through time points
   for (timestep in 1:length(LC_deltas_file_list)) {
 
@@ -175,8 +178,7 @@ downscaleLC <- function(ref_map_file_name,
 
     coarse_cell_list <- lapply(coarse_cell_list,
                                downscaleLCForOneCoarseCell,
-                               match_LC_classes = match_LC_classes,
-                               random_seed = random_seed)
+                               match_LC_classes = match_LC_classes)
 
     allocation_end <- Sys.time()
     timeCheckMessage(allocation_start,
@@ -187,8 +189,7 @@ downscaleLC <- function(ref_map_file_name,
     harmonisation_start <- Sys.time()
     print("Starting harmonisation...")
 
-    coarse_cell_list <- harmoniseUnallocatedLC(coarse_cell_list = coarse_cell_list,
-                                               random_seed = random_seed)
+    coarse_cell_list <- harmoniseUnallocatedLC(coarse_cell_list = coarse_cell_list)
 
     harmonisation_end <- Sys.time()
     timeCheckMessage(harmonisation_start,

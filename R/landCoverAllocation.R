@@ -1,7 +1,6 @@
 
 downscaleLCForOneCoarseCell <- function(coarse_cell,
-                                        match_LC_classes,
-                                        random_seed) {
+                                        match_LC_classes) {
 
   coarse_cell <- reconcileLCDeltas(x = coarse_cell,
                                    match_LC_classes = match_LC_classes)
@@ -10,8 +9,7 @@ downscaleLCForOneCoarseCell <- function(coarse_cell,
   LC_transitions <- getLCTransitions(LC_deltas = lcDeltas(coarse_cell))
 
   updated_coarse_cell <- allocateLCTransitions(coarse_cell = coarse_cell,
-                                               LC_transitions = LC_transitions,
-                                               random_seed = random_seed)
+                                               LC_transitions = LC_transitions)
 
   return(updated_coarse_cell)
 }
@@ -67,7 +65,7 @@ getLCTransitions <- function(LC_deltas) {
 
 allocateLCTransitions <- function(coarse_cell,
                                   LC_transitions,
-                                  random_seed) {
+                                  simulation_type) {
 
   if (!is.null(LC_transitions)) {
 
@@ -79,7 +77,7 @@ allocateLCTransitions <- function(coarse_cell,
     for (i in 1:nrow(LC_transitions)) {
 
       LC_from_name <- LC_transitions[i, "LC_from_name"]
-      
+
       # Check if aggregated reference map cell contains the land cover class to be converted
       if (updated_agg_ref_cells[LC_from_name] > 0 & !is.na(updated_agg_ref_cells[LC_from_name])) {
 
@@ -99,8 +97,7 @@ allocateLCTransitions <- function(coarse_cell,
                                                   kernel_densities = kernel_densities)
 
           # Sort for cells for allocation depending on whether kernel density > 0 or kernel density == 0
-          cells_for_allocation <- sortCellsForAllocation(cells_for_allocation = cells_for_allocation,
-                                                         random_seed = random_seed)
+          cells_for_allocation <- sortCellsForAllocation(cells_for_allocation = cells_for_allocation)
 
           # Allocate land cover change
           cells_for_allocation <- getActualConversions(cells_for_allocation = cells_for_allocation,
@@ -194,13 +191,11 @@ getAllocationDF <- function(cell_numbers_for_allocation,
 #' @return Data frame of fine-scale cells ordered from highest to lowest kernel
 #'   density. Cells with a kernel density value of zero are randomly sorted at
 #'   the end of the data frame.
-sortCellsForAllocation <- function(cells_for_allocation,
-                                   random_seed) {
+sortCellsForAllocation <- function(cells_for_allocation) {
 
   if (any(cells_for_allocation$kernel_density > 0) & any(cells_for_allocation$kernel == 0)) {
     cells_for_allocation_kd_not_zero <- getCellsForAllocationKdNotZero(cells_for_allocation = cells_for_allocation)
-    cells_for_allocation_kd_zero <- getCellsForAllocationKdZero(cells_for_allocation = cells_for_allocation,
-                                                                random_seed = random_seed)
+    cells_for_allocation_kd_zero <- getCellsForAllocationKdZero(cells_for_allocation = cells_for_allocation)
     cells_for_allocation_sorted <- rbind(cells_for_allocation_kd_not_zero,
                                          cells_for_allocation_kd_zero)
 
@@ -208,8 +203,7 @@ sortCellsForAllocation <- function(cells_for_allocation,
     cells_for_allocation_sorted <- getCellsForAllocationKdNotZero(cells_for_allocation = cells_for_allocation)
 
   } else if (!any(cells_for_allocation$kernel_density > 0) & any(cells_for_allocation$kernel == 0)) {
-    cells_for_allocation_sorted <- getCellsForAllocationKdZero(cells_for_allocation = cells_for_allocation,
-                                                               random_seed = random_seed)
+    cells_for_allocation_sorted <- getCellsForAllocationKdZero(cells_for_allocation = cells_for_allocation)
 
   }
 
@@ -237,12 +231,10 @@ getCellsForAllocationKdNotZero <- function(cells_for_allocation) {
 #'
 #' @return Data frame of fine-scale cells with kernel density equal to 0 that
 #'   have been randomly sorted.
-getCellsForAllocationKdZero <- function(cells_for_allocation,
-                                        random_seed) {
+getCellsForAllocationKdZero <- function(cells_for_allocation) {
 
   cells_for_allocation_kd_zero <- cells_for_allocation[cells_for_allocation$kernel_density == 0, ]
-  cells_for_allocation_kd_zero_random <- randomiseDataFrame(input_df = cells_for_allocation_kd_zero,
-                                                            random_seed = random_seed)
+  cells_for_allocation_kd_zero_random <- randomiseDataFrame(input_df = cells_for_allocation_kd_zero)
 
   return(cells_for_allocation_kd_zero_random)
 }

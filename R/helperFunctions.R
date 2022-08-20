@@ -13,11 +13,7 @@ timeCheckMessage <- function(start_time,
 }
 
 # Randomly sorts a data frame
-randomiseDataFrame <- function(input_df,
-                               random_seed) {
-
-  # Set a seed here so that the results are reproducible
-  set.seed(random_seed)
+randomiseDataFrame <- function(input_df) {
 
   df_rows <- sample(nrow(input_df))
 
