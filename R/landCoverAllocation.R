@@ -116,7 +116,7 @@ allocateLCTransitions <- function(coarse_cell,
           cells_for_allocation <- getActualConversions(cells_for_allocation = cells_for_allocation,
                                                        LC_from_name = LC_from_name,
                                                        LC_conversion_area = LC_conversion_area)
-          print(cells_for_allocation)
+
           # Update the coarse-scale cell and all corresponding fine-scale cells
           # Update the reference map with new land cover areas
           updated_ref_cells <- updateRefCells(cells_for_allocation = cells_for_allocation,
