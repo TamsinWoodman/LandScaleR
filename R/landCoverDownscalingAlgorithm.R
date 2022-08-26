@@ -92,6 +92,7 @@ downscaleLC <- function(ref_map_file_name,
                         match_LC_classes,
                         kernel_radius,
                         simulation_type = "deterministic",
+                        fuzzy_multiplier = 1,
                         discrete_output_map = FALSE,
                         random_seed = as.numeric(Sys.time()),
                         output_file_prefix,
@@ -177,7 +178,8 @@ downscaleLC <- function(ref_map_file_name,
     coarse_cell_list <- lapply(coarse_cell_list,
                                downscaleLCForOneCoarseCell,
                                match_LC_classes = match_LC_classes,
-                               simulation_type = simulation_type)
+                               simulation_type = simulation_type,
+                               fuzzy_multiplier = fuzzy_multiplier)
 
     allocation_end <- Sys.time()
     timeCheckMessage(allocation_start,
@@ -189,7 +191,8 @@ downscaleLC <- function(ref_map_file_name,
     print("Starting harmonisation...")
 
     coarse_cell_list <- harmoniseUnallocatedLC(coarse_cell_list = coarse_cell_list,
-                                               simulation_type = simulation_type)
+                                               simulation_type = simulation_type,
+                                               fuzzy_multiplier = fuzzy_multiplier)
 
     harmonisation_end <- Sys.time()
     timeCheckMessage(harmonisation_start,

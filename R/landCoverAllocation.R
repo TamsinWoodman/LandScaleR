@@ -1,7 +1,8 @@
 
 downscaleLCForOneCoarseCell <- function(coarse_cell,
                                         match_LC_classes,
-                                        simulation_type) {
+                                        simulation_type,
+                                        fuzzy_multiplier) {
 
   coarse_cell <- reconcileLCDeltas(x = coarse_cell,
                                    match_LC_classes = match_LC_classes)
@@ -11,7 +12,8 @@ downscaleLCForOneCoarseCell <- function(coarse_cell,
 
   updated_coarse_cell <- allocateLCTransitions(coarse_cell = coarse_cell,
                                                LC_transitions = LC_transitions,
-                                               simulation_type = simulation_type)
+                                               simulation_type = simulation_type,
+                                               fuzzy_multiplier = fuzzy_multiplier)
 
   return(updated_coarse_cell)
 }
@@ -67,7 +69,8 @@ getLCTransitions <- function(LC_deltas) {
 
 allocateLCTransitions <- function(coarse_cell,
                                   LC_transitions,
-                                  simulation_type) {
+                                  simulation_type,
+                                  fuzzy_multiplier) {
 
   if (!is.null(LC_transitions)) {
 
@@ -106,7 +109,8 @@ allocateLCTransitions <- function(coarse_cell,
           cells_for_allocation <- switch(simulation_type,
                                          "null_model" = randomiseDataFrame(input_df = cells_for_allocation),
                                          "deterministic" = sortCellsForAllocation(cells_for_allocation = cells_for_allocation),
-                                         "fuzzy" = getFuzzyKernelDensities(cells_for_allocation = cells_for_allocation))
+                                         "fuzzy" = getFuzzyKernelDensities(cells_for_allocation = cells_for_allocation,
+                                                                           fuzzy_multiplier = fuzzy_multiplier))
 
           # print("New:")
           # print(cells_for_allocation$kernel_density)
@@ -223,10 +227,11 @@ sortCellsForAllocation <- function(cells_for_allocation) {
   return(cells_for_allocation_sorted)
 }
 
-getFuzzyKernelDensities <- function(cells_for_allocation) {
+getFuzzyKernelDensities <- function(cells_for_allocation,
+                                    fuzzy_multiplier) {
 
-  tmp <- data.frame(old = cells_for_allocation$kernel_density,
-                    new = NA)
+  # tmp <- data.frame(old = cells_for_allocation$kernel_density,
+  #                   new = NA)
 
   # Add deviations drawn from a Normal distribution to the kernel density values
   # This introduces stochasticity to the simulation
@@ -234,12 +239,12 @@ getFuzzyKernelDensities <- function(cells_for_allocation) {
 
     cells_for_allocation$kernel_density <- cells_for_allocation$kernel_density + rnorm(length(cells_for_allocation$kernel_density),
                                                                                        mean = 0,
-                                                                                       sd = sd(cells_for_allocation$kernel_density,
-                                                                                               na.rm = TRUE))
-    tmp$new <- cells_for_allocation$kernel_density
-    plot(tmp$old, tmp$new)
-
-    cells_for_allocation <- sortCellsForAllocation(cells_for_allocation = cells_for_allocation)
+                                                                                       sd = fuzzy_multiplier * sd(cells_for_allocation$kernel_density,
+                                                                                                                  na.rm = TRUE))
+    # tmp$new <- cells_for_allocation$kernel_density
+    # plot(tmp$old, tmp$new)
+    
+    cells_for_allocation <- sortKernelDensities(kernel_density_df = cells_for_allocation)
 
   }
 

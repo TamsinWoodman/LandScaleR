@@ -3,7 +3,8 @@
 # land cover change that was not allocated to a specific coarse-scale cell
 
 harmoniseUnallocatedLC <- function(coarse_cell_list,
-                                   simulation_type) {
+                                   simulation_type,
+                                   fuzzy_multiplier) {
 
   for (i in 1:length(coarse_cell_list)) {
 
@@ -57,7 +58,8 @@ harmoniseUnallocatedLC <- function(coarse_cell_list,
                 cells_for_allocation <- switch(simulation_type,
                                                "null_model" = randomiseDataFrame(input_df = cells_for_allocation),
                                                "deterministic" = sortCellsForAllocation(cells_for_allocation = cells_for_allocation),
-                                               "fuzzy" = getFuzzyKernelDensities(cells_for_allocation = cells_for_allocation))
+                                               "fuzzy" = getFuzzyKernelDensities(cells_for_allocation = cells_for_allocation,
+                                                                                 fuzzy_multiplier = fuzzy_multiplier))
 
                 # Allocate land cover change
                 cells_for_allocation <- getActualConversions(cells_for_allocation = cells_for_allocation,
