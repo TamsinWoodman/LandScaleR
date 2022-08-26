@@ -42,7 +42,6 @@
 #' @param LC_deltas_classes Vector of land cover classes in the land cover change
 #'   maps. Each land cover class should be a column name in every land cover
 #'   change file.
-#' @param LC_deltas_cell_area Area of a single coarse-scale grid cell.
 #' @param ref_map_type Specifies whether the reference map is discrete (contains
 #'   one land cover class per cell) or area-based (provides the area of each
 #'   land cover class in each cell). Must be one of "areas" or "discrete".
@@ -51,7 +50,6 @@
 #' @param ref_map_LC_classes Vector of land cover types in the reference map. For
 #'   an area-based reference map, all land cover types should be column names in
 #'   the reference map.
-#' @param ref_map_cell_area Area of a single reference map grid cell.
 #' @param ref_map_cell_resolution Resolution of one cell in the reference map,
 #'   in the form `c(x, y)`.
 #' @param final_LC_classes A matrix containing the fraction of each coarse-scale
@@ -88,7 +86,6 @@
 downscaleLC <- function(ref_map_file_name,
                         LC_deltas_file_list,
                         LC_deltas_classes,
-                        LC_deltas_cell_area,
                         ref_map_type = "areas",
                         ref_map_LC_classes,
                         cell_size_unit = "m",
