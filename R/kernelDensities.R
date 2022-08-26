@@ -3,7 +3,7 @@ getDistMatrix <- function(kernel_radius) {
 
   ncol_and_nrow <- (kernel_radius * 2) + 1
   distance_res <- 1
-  distance_raster <- rast(nrows = ncol_and_nrow,
+  distance_raster <- terra::rast(nrows = ncol_and_nrow,
                           ncols = ncol_and_nrow,
                           xmin = -(ncol_and_nrow * distance_res) / 2,
                           xmax = (ncol_and_nrow * distance_res) / 2,
@@ -11,8 +11,8 @@ getDistMatrix <- function(kernel_radius) {
                           ymax = (ncol_and_nrow * distance_res) / 2)
   central_coords <- kernel_radius + 1
   distance_raster[central_coords, central_coords] <- 1
-  distance_vec <- terra::distance(crds(distance_raster),
-                                  crds(distance_raster,
+  distance_vec <- terra::distance(terra::crds(distance_raster),
+                                  terra::crds(distance_raster,
                                   na.rm = FALSE),
                            lonlat = FALSE)
   distance_mat <- matrix(distance_vec,
