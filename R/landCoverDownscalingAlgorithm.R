@@ -37,22 +37,18 @@
 #'   the first file in the list, the second time step the second file, and so
 #'   on. Land cover change files can be generated using the `calculateLCDeltas`
 #'   function from this package.
-#' @param equal_area Logical. 'TRUE' indicates that input maps are in an equal
-#'   area projection, 'FALSE' means they are not.
 #' @param LC_deltas_classes Vector of land cover classes in the land cover change
 #'   maps. Each land cover class should be a column name in every land cover
 #'   change file.
 #' @param ref_map_type Specifies whether the reference map is discrete (contains
 #'   one land cover class per cell) or area-based (provides the area of each
 #'   land cover class in each cell). Must be one of "areas" or "discrete".
-#' @param LC_column_name For a discrete reference map, gives the name of the
-#'   column containing the land cover class for each grid cell.
 #' @param ref_map_LC_classes Vector of land cover types in the reference map. For
 #'   an area-based reference map, all land cover types should be column names in
 #'   the reference map.
-#' @param ref_map_cell_resolution Resolution of one cell in the reference map,
-#'   in the form `c(x, y)`.
-#' @param final_LC_classes A matrix containing the fraction of each coarse-scale
+#' @param cell_size_unit The unit that cell areas should be calculated in. Must 
+#'   be one of "km", "m", or "ha".
+#' @param match_LC_classes A matrix containing the fraction of each coarse-scale
 #'   land cover class that contributes to each reference map land cover class.
 #'   Columns should contain reference map land cover classes, and rows are the
 #'   coarse-scale land cover classes. Each cell should contain the proportion of
@@ -62,6 +58,20 @@
 #'   calculation. A value of 1 means that the neighbour cells used to calculate
 #'   kernel density will be 1 cell in every direction around the focal cell.
 #'   Defaults to 1.
+#' @param simulation_type Specifies the method of land-use change allocation to
+#'   use. Can be 'deterministic', 'fuzzy', or 'null_model'. 'deterministic is
+#'   a deterministic simulation where land-use change is only randomly allocated
+#'   if a cell has a kernel density of 0. The fuzzy' option gives a stochastic
+#'   simulation where each kernel density is modified by adding a modifier that 
+#'   is drawn from a Normal distribution with mean of 0 and standard deviation 
+#'   equal to the standard deviation of kernel density values in cells available
+#'   for land-use allocation. The 'null_model' option allocations land-use 
+#'   change entirely randomly.
+#' @param fuzzy_multiplier A value by which the standard deviation of the Normal
+#'   distribution used to draw modifiers in the 'fuzzy' method will be 
+#'   multiplied. Specifying a value of 2 would mean the Normal distribution has
+#'   a mean of 0 and standard deviation of 2 times the standard deviation of the 
+#'   kernel density values in cells available for land-use change allocation.
 #' @param discrete_output_map Output discrete land cover as well as area-based
 #'   land cover. Default is `FALSE`.
 #' @param random_seed Numeric random seed for ordering fine-scale cells with a
@@ -71,15 +81,9 @@
 #' @param output_dir_path Path to directory in which to save the downscaled
 #'   land cover map files. Will be created if it does not already exist.
 #'
-#' @return Tab-separated text files containing downscaled land cover maps, with
-#'   one file per input land cover change file. In each output file, the first
-#'   two columns are x and y coordinates for the map. Subsequent columns contain
-#'   land cover for each cell. The 'ref_ID' column gives an identification
-#'   number for each grid cell, and the 'coarse_ID' column specifies the
-#'   coarse-scale cell to which each fine-scale cell was assigned to during
-#'   downscaling. If `discrete_output_map = FALSE`, a column named
-#'   'Discrete_LC_class' containing the discrete land cover class for each cell
-#'   will be appended to the output.
+#' @return TIFF files containing downscaled land-use maps. If 
+#'   `discrete_output_map = TRUE` then maps with both the area of each land-use 
+#'   class per cell and the largest land-use class per cell will be generated.
 #' @importFrom methods new slot slot<-
 #' @importFrom utils read.table stack write.table
 #' @export
@@ -198,6 +202,23 @@ downscaleLC <- function(ref_map_file_name,
     timeCheckMessage(harmonisation_start,
                      harmonisation_end,
                      "Completed harmonisation in ")
+    
+    # lapply(coarse_cell_list,
+    #        FUN = function(x) {
+    #          
+    #          new_area <- unlist(global(x@ref_cells,
+    #                                         fun = "sum",
+    #                                         na.rm = TRUE))
+    #          total_new_area <- sum(new_area)
+    #          total_old_area <- x@ref_cells_area
+    #          
+    #          if(!total_new_area == total_old_area) {
+    #            print(paste0("New area: ",
+    #                         total_new_area))
+    #            print(paste0("Old area: ",
+    #                         total_old_area))
+    #          }
+    #        })
 
     # Create the downscaled map
     ## if there are more than 100 tiles, pplit the list of tiles into chunks
@@ -312,6 +333,19 @@ loadRefMap <- function(ref_map_file_name,
 }
 
 #' Assign fine resolution cells to a coarse resolution map
+#' 
+#' @param ref_map 'SpatRaster' object with fine resolution cells.
+#' @param LC_deltas_coords Matrix containing coordinates of coarse resolution 
+#'   cells. Can be obtained from a 'SpatRaster' using the 'crds' function from 
+#'   the 'terra' package.
+#' @param LC_deltas_cell_numbers Vector of cell numbers from the coarse 
+#'   resolution map. Can be obtained from a 'SpatRaster' object using the 
+#'   'cells' function from the 'terra' package
+#'   
+#' @return 'SpatVector' object of numbered polygons. Each polygon encapsulates a
+#'   set of fine resolution cells that are assigned to the same coarse 
+#'   resolution cell.
+#' 
 #' @export
 assignRefMapCells <- function(ref_map,
                               LC_deltas_coords,

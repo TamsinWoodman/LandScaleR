@@ -7,7 +7,7 @@
 getLCTransitions(LC_deltas)
 }
 \arguments{
-\item{LC_deltas}{}
+\item{LC_deltas}{Vector of land-use change areas.}
 }
 \value{
 Data frame giving order and magnitude of land cover transitions.

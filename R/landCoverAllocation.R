@@ -23,7 +23,7 @@ downscaleLCForOneCoarseCell <- function(coarse_cell,
 #' The transition matrix determines the area of land cover change that is
 #'   converted to each land cover class.
 #'
-#' @param LC_deltas
+#' @param LC_deltas Vector of land-use change areas.
 #'
 #' @return Data frame giving order and magnitude of land cover transitions.
 getLCTransitions <- function(LC_deltas) {
@@ -203,7 +203,6 @@ getAllocationDF <- function(cell_numbers_for_allocation,
 #'
 #' @param cells_for_allocation Data frame of fine-scale cells selected to
 #'   receive a given land cover class.
-#' @inheritParams downscaleLC
 #'
 #' @return Data frame of fine-scale cells ordered from highest to lowest kernel
 #'   density. Cells with a kernel density value of zero are randomly sorted at

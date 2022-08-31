@@ -8,12 +8,13 @@ downscaleLC(
   ref_map_file_name,
   LC_deltas_file_list,
   LC_deltas_classes,
-  LC_deltas_cell_area,
   ref_map_type = "areas",
   ref_map_LC_classes,
   cell_size_unit = "m",
   match_LC_classes,
   kernel_radius,
+  simulation_type = "deterministic",
+  fuzzy_multiplier = 1,
   discrete_output_map = FALSE,
   random_seed = as.numeric(Sys.time()),
   output_file_prefix,
@@ -38,8 +39,6 @@ function from this package.}
 maps. Each land cover class should be a column name in every land cover
 change file.}
 
-\item{LC_deltas_cell_area}{Area of a single coarse-scale grid cell.}
-
 \item{ref_map_type}{Specifies whether the reference map is discrete (contains
 one land cover class per cell) or area-based (provides the area of each
 land cover class in each cell). Must be one of "areas" or "discrete".}
@@ -48,10 +47,36 @@ land cover class in each cell). Must be one of "areas" or "discrete".}
 an area-based reference map, all land cover types should be column names in
 the reference map.}
 
+\item{cell_size_unit}{The unit that cell areas should be calculated in. Must 
+be one of "km", "m", or "ha".}
+
+\item{match_LC_classes}{A matrix containing the fraction of each coarse-scale
+land cover class that contributes to each reference map land cover class.
+Columns should contain reference map land cover classes, and rows are the
+coarse-scale land cover classes. Each cell should contain the proportion of
+the coarse-scale land cover class that contributes to the fine-scale class in
+the output map.}
+
 \item{kernel_radius}{Radius of cells to include in the kernel density
 calculation. A value of 1 means that the neighbour cells used to calculate
 kernel density will be 1 cell in every direction around the focal cell.
 Defaults to 1.}
+
+\item{simulation_type}{Specifies the method of land-use change allocation to
+use. Can be 'deterministic', 'fuzzy', or 'null_model'. 'deterministic is
+a deterministic simulation where land-use change is only randomly allocated
+if a cell has a kernel density of 0. The fuzzy' option gives a stochastic
+simulation where each kernel density is modified by adding a modifier that 
+is drawn from a Normal distribution with mean of 0 and standard deviation 
+equal to the standard deviation of kernel density values in cells available
+for land-use allocation. The 'null_model' option allocations land-use 
+change entirely randomly.}
+
+\item{fuzzy_multiplier}{A value by which the standard deviation of the Normal
+distribution used to draw modifiers in the 'fuzzy' method will be 
+multiplied. Specifying a value of 2 would mean the Normal distribution has
+a mean of 0 and standard deviation of 2 times the standard deviation of the 
+kernel density values in cells available for land-use change allocation.}
 
 \item{discrete_output_map}{Output discrete land cover as well as area-based
 land cover. Default is `FALSE`.}
@@ -64,35 +89,11 @@ date and time when the function is called.}
 
 \item{output_dir_path}{Path to directory in which to save the downscaled
 land cover map files. Will be created if it does not already exist.}
-
-\item{equal_area}{Logical. 'TRUE' indicates that input maps are in an equal
-area projection, 'FALSE' means they are not.}
-
-\item{LC_column_name}{For a discrete reference map, gives the name of the
-column containing the land cover class for each grid cell.}
-
-\item{ref_map_cell_area}{Area of a single reference map grid cell.}
-
-\item{ref_map_cell_resolution}{Resolution of one cell in the reference map,
-in the form `c(x, y)`.}
-
-\item{final_LC_classes}{A matrix containing the fraction of each coarse-scale
-land cover class that contributes to each reference map land cover class.
-Columns should contain reference map land cover classes, and rows are the
-coarse-scale land cover classes. Each cell should contain the proportion of
-the coarse-scale land cover class that contributes to the fine-scale class in
-the output map.}
 }
 \value{
-Tab-separated text files containing downscaled land cover maps, with
-  one file per input land cover change file. In each output file, the first
-  two columns are x and y coordinates for the map. Subsequent columns contain
-  land cover for each cell. The 'ref_ID' column gives an identification
-  number for each grid cell, and the 'coarse_ID' column specifies the
-  coarse-scale cell to which each fine-scale cell was assigned to during
-  downscaling. If `discrete_output_map = FALSE`, a column named
-  'Discrete_LC_class' containing the discrete land cover class for each cell
-  will be appended to the output.
+TIFF files containing downscaled land-use maps. If 
+  `discrete_output_map = TRUE` then maps with both the area of each land-use 
+  class per cell and the largest land-use class per cell will be generated.
 }
 \description{
 Downscales land cover by applying land cover change from coarse-scale input

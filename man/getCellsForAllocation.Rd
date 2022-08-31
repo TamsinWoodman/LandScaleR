@@ -7,6 +7,8 @@
 getCellsForAllocation(ref_map, LC_from_name)
 }
 \arguments{
+\item{ref_map}{'SpatRaster' object with fine resolution cells.}
+
 \item{LC_from_name}{Name of the land cover class that is being converted to
 `LC_to_name`.}
 }

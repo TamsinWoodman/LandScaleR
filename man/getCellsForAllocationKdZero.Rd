@@ -4,15 +4,11 @@
 \alias{getCellsForAllocationKdZero}
 \title{Return a data frame of fine-scale cells with kernel density equal to zero}
 \usage{
-getCellsForAllocationKdZero(cells_for_allocation, random_seed)
+getCellsForAllocationKdZero(cells_for_allocation)
 }
 \arguments{
 \item{cells_for_allocation}{Data frame of fine-scale cells selected to
 receive a given land cover class.}
-
-\item{random_seed}{Numeric random seed for ordering fine-scale cells with a
-kernel density value of zero during land cover allocation. Defaults to the
-date and time when the function is called.}
 }
 \value{
 Data frame of fine-scale cells with kernel density equal to 0 that
