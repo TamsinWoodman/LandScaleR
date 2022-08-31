@@ -32,9 +32,9 @@ CoarseCellFromRaster <- function(cell_number,
   kernel_densities <- terra::crop(kernel_densities,
                                   ref_map_polygons[ref_map_polygons$coarse_ID == cell_number],
                                   mask = TRUE)
-  agg_ref_cells <- unlist(global(ref_cells,
-                                 fun = "sum",
-                                 na.rm = TRUE))
+  agg_ref_cells <- unlist(terra::global(ref_cells,
+                                        fun = "sum",
+                                        na.rm = TRUE))
   names(agg_ref_cells) <- names(ref_cells)
   ref_cells_area <- sum(agg_ref_cells)
 

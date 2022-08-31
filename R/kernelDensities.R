@@ -44,7 +44,7 @@ calculateKernelDensities <- function(ref_map,
 
   kernel_densities <- ref_map
 
-  for (i in 1:nlyr(kernel_densities)) {
+  for (i in 1:terra::nlyr(kernel_densities)) {
     kernel_densities[[i]] <- terra::focal(kernel_densities[[i]],
                                           w = ncol(distance_mat),
                                           fun = kernelDensitiesEquation,

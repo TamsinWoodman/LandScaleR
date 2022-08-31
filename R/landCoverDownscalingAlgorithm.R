@@ -210,7 +210,7 @@ downscaleLC <- function(ref_map_file_name,
 
     if (mosaic_chunks == 0) {
 
-      downscaled_map <- terra::mosaic(sprc(downscaled_tiles))
+      downscaled_map <- terra::mosaic(terra::sprc(downscaled_tiles))
 
     } else if (mosaic_chunks > 0) {
 
@@ -287,7 +287,7 @@ loadLCDeltas <- function(LC_deltas_file_list,
   # If cell_area layer is not present, calculate the area of each cell
   if (!"cell_area" %in% names(LC_deltas)) {
     LC_deltas <- c(LC_deltas,
-                   cellSize(LC_deltas))
+                   terra::cellSize(LC_deltas))
     names(LC_deltas)[terra::nlyr(LC_deltas)] <- "cell_area"
   }
 

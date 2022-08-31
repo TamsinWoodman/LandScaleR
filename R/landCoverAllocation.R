@@ -237,9 +237,9 @@ getFuzzyKernelDensities <- function(cells_for_allocation,
   # This introduces stochasticity to the simulation
   if (length(cells_for_allocation$kernel_density) > 1) {
 
-    cells_for_allocation$kernel_density <- cells_for_allocation$kernel_density + rnorm(length(cells_for_allocation$kernel_density),
+    cells_for_allocation$kernel_density <- cells_for_allocation$kernel_density + stats::rnorm(length(cells_for_allocation$kernel_density),
                                                                                        mean = 0,
-                                                                                       sd = fuzzy_multiplier * sd(cells_for_allocation$kernel_density,
+                                                                                       sd = fuzzy_multiplier * stats::sd(cells_for_allocation$kernel_density,
                                                                                                                   na.rm = TRUE))
     # tmp$new <- cells_for_allocation$kernel_density
     # plot(tmp$old, tmp$new)
