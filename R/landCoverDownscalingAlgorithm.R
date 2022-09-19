@@ -46,7 +46,7 @@
 #' @param ref_map_LC_classes Vector of land cover types in the reference map. For
 #'   an area-based reference map, all land cover types should be column names in
 #'   the reference map.
-#' @param cell_size_unit The unit that cell areas should be calculated in. Must 
+#' @param cell_size_unit The unit that cell areas should be calculated in. Must
 #'   be one of "km", "m", or "ha".
 #' @param match_LC_classes A matrix containing the fraction of each coarse-scale
 #'   land cover class that contributes to each reference map land cover class.
@@ -62,15 +62,15 @@
 #'   use. Can be 'deterministic', 'fuzzy', or 'null_model'. 'deterministic is
 #'   a deterministic simulation where land-use change is only randomly allocated
 #'   if a cell has a kernel density of 0. The fuzzy' option gives a stochastic
-#'   simulation where each kernel density is modified by adding a modifier that 
-#'   is drawn from a Normal distribution with mean of 0 and standard deviation 
+#'   simulation where each kernel density is modified by adding a modifier that
+#'   is drawn from a Normal distribution with mean of 0 and standard deviation
 #'   equal to the standard deviation of kernel density values in cells available
-#'   for land-use allocation. The 'null_model' option allocations land-use 
+#'   for land-use allocation. The 'null_model' option allocations land-use
 #'   change entirely randomly.
 #' @param fuzzy_multiplier A value by which the standard deviation of the Normal
-#'   distribution used to draw modifiers in the 'fuzzy' method will be 
+#'   distribution used to draw modifiers in the 'fuzzy' method will be
 #'   multiplied. Specifying a value of 2 would mean the Normal distribution has
-#'   a mean of 0 and standard deviation of 2 times the standard deviation of the 
+#'   a mean of 0 and standard deviation of 2 times the standard deviation of the
 #'   kernel density values in cells available for land-use change allocation.
 #' @param discrete_output_map Output discrete land cover as well as area-based
 #'   land cover. Default is `FALSE`.
@@ -81,8 +81,8 @@
 #' @param output_dir_path Path to directory in which to save the downscaled
 #'   land cover map files. Will be created if it does not already exist.
 #'
-#' @return TIFF files containing downscaled land-use maps. If 
-#'   `discrete_output_map = TRUE` then maps with both the area of each land-use 
+#' @return TIFF files containing downscaled land-use maps. If
+#'   `discrete_output_map = TRUE` then maps with both the area of each land-use
 #'   class per cell and the largest land-use class per cell will be generated.
 #' @importFrom methods new slot slot<-
 #' @importFrom utils read.table stack write.table
@@ -202,23 +202,11 @@ downscaleLC <- function(ref_map_file_name,
     timeCheckMessage(harmonisation_start,
                      harmonisation_end,
                      "Completed harmonisation in ")
-    
-    # lapply(coarse_cell_list,
-    #        FUN = function(x) {
-    #          
-    #          new_area <- unlist(global(x@ref_cells,
-    #                                         fun = "sum",
-    #                                         na.rm = TRUE))
-    #          total_new_area <- sum(new_area)
-    #          total_old_area <- x@ref_cells_area
-    #          
-    #          if(!total_new_area == total_old_area) {
-    #            print(paste0("New area: ",
-    #                         total_new_area))
-    #            print(paste0("Old area: ",
-    #                         total_old_area))
-    #          }
-    #        })
+
+    # Check whether total area of reference cells assigned to each coarse cell
+    # matches before and after downscaling
+    lapply(coarse_cell_list,
+           FUN = areasMatch)
 
     # Create the downscaled map
     ## if there are more than 100 tiles, pplit the list of tiles into chunks
@@ -333,19 +321,19 @@ loadRefMap <- function(ref_map_file_name,
 }
 
 #' Assign fine resolution cells to a coarse resolution map
-#' 
+#'
 #' @param ref_map 'SpatRaster' object with fine resolution cells.
-#' @param LC_deltas_coords Matrix containing coordinates of coarse resolution 
-#'   cells. Can be obtained from a 'SpatRaster' using the 'crds' function from 
+#' @param LC_deltas_coords Matrix containing coordinates of coarse resolution
+#'   cells. Can be obtained from a 'SpatRaster' using the 'crds' function from
 #'   the 'terra' package.
-#' @param LC_deltas_cell_numbers Vector of cell numbers from the coarse 
-#'   resolution map. Can be obtained from a 'SpatRaster' object using the 
+#' @param LC_deltas_cell_numbers Vector of cell numbers from the coarse
+#'   resolution map. Can be obtained from a 'SpatRaster' object using the
 #'   'cells' function from the 'terra' package
-#'   
+#'
 #' @return 'SpatVector' object of numbered polygons. Each polygon encapsulates a
-#'   set of fine resolution cells that are assigned to the same coarse 
+#'   set of fine resolution cells that are assigned to the same coarse
 #'   resolution cell.
-#' 
+#'
 #' @export
 assignRefMapCells <- function(ref_map,
                               LC_deltas_coords,

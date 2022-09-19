@@ -20,6 +20,7 @@ setGeneric("reconcileLCDeltas", function(x, match_LC_classes) standardGeneric("r
 setGeneric("updateCoarseCell", function(x, LC_deltas, LC_deltas_classes, kernel_densities, ref_map_polygons) standardGeneric("updateCoarseCell"))
 setGeneric("isUnallocatedLC", function(x) standardGeneric("isUnallocatedLC"))
 setGeneric("lcDeltasAndCoords", function(x) standardGeneric("lcDeltasAndCoords"))
+setGeneric("areasMatch", function(x) standardGeneric("areasMatch"))
 
 # Methods for CoarseCell class
 setMethod("cellNumber", "CoarseCell", function(x) x@cell_number)
@@ -109,4 +110,31 @@ setMethod("isUnallocatedLC", "CoarseCell", function(x) {
   } else {
     return(FALSE)
   }
+})
+
+
+# Method to check that areas match after downscaling and harmonisation`
+setMethod("areasMatch", "CoarseCell", function(x) {
+
+
+  total_old_area <- x@ref_cells_area
+  # New area must be within 0.01% of the original area
+  area_tolerance <- (total_old_area / 100) * 0.0001
+
+  new_area <- unlist(terra::global(x@ref_cells,
+                                   fun = "sum",
+                                   na.rm = TRUE))
+  total_new_area <- sum(new_area)
+
+  if(total_new_area < total_old_area - area_tolerance |
+       total_new_area > total_old_area + area_tolerance) {
+
+    warning("Total area of reference cells before and after downscaling does not match")
+    print(paste0("New area: ",
+                 total_new_area))
+    print(paste0("Old area: ",
+                 total_old_area))
+
+  }
+
 })
