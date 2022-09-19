@@ -9,17 +9,17 @@ assignRefMapCells(ref_map, LC_deltas_coords, LC_deltas_cell_numbers)
 \arguments{
 \item{ref_map}{'SpatRaster' object with fine resolution cells.}
 
-\item{LC_deltas_coords}{Matrix containing coordinates of coarse resolution 
-cells. Can be obtained from a 'SpatRaster' using the 'crds' function from 
+\item{LC_deltas_coords}{Matrix containing coordinates of coarse resolution
+cells. Can be obtained from a 'SpatRaster' using the 'crds' function from
 the 'terra' package.}
 
-\item{LC_deltas_cell_numbers}{Vector of cell numbers from the coarse 
-resolution map. Can be obtained from a 'SpatRaster' object using the 
+\item{LC_deltas_cell_numbers}{Vector of cell numbers from the coarse
+resolution map. Can be obtained from a 'SpatRaster' object using the
 'cells' function from the 'terra' package}
 }
 \value{
 'SpatVector' object of numbered polygons. Each polygon encapsulates a
-  set of fine resolution cells that are assigned to the same coarse 
+  set of fine resolution cells that are assigned to the same coarse
   resolution cell.
 }
 \description{

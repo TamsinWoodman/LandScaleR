@@ -47,7 +47,7 @@ land cover class in each cell). Must be one of "areas" or "discrete".}
 an area-based reference map, all land cover types should be column names in
 the reference map.}
 
-\item{cell_size_unit}{The unit that cell areas should be calculated in. Must 
+\item{cell_size_unit}{The unit that cell areas should be calculated in. Must
 be one of "km", "m", or "ha".}
 
 \item{match_LC_classes}{A matrix containing the fraction of each coarse-scale
@@ -66,16 +66,16 @@ Defaults to 1.}
 use. Can be 'deterministic', 'fuzzy', or 'null_model'. 'deterministic is
 a deterministic simulation where land-use change is only randomly allocated
 if a cell has a kernel density of 0. The fuzzy' option gives a stochastic
-simulation where each kernel density is modified by adding a modifier that 
-is drawn from a Normal distribution with mean of 0 and standard deviation 
+simulation where each kernel density is modified by adding a modifier that
+is drawn from a Normal distribution with mean of 0 and standard deviation
 equal to the standard deviation of kernel density values in cells available
-for land-use allocation. The 'null_model' option allocations land-use 
+for land-use allocation. The 'null_model' option allocations land-use
 change entirely randomly.}
 
 \item{fuzzy_multiplier}{A value by which the standard deviation of the Normal
-distribution used to draw modifiers in the 'fuzzy' method will be 
+distribution used to draw modifiers in the 'fuzzy' method will be
 multiplied. Specifying a value of 2 would mean the Normal distribution has
-a mean of 0 and standard deviation of 2 times the standard deviation of the 
+a mean of 0 and standard deviation of 2 times the standard deviation of the
 kernel density values in cells available for land-use change allocation.}
 
 \item{discrete_output_map}{Output discrete land cover as well as area-based
@@ -91,8 +91,8 @@ date and time when the function is called.}
 land cover map files. Will be created if it does not already exist.}
 }
 \value{
-TIFF files containing downscaled land-use maps. If 
-  `discrete_output_map = TRUE` then maps with both the area of each land-use 
+TIFF files containing downscaled land-use maps. If
+  `discrete_output_map = TRUE` then maps with both the area of each land-use
   class per cell and the largest land-use class per cell will be generated.
 }
 \description{
