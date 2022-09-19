@@ -1,7 +1,7 @@
 Package: landdownscaleR
 Type: Package
 Title: Downscale gridded land-use data from PLUMv2
-Version: 0.1.0
+Version: 1.0.0
 Author: Tamsin Woodman
 Maintainer: Tamsin Woodman <t.woodman.20@abdn.ac.uk>
 Description: Downscale gridded land-use data from PLUMv2 to
