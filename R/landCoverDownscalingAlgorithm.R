@@ -219,13 +219,13 @@ downscaleLC <- function(ref_map_file_name,
     ## memory requirements
     downscaled_tiles <- lapply(coarse_cell_list,
                                FUN = refCells)
-    mosaic_chunks <- round(length(downscaled_tiles) / 100)
+    mosaic_chunks <- ceiling(length(downscaled_tiles) / 100)
 
-    if (mosaic_chunks == 0) {
+    if (mosaic_chunks == 1) {
 
       downscaled_map <- terra::mosaic(terra::sprc(downscaled_tiles))
 
-    } else if (mosaic_chunks > 0) {
+    } else if (mosaic_chunks > 1) {
 
       downscaled_chunks <- vector(mode = "list",
                                   length = length(mosaic_chunks))
