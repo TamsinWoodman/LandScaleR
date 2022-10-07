@@ -1,13 +1,13 @@
 
 test_that("assignRefMapCells assigns grid cells to nearest neighbours" , {
-  
+
   # Set up ref map data
   ref_map_crds <- data.frame(x = c(0.5, 0.5, 1.5, 1.5),
                              y = c(0.5, 1.5, 0.5, 1.5),
                              coarse_ID = c(1, 1, 2, 2))
   ref_map <- terra::rast(ref_map_crds,
                          type = "xyz")
-  
+
   # Set up LC deltas data
   LC_deltas_crds <- matrix(data = c(0.5, 1,
                                     1.5, 1),
@@ -15,9 +15,9 @@ test_that("assignRefMapCells assigns grid cells to nearest neighbours" , {
                            ncol = 2,
                            byrow = TRUE)
   colnames(LC_deltas_crds) <- c("x", "y")
-  
+
   LC_deltas_cell_numbers <- 1:2
-  
+
   # Get expected output
   expected_polygons <- terra::as.polygons(ref_map)
   names(expected_polygons) <- "coarse_ID"
@@ -26,13 +26,13 @@ test_that("assignRefMapCells assigns grid cells to nearest neighbours" , {
   actual_polygons <- assignRefMapCells(ref_map = ref_map,
                                        LC_deltas_coords = LC_deltas_crds,
                                        LC_deltas_cell_numbers = LC_deltas_cell_numbers)
-  
+
   expect_true(terra::all.equal(actual_polygons,
                                expected_polygons))
-  
+
 })
 
-test_that("assignRefMap returns polygons with same CRS as reference map" {
+test_that("assignRefMap returns polygons with same CRS as reference map", {
 
   # Set up ref map data
   ref_map_crds <- data.frame(x = c(0.5, 0.5, 1.5, 1.5),
@@ -41,7 +41,7 @@ test_that("assignRefMap returns polygons with same CRS as reference map" {
   ref_map <- terra::rast(ref_map_crds,
                          type = "xyz",
                          crs = "EPSG:4326")
-  
+
   # Set up LC deltas data
   LC_deltas_crds <- matrix(data = c(0.5, 1,
                                     1.5, 1),
@@ -49,15 +49,15 @@ test_that("assignRefMap returns polygons with same CRS as reference map" {
                            ncol = 2,
                            byrow = TRUE)
   colnames(LC_deltas_crds) <- c("x", "y")
-  
+
   LC_deltas_cell_numbers <- 1:2
-  
+
   # Get actual output
   actual_polygons <- assignRefMapCells(ref_map = ref_map,
                                        LC_deltas_coords = LC_deltas_crds,
                                        LC_deltas_cell_numbers = LC_deltas_cell_numbers)
-  
-  expect_equal(crs(actual_polygons),
-               crs(ref_map))
-    
+
+  expect_equal(terra::crs(actual_polygons),
+               terra::crs(ref_map))
+
 })

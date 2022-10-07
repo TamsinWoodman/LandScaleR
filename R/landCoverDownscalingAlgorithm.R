@@ -357,7 +357,7 @@ assignRefMapCells <- function(ref_map,
                                   "coarse_ID")
   ref_map_assigned_raster <- terra::rast(ref_map_assigned,
                                          type = "xyz",
-                                         crs = crs(ref_map))
+                                         crs = terra::crs(ref_map))
   ref_map_polygons <- terra::as.polygons(ref_map_assigned_raster)
 
   # Time check
