@@ -132,7 +132,8 @@ downscaleLC <- function(ref_map_file_name,
 
       # Input checks
       inputMapChecks(LC_deltas,
-                     ref_map)
+                     ref_map,
+                     match_LC_classes)
 
       # Assign ref map cells to LC_deltas cells
       LC_deltas_coords <- terra::crds(LC_deltas)
