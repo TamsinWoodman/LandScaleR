@@ -4,8 +4,7 @@ Title: Downscale gridded land-use data from PLUMv2
 Version: 1.0.2
 Author: Tamsin Woodman
 Maintainer: Tamsin Woodman <t.woodman.20@abdn.ac.uk>
-Description: Downscale gridded land-use data from PLUMv2 to
-     a finer-scale resolution set by an initial land-use map.
+Description: Downscale gridded land use maps.
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
