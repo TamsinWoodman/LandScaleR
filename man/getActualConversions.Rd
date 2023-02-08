@@ -11,20 +11,20 @@ getActualConversions(cells_for_allocation, LC_from_name, LC_conversion_area)
 receive a given land cover class.}
 
 \item{LC_from_name}{Name of the land cover class that is being converted to
-`LC_to_name`.}
+\code{LC_to_name}.}
 
 \item{LC_conversion_area}{Remaining area of land in the coarse-scale cell to
-be converted from `LC_from_name` (decreasing land cover class) to
-`LC_to_name` (increasing land cover class).}
+be converted from \code{LC_from_name} (decreasing land cover class) to
+\code{LC_to_name} (increasing land cover class).}
 }
 \value{
 Data frame of fine-scale cells with an additional column named
-  `actual_conversion` that contains the actual conversion areas for each grid
-  cell.
+\code{actual_conversion} that contains the actual conversion areas for each grid
+cell.
 }
 \description{
 For each grid cell, the actual conversion from a decreasing land cover class
-  to an increasing land cover class is the minimum of the area of the
-  decreasing land cover class in that cell and the remaining area of land to
-  be converted within the coarse-scale cell.
+to an increasing land cover class is the minimum of the area of the
+decreasing land cover class in that cell and the remaining area of land to
+be converted within the coarse-scale cell.
 }

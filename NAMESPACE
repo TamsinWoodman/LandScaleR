@@ -2,6 +2,7 @@
 
 export(assignRefMapCells)
 export(downscaleLC)
+importFrom(Rdpack,reprompt)
 importFrom(methods,"slot<-")
 importFrom(methods,new)
 importFrom(methods,slot)

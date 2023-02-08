@@ -12,7 +12,7 @@ receive a given land cover class.}
 }
 \value{
 Data frame of fine-scale cells with kernel density greater than 0,
-  sorted from highest to lowest kernel density.
+sorted from highest to lowest kernel density.
 }
 \description{
 Return a data frame of fine-scale cells with kernel density greater than 0

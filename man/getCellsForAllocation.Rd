@@ -10,12 +10,12 @@ getCellsForAllocation(ref_map, LC_from_name)
 \item{ref_map}{'SpatRaster' object with fine resolution cells.}
 
 \item{LC_from_name}{Name of the land cover class that is being converted to
-`LC_to_name`.}
+\code{LC_to_name}.}
 }
 \value{
-Data frame of fine-scale cells that contain `LC_from_name`.
+Data frame of fine-scale cells that contain \code{LC_from_name}.
 }
 \description{
 Fine-scale cells are selected for allocation if they contain the land cover
-  class that is being converted to a different class.
+class that is being converted to a different class.
 }

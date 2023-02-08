@@ -12,7 +12,7 @@ receive a given land cover class.}
 }
 \value{
 Data frame of fine-scale cells with kernel density equal to 0 that
-  have been randomly sorted.
+have been randomly sorted.
 }
 \description{
 Return a data frame of fine-scale cells with kernel density equal to zero

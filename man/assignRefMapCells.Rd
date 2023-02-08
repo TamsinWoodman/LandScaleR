@@ -19,8 +19,8 @@ resolution map. Can be obtained from a 'SpatRaster' object using the
 }
 \value{
 'SpatVector' object of numbered polygons. Each polygon encapsulates a
-  set of fine resolution cells that are assigned to the same coarse
-  resolution cell.
+set of fine resolution cells that are assigned to the same coarse
+resolution cell.
 }
 \description{
 Assign fine resolution cells to a coarse resolution map

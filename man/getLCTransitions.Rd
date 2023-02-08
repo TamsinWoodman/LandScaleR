@@ -14,5 +14,5 @@ Data frame giving order and magnitude of land cover transitions.
 }
 \description{
 The transition matrix determines the area of land cover change that is
-  converted to each land cover class.
+converted to each land cover class.
 }

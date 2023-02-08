@@ -1,89 +1,152 @@
 # This script contains only high-level functions for running the entire land
 # cover downscaling algorithm
 
-#' Downscale land cover data
+#' Downscale land use and land cover maps
 #'
-#' Downscales land cover by applying land cover change from coarse-scale input
-#'   maps to a fine-scale reference map. The method used for downscaling land
-#'   cover is based on that in West et al. (2014) and Le Page et al. (2016).
-#'   Briefly, all fine-scale reference map cells are assigned to a single
-#'   coarse-scale cell using a nearest neighbour approach. Kernel density values
-#'   are calculated for each fine-scale cell and land cover type based on the
-#'   amount of each land cover type in neighbouring cells. The kernel density
-#'   values are used during the land cover allocation process to determine how
-#'   much of a land cover type should be allocated to each grid cell; cells with
-#'   higher kernel density values will be allocated more land cover. Land cover
-#'   change is allocated in three steps: intensification, expansion, followed by
-#'   a second round of intensification.
+#' Implements the 'Landowns' downscaling algorithm, which converts coarse 
+#'   resolution land use and land cover (LULC) change maps to a finer resolution
+#'   by applying LULC change from a time series of maps to a fine resolution 
+#'   reference map.
+#'   
+#' @param ref_map_file_name Character, file path to the fine resolution 
+#'   reference map. The reference map must be at the resolution to which you 
+#'   want to downscale the input LULC change maps. File format of the reference 
+#'   map must be one that can be read by the [terra::rast()] function from the 
+#'   'terra' R package. It is recommended to use the GeoTIFF file format because 
+#'   [downscaleLC()] outputs downscaled LULC maps as GeoTIFF files.
+#' @param LC_deltas_file_list List, gives the file paths of a time series of 
+#'   LULC change maps. Each file should contain one timestep of LULC change, and
+#'   the list must be in the order of maps in the time series. There must be one
+#'   layer per LULC class in every file. An additional layer specifying the 
+#'   total land area per coarse resolution cell can optionally be included in 
+#'   every LULC change map; this layer must be named "cell_area". Each LULC 
+#'   change map must be in a file format that can be read by the [terra::rast()]
+#'   function, although the GeoTIFF format is recommended. 
+#' @param LC_deltas_classes Character vector of LULC classes that occur in the 
+#'   LULC change maps. 
+#' @param ref_map_type Character, one of "areas" or "discrete". If the reference
+#'   map contains one LULC class per cell use "areas". If the reference map has
+#'   one layer per LULC class containing the area of each LULC class per cell 
+#'   use "discrete".
+#' @param ref_map_LC_classes Character vector of LULC classes in the reference
+#'   map. For an area-based reference map all LULC classes should be layer 
+#'   names.
+#' @param cell_size_unit Character, unit for calculating grid cell areas. Must
+#'   be one of "km", "m", or "ha". Cell areas are calculated using the 
+#'   [terra::cellSize()] function.
+#' @param match_LC_classes Matrix, specifies the proportion of each LULC class 
+#'   from the LULC change maps that corresponds to every reference map LULC 
+#'   class. Columns contain reference map LULC classes and rows LULC change map 
+#'   classes. See details for more information.
+#' @param  kernel_radius Numeric, radius of cells to include in the kernel 
+#'   density calculation. Defaults to 1, which means all first neighbour cells 
+#'   will be used to calculate kernel density (eight cells in total).
+#' @param simulation_type Character, the method of LULC allocation to be used in
+#'   Landowns. One of "deterministic", "fuzzy", or "null_model". See details for
+#'   more information.
+#' @param fuzzy_multipler Numeric, the \eqn{f} parameter for the "fuzzy" method 
+#'   of LULC allocation. See details for more information.
+#' @param discrete_output_map Logical, output a discrete downscaled LULC map as 
+#'   well as an 
+#'   area-based LULC map if `discrete_output_map = TRUE`.
+#' @param random_seed Numeric, random seed for the simulation.
+#' @param output_file_prefix Character, prefix for the output downscaled LULC 
+#'   map files.
+#' @param output_dir_path Character, path to the directory in which to saved the
+#'   downscaled LULC map files. The directory will be created by [downscaleLC()]
+#'   if it does not already exist.
 #'
-#'   Land cover allocation is performed in three steps: a first round of
-#'   intensification, where land cover is allocated to cells where it already
-#'   occurs; a round of expansion, where land cover is allocated to cells where
-#'   it does not exist; and a final round of intensification to ensure that all
-#'   land cover change has been allocated. The `intensification_ratio` parameter
-#'   specifies how much land cover the algorithm should attempt to allocate via
-#'   intensification versus expansion. An intensification ratio of 0.8 gives a
-#'   target of 80\% of land cover to be allocated via intensification and 20\%
-#'   by expansion.
+#' @details ## Input maps
+#' The fine resolution reference map must be at the resolution to which the 
+#'   LULC change maps are to be downscaled. The reference and LULC maps must be
+#'   in the same geographic projection but they do not have to cover exactly the
+#'   same extent. The reference map can either contain one LULC class per cell 
+#'   (`ref_map_type = "discrete`) or the area of each LULC class per cell 
+#'   (`ref_map_type = "areas"`). The LULC change maps and reference map do not 
+#'   have to contain the same LULC classes, as these can be matched using the 
+#'   `match_LC_classes` argument.
 #'
-#' @param ref_map_file_name Path of file name for the reference map for
-#'   downscaling. The reference map file should be in tab-separated format with
-#'   the extension `.txt`. The resolution of the reference map will determine
-#'   the resolution of the output downscaled land cover maps.
-#' @param LC_deltas_file_list List of file names for land cover change (delta).
-#'   The algorithm expects one land cover change file per time step. All land
-#'   cover change files must be in tab-separated format with the `.txt` file
-#'   extension. The list must be ordered by time, with the first time step being
-#'   the first file in the list, the second time step the second file, and so
-#'   on. Land cover change files can be generated using the `calculateLCDeltas`
-#'   function from this package.
-#' @param LC_deltas_classes Vector of land cover classes in the land cover change
-#'   maps. Each land cover class should be a column name in every land cover
-#'   change file.
-#' @param ref_map_type Specifies whether the reference map is discrete (contains
-#'   one land cover class per cell) or area-based (provides the area of each
-#'   land cover class in each cell). Must be one of "areas" or "discrete".
-#' @param ref_map_LC_classes Vector of land cover types in the reference map. For
-#'   an area-based reference map, all land cover types should be column names in
-#'   the reference map.
-#' @param cell_size_unit The unit that cell areas should be calculated in. Must
-#'   be one of "km", "m", or "ha".
-#' @param match_LC_classes A matrix containing the fraction of each coarse-scale
-#'   land cover class that contributes to each reference map land cover class.
-#'   Columns should contain reference map land cover classes, and rows are the
-#'   coarse-scale land cover classes. Each cell should contain the proportion of
-#'   the coarse-scale land cover class that contributes to the fine-scale class in
-#'   the output map.
-#' @param kernel_radius Radius of cells to include in the kernel density
-#'   calculation. A value of 1 means that the neighbour cells used to calculate
-#'   kernel density will be 1 cell in every direction around the focal cell.
-#'   Defaults to 1.
-#' @param simulation_type Specifies the method of land-use change allocation to
-#'   use. Can be 'deterministic', 'fuzzy', or 'null_model'. 'deterministic is
-#'   a deterministic simulation where land-use change is only randomly allocated
-#'   if a cell has a kernel density of 0. The fuzzy' option gives a stochastic
-#'   simulation where each kernel density is modified by adding a modifier that
-#'   is drawn from a Normal distribution with mean of 0 and standard deviation
-#'   equal to the standard deviation of kernel density values in cells available
-#'   for land-use allocation. The 'null_model' option allocations land-use
-#'   change entirely randomly.
-#' @param fuzzy_multiplier A value by which the standard deviation of the Normal
-#'   distribution used to draw modifiers in the 'fuzzy' method will be
-#'   multiplied. Specifying a value of 2 would mean the Normal distribution has
-#'   a mean of 0 and standard deviation of 2 times the standard deviation of the
-#'   kernel density values in cells available for land-use change allocation.
-#' @param discrete_output_map Output discrete land cover as well as area-based
-#'   land cover. Default is `FALSE`.
-#' @param random_seed Numeric random seed for ordering fine-scale cells with a
-#'   kernel density value of zero during land cover allocation. Defaults to the
-#'   date and time when the function is called.
-#' @param output_file_prefix Prefix for output downscaled land cover map files.
-#' @param output_dir_path Path to directory in which to save the downscaled
-#'   land cover map files. Will be created if it does not already exist.
+#' ## Grid cell areas
+#'   The total terrestrial area of every coarse and fine resolution grid cell is
+#'   required in Landowns to ensure that the areas of coarse and fine resolution
+#'   grid cells match. The algorithm uses the [terra::cellSize()] function to 
+#'   calculate grid cell areas in the reference map and LULC change maps. 
+#'   Alternatively, for the LULC change maps an extra layer called "cell_area"
+#'   can be added to each file giving the area of every coarse resolution grid
+#'   cell. This can be useful in situations where only a small area of a coarse
+#'   resolution grid cell is covered by land, and the rest is water or ocean 
+#'   that is not to be included in the downscaling process.
+#'   
+#' ## Matching LULC classes
+#'   The `match_LC_classes` argument allows for cases where the input LULC 
+#'   change maps and reference map do not contain the same LULC classes. Columns
+#'   of the matrix must contain the reference map LULC classes and rows the LULC
+#'   change map classes. Values specify the proportion of each LULC change map 
+#'   class that should be matched to each reference map LULC class. For example:
+#'   
+#'   | | Primary vegetation | Secondary vegetation | Forest plantation | Cropland | Pasture | Urban |
+#'   | --- | --- | --- | --- | --- | --- | --- |
+#'   | Managed forest | 0 | 0 | 1 | 0 | 0 | 0 |
+#'   | Unmanaged forest | 0.5 | 0.5 | 0 | 0 | 0 | 0 |
+#'   | Other natural | 0.5 | 0.5 | 0 | 0 | 0 | 0 |
+#'   | Cropland | 0 | 0 | 0 | 1 | 0 | 0 |
+#'   | Pasture | 0 | 0 | 0 | 0 | 1 | 0 |
+#'   | Urban | 0 | 0 | 0 | 0 | 0 | 1 |
+#'   
+#'   In this case, if unmanaged forest were to increase by 100 
+#'   \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} in an LULC change map, 50 
+#'   \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} of the increase would be 
+#'   allocated to the reference map as primary vegetation and a further 50
+#'   \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} would be allocated as 
+#'   secondary vegetation.
 #'
-#' @return TIFF files containing downscaled land-use maps. If
-#'   `discrete_output_map = TRUE` then maps with both the area of each land-use
-#'   class per cell and the largest land-use class per cell will be generated.
+#' ## Kernel density
+#'   Kernel densities are calculated by Landowns for every reference map grid
+#'   cell and LULC class. A kernel density gives the distance-weighted sum of 
+#'   the area of each LULC class surrounding a focal cell  
+#'   \insertCite{LePage2016}{landdownscaleR}. Kernel densities are used later in 
+#'   Landowns to decide where to place LULC change on the reference map.
+#'   
+#' ## LULC allocation methods
+#'   Three methods are provided in Landowns to allocate LULC change to the 
+#'   reference map, which vary the order in which reference map grid cells are
+#'   selected to receive new LULC. The three methods are:
+#'   
+#'   * Deterministic-random ("deterministic")
+#'   * Fuzzy ("fuzzy")
+#'   * Random ("null_model")
+#'   
+#'   In the deterministic-random method, grid cells are allocated new LULC in 
+#'   order from the cell with the highest kernel density for the increasing LULC
+#'   class to the cell with the lowest. Any cells with a kernel density equal to
+#'   zero are allocated new LULC randomly after Landowns has attempted to 
+#'   allocate new LULC in all cells with a kernel density greater than zero.
+#'   
+#'   Similarly, in the fuzzy method of LULC allocation new areas of LULC are 
+#'   allocated in order from the cell with the highest to the one with the 
+#'   lowest kernel density. However, in the fuzzy method kernel densities are 
+#'   adjusted to alter the likelihood of each grid cell receiving new LULC. For
+#'   a single reference map grid cell, the kernel density is adjusted by summing
+#'   the kernel density and an adjustment drawn from the Normal distribution 
+#'   with mean of zero. The standard deviation for the Normal distribution is 
+#'   the standard deviation of kernel densities for all cells eligible to 
+#'   receive the increasing LULC class, multiplied by the user-specified \eqn{f}
+#'   parameter (`fuzzy_multiplier`). The higher the \eqn{f} parameter, the more 
+#'   the order in which grid cells are allocated new LULC is shuffled. Increased
+#'   shuffling of the order of grid cells leads to more random patterns of LULC 
+#'   in the output downscaled maps.
+#'   
+#'   In the random method of LULC allocation new areas of LULC are randomly 
+#'   placed in eligible grid cells on the reference map.
+#'   
+#'
+#' @return GeoTIFF files containing downscaled land-use maps. If
+#'   `discrete_output_map = TRUE` two output files will be generated per 
+#'   timestep: one with the area of each LULC class per cell and one with the 
+#'   largest LULC class per cell.
+#' @references 
+#' \insertRef{LePage2016}{landdownscaleR}
+#' @importFrom Rdpack reprompt
 #' @importFrom methods new slot slot<-
 #' @importFrom utils read.table stack write.table
 #' @export
@@ -320,6 +383,7 @@ loadRefMap <- function(ref_map_file_name,
                                                            unit = cell_size_unit)
   }
 
+  ## Need to work out if this line of code is necessary
   names(ref_map) <- ref_map_LC_classes
 
   return(ref_map)

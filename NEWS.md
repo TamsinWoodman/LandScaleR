@@ -1,6 +1,10 @@
 
 # Version 1.0.2
 
+Documentation:
+- Added README file
+- Updated documentation for `downscaleLC`
+
 Bug fixes:
 
 # Version 1.0.1

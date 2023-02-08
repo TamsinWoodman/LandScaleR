@@ -7,11 +7,12 @@
 createOutputDir(output_dir_path)
 }
 \arguments{
-\item{output_dir_path}{Path to directory in which to save the downscaled
-land cover map files. Will be created if it does not already exist.}
+\item{output_dir_path}{Character, path to the directory in which to saved the
+downscaled LULC map files. The directory will be created by \code{\link[=downscaleLC]{downscaleLC()}}
+if it does not already exist.}
 }
 \value{
-Creates an output directory with the path given in `output_dir_path`.
+Creates an output directory with the path given in \code{output_dir_path}.
 }
 \description{
 Create the output directory for land cover downscaling

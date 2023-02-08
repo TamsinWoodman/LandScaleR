@@ -12,8 +12,8 @@ receive a given land cover class.}
 }
 \value{
 Data frame of fine-scale cells ordered from highest to lowest kernel
-  density. Cells with a kernel density value of zero are randomly sorted at
-  the end of the data frame.
+density. Cells with a kernel density value of zero are randomly sorted at
+the end of the data frame.
 }
 \description{
 Sort cells before land cover allocation

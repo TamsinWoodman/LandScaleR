@@ -3,18 +3,18 @@
 \name{sortKernelDensities}
 \alias{sortKernelDensities}
 \title{Sort a data frame with a 'kernel_density' column from highest to lowest
-  kernel density}
+kernel density}
 \usage{
 sortKernelDensities(kernel_density_df)
 }
 \arguments{
 \item{kernel_density_df}{Data frame of grid cells with a column named
-`kernel_density` that contains a kernel density for each cell.}
+\code{kernel_density} that contains a kernel density for each cell.}
 }
 \value{
 Input data frame sorted from highest to lowest kernel density value.
 }
 \description{
 Sort a data frame with a 'kernel_density' column from highest to lowest
-  kernel density
+kernel density
 }
