@@ -2,26 +2,29 @@
 % Please edit documentation in R/landCoverDownscalingAlgorithm.R
 \name{assignRefMapCells}
 \alias{assignRefMapCells}
-\title{Assign fine resolution cells to a coarse resolution map}
+\title{Assign fine resolution grid cells to a coarse resolution map}
 \usage{
 assignRefMapCells(ref_map, LC_deltas_coords, LC_deltas_cell_numbers)
 }
 \arguments{
-\item{ref_map}{'SpatRaster' object with fine resolution cells.}
+\item{ref_map}{\code{\link[terra:SpatRaster-class]{terra::SpatRaster}} object at fine resolution.}
 
-\item{LC_deltas_coords}{Matrix containing coordinates of coarse resolution
-cells. Can be obtained from a 'SpatRaster' using the 'crds' function from
-the 'terra' package.}
+\item{LC_deltas_coords}{Matrix, coordinates of coarse resolution grid cells.
+Can be obtained from a \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} object using the
+\code{\link[terra:coords]{terra::crds()}} function.}
 
-\item{LC_deltas_cell_numbers}{Vector of cell numbers from the coarse
-resolution map. Can be obtained from a 'SpatRaster' object using the
-'cells' function from the 'terra' package}
+\item{LC_deltas_cell_numbers}{Numeric, cell numbers that uniquely identify
+each cell in the coarse resolution map. Should correspond to the order of
+coordinates in \code{LC_deltas_coords}. Can be obtained from a
+\code{\link[terra:SpatRaster-class]{terra::SpatRaster}} object using the \code{\link[terra:cells]{terra::cells()}} function.}
 }
 \value{
-'SpatVector' object of numbered polygons. Each polygon encapsulates a
-set of fine resolution cells that are assigned to the same coarse
-resolution cell.
+\code{\link[terra:SpatVector-class]{terra::SpatVector}} object of numbered polygons. The number of each
+polygon corresponds to the unique identifier of a coarse resolution grid
+cell. Each polygon encapsulates a set of fine resolution cells that have
+been assigned to that coarse resolution cell.
 }
 \description{
-Assign fine resolution cells to a coarse resolution map
+Assigns grid cells from a fine resolution map to their nearest neighbour grid
+cell in a coarse resolution map using the \code{\link[FNN:get.knn]{FNN::get.knnx()}} function.
 }

@@ -389,19 +389,24 @@ loadRefMap <- function(ref_map_file_name,
   return(ref_map)
 }
 
-#' Assign fine resolution cells to a coarse resolution map
+#' Assign fine resolution grid cells to a coarse resolution map
+#' 
+#' Assigns grid cells from a fine resolution map to their nearest neighbour grid
+#'   cell in a coarse resolution map using the [FNN::get.knnx()] function.
 #'
-#' @param ref_map 'SpatRaster' object with fine resolution cells.
-#' @param LC_deltas_coords Matrix containing coordinates of coarse resolution
-#'   cells. Can be obtained from a 'SpatRaster' using the 'crds' function from
-#'   the 'terra' package.
-#' @param LC_deltas_cell_numbers Vector of cell numbers from the coarse
-#'   resolution map. Can be obtained from a 'SpatRaster' object using the
-#'   'cells' function from the 'terra' package
-#'
-#' @return 'SpatVector' object of numbered polygons. Each polygon encapsulates a
-#'   set of fine resolution cells that are assigned to the same coarse
-#'   resolution cell.
+#' @param ref_map [`terra::SpatRaster`] object at fine resolution.
+#' @param LC_deltas_coords Matrix, coordinates of coarse resolution grid cells. 
+#'   Can be obtained from a [`terra::SpatRaster`] object using the 
+#'   [terra::crds()] function.
+#' @param LC_deltas_cell_numbers Numeric, cell numbers that uniquely identify 
+#'   each cell in the coarse resolution map. Should correspond to the order of 
+#'   coordinates in `LC_deltas_coords`. Can be obtained from a 
+#'   [`terra::SpatRaster`] object using the [terra::cells()] function.
+#'   
+#' @return [`terra::SpatVector`] object of numbered polygons. The number of each 
+#'   polygon corresponds to the unique identifier of a coarse resolution grid 
+#'   cell. Each polygon encapsulates a set of fine resolution cells that have 
+#'   been assigned to that coarse resolution cell.
 #'
 #' @export
 assignRefMapCells <- function(ref_map,
