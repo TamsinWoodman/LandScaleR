@@ -166,6 +166,22 @@ downscaleLC <- function(ref_map_file_name,
                         output_dir_path) {
 
   start_time <- Sys.time()
+  
+  ## Check inputs
+  inputChecks(ref_map_file_name = ref_map_file_name,
+              LC_deltas_file_list = LC_deltas_file_list,
+              LC_deltas_classes = LC_deltas_classes,
+              ref_map_type = ref_map_type,
+              ref_map_LC_classes = ref_map_LC_classes,
+              cell_size_unit = cell_size_unit,
+              match_LC_classes = match_LC_classes,
+              kernel_radius = kernel_radius,
+              simulation_type = simulation_type,
+              discrete_output_map = discrete_output_map,
+              random_seed = random_seed,
+              output_file_prefix = output_file_prefix,
+              output_dir_path = output_dir_path,
+              fuzzy_multiplier = fuzzy_multiplier)
 
   #### Set up
   # Create output directory if it doesn't exist
