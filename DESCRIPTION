@@ -18,7 +18,8 @@ Imports:
 Suggests: 
     knitr,
     rmarkdown,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    RColorBrewer
 Config/testthat/edition: 3
 RdMacros: Rdpack
 VignetteBuilder: knitr
