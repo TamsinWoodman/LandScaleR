@@ -16,6 +16,9 @@ Imports:
   methods,
   Rdpack
 Suggests: 
+    knitr,
+    rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 RdMacros: Rdpack
+VignetteBuilder: knitr
