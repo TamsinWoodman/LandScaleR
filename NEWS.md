@@ -3,7 +3,9 @@
 
 Documentation:
 - Added README file
-- Updated documentation for `downscaleLC`
+- Updated documentation for `downscaleLC()`
+- Updated documentation for `assignRefMapCells()`
+- Wrote 'Using landdownscaleR' vignette
 
 Bug fixes:
 
