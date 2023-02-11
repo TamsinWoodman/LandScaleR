@@ -28,9 +28,6 @@
 #'   map contains one LULC class per cell use "areas". If the reference map has
 #'   one layer per LULC class containing the area of each LULC class per cell 
 #'   use "discrete".
-#' @param ref_map_LC_classes Character vector of LULC classes in the reference
-#'   map. For an area-based reference map all LULC classes should be layer 
-#'   names.
 #' @param cell_size_unit Character, unit for calculating grid cell areas. Must
 #'   be one of "km", "m", or "ha". Cell areas are calculated using the 
 #'   [terra::cellSize()] function.
@@ -62,9 +59,11 @@
 #'   in the same geographic projection but they do not have to cover exactly the
 #'   same extent. The reference map can either contain one LULC class per cell 
 #'   (`ref_map_type = "discrete`) or the area of each LULC class per cell 
-#'   (`ref_map_type = "areas"`). The LULC change maps and reference map do not 
-#'   have to contain the same LULC classes, as these can be matched using the 
-#'   `match_LC_classes` argument.
+#'   (`ref_map_type = "areas"`). Note that if `ref_map_type = discrete` is 
+#'   specified then the LULC classes in the reference map will be prepended with 
+#'   "LC" to ensure that they are treated as characters by Landowns. The LULC 
+#'   change maps and reference map do not have to contain the same LULC classes,
+#'   as these can be matched using the `match_LC_classes` argument.
 #'
 #' ## Grid cell areas
 #'   The total terrestrial area of every coarse and fine resolution grid cell is
@@ -154,7 +153,6 @@ downscaleLC <- function(ref_map_file_name,
                         LC_deltas_file_list,
                         LC_deltas_classes,
                         ref_map_type = "areas",
-                        ref_map_LC_classes,
                         cell_size_unit = "m",
                         match_LC_classes,
                         kernel_radius,
@@ -172,7 +170,6 @@ downscaleLC <- function(ref_map_file_name,
               LC_deltas_file_list = LC_deltas_file_list,
               LC_deltas_classes = LC_deltas_classes,
               ref_map_type = ref_map_type,
-              ref_map_LC_classes = ref_map_LC_classes,
               cell_size_unit = cell_size_unit,
               match_LC_classes = match_LC_classes,
               kernel_radius = kernel_radius,
@@ -206,7 +203,6 @@ downscaleLC <- function(ref_map_file_name,
       # Load ref map file
       ref_map <- loadRefMap(ref_map_file_name = ref_map_file_name,
                             ref_map_type = ref_map_type,
-                            ref_map_LC_classes = ref_map_LC_classes,
                             cell_size_unit = cell_size_unit)
 
       # Input checks
@@ -389,7 +385,6 @@ loadLCDeltas <- function(LC_deltas_file_list,
 
 loadRefMap <- function(ref_map_file_name,
                        ref_map_type,
-                       ref_map_LC_classes,
                        cell_size_unit) {
 
   ref_map <- terra::rast(ref_map_file_name)
@@ -397,10 +392,13 @@ loadRefMap <- function(ref_map_file_name,
   if (ref_map_type == "discrete") {
     ref_map <- terra::segregate(ref_map) * terra::cellSize(ref_map,
                                                            unit = cell_size_unit)
+    
+    # Add LC to the start of names so that they are treated as characters and 
+    # not as numeric during the downscaling algorithm
+    ref_map_names <- names(ref_map)
+    names(ref_map) <- paste0("LC",
+                             ref_map_names)
   }
-
-  ## Need to work out if this line of code is necessary
-  names(ref_map) <- ref_map_LC_classes
 
   return(ref_map)
 }

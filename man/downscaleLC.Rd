@@ -9,7 +9,6 @@ downscaleLC(
   LC_deltas_file_list,
   LC_deltas_classes,
   ref_map_type = "areas",
-  ref_map_LC_classes,
   cell_size_unit = "m",
   match_LC_classes,
   kernel_radius,
@@ -45,10 +44,6 @@ LULC change maps.}
 map contains one LULC class per cell use "areas". If the reference map has
 one layer per LULC class containing the area of each LULC class per cell
 use "discrete".}
-
-\item{ref_map_LC_classes}{Character vector of LULC classes in the reference
-map. For an area-based reference map all LULC classes should be layer
-names.}
 
 \item{cell_size_unit}{Character, unit for calculating grid cell areas. Must
 be one of "km", "m", or "ha". Cell areas are calculated using the
@@ -103,9 +98,11 @@ LULC change maps are to be downscaled. The reference and LULC maps must be
 in the same geographic projection but they do not have to cover exactly the
 same extent. The reference map can either contain one LULC class per cell
 (\verb{ref_map_type = "discrete}) or the area of each LULC class per cell
-(\code{ref_map_type = "areas"}). The LULC change maps and reference map do not
-have to contain the same LULC classes, as these can be matched using the
-\code{match_LC_classes} argument.
+(\code{ref_map_type = "areas"}). Note that if \code{ref_map_type = discrete} is
+specified then the LULC classes in the reference map will be prepended with
+"LC" to ensure that they are treated as characters by Landowns. The LULC
+change maps and reference map do not have to contain the same LULC classes,
+as these can be matched using the \code{match_LC_classes} argument.
 }
 
 \subsection{Grid cell areas}{

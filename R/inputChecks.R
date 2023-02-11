@@ -3,7 +3,6 @@ inputChecks <- function(ref_map_file_name,
                         LC_deltas_file_list,
                         LC_deltas_classes,
                         ref_map_type,
-                        ref_map_LC_classes,
                         cell_size_unit,
                         match_LC_classes,
                         kernel_radius,
@@ -30,10 +29,6 @@ inputChecks <- function(ref_map_file_name,
     stop("Reference map type must be one of \"areas\" or \"discrete\"")
   }
   
-  if (class(ref_map_LC_classes) != "character") {
-    stop("The names of reference map classes must be of class character")
-  }
-  
   if (!cell_size_unit %in% c("km", "m", "ha")) {
     stop("The cell size unit must be one of \"km\", \"m\", or \"ha\"")
   }
@@ -44,10 +39,6 @@ inputChecks <- function(ref_map_file_name,
   
   if (!all(LC_deltas_classes == rownames(match_LC_classes))) {
     stop("Row names of the match_LC_classes matrix must be the same as the LC_deltas_classes argument")
-  }
-  
-  if (!all(ref_map_LC_classes == colnames(match_LC_classes))) {
-    stop("Column names of the match_LC_classes matrix must be the same as the ref_map_LC_classes argument")
   }
   
   if (class(kernel_radius) != "numeric") {
