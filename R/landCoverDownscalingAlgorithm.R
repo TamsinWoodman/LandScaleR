@@ -41,7 +41,7 @@
 #' @param simulation_type Character, the method of LULC allocation to be used in
 #'   Landowns. One of "deterministic", "fuzzy", or "null_model". See details for
 #'   more information.
-#' @param fuzzy_multipler Numeric, the \eqn{f} parameter for the "fuzzy" method 
+#' @param fuzzy_multiplier Numeric, the \eqn{f} parameter for the "fuzzy" method 
 #'   of LULC allocation. See details for more information.
 #' @param discrete_output_map Logical, output a discrete downscaled LULC map as 
 #'   well as an 

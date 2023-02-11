@@ -62,6 +62,9 @@ will be used to calculate kernel density (eight cells in total).}
 Landowns. One of "deterministic", "fuzzy", or "null_model". See details for
 more information.}
 
+\item{fuzzy_multiplier}{Numeric, the \eqn{f} parameter for the "fuzzy" method
+of LULC allocation. See details for more information.}
+
 \item{discrete_output_map}{Logical, output a discrete downscaled LULC map as
 well as an
 area-based LULC map if \code{discrete_output_map = TRUE}.}
@@ -74,9 +77,6 @@ map files.}
 \item{output_dir_path}{Character, path to the directory in which to saved the
 downscaled LULC map files. The directory will be created by \code{\link[=downscaleLC]{downscaleLC()}}
 if it does not already exist.}
-
-\item{fuzzy_multipler}{Numeric, the \eqn{f} parameter for the "fuzzy" method
-of LULC allocation. See details for more information.}
 }
 \value{
 GeoTIFF files containing downscaled land-use maps. If
