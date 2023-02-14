@@ -27,7 +27,7 @@ You will also need the 'devtools' package and, if on Windows, the
 
 ```r
 library("devtools")
-install_github("TamsinWoodman/landdownscaleR")
+install_github("TamsinWoodman/landdownscaleR", ref = "optimiseRcode")
 ```
 
 ## Using landdownscaleR
