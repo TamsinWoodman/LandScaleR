@@ -27,7 +27,7 @@ You will also need the 'devtools' package and, if on Windows, the
 
 ```r
 library("devtools")
-install_github("TamsinWoodman/landdownscaleR", ref = "optimiseRcode")
+install_github("TamsinWoodman/landdownscaleR", ref = "optimiseRcode", build_vignettes = TRUE)
 ```
 
 ## Using landdownscaleR
@@ -39,12 +39,11 @@ library("landdownscaleR")
 ```
 
 A tutorial for using **landdownscaleR** is provided as a vignette with the 
-package. The vignette can be built and viewed after installing 
+package. The vignette can be viewed after installing 
 **landdownscaleR**:
 
 ```r
 library("landdownscaleR")
-devtools::install(build_vignettes = TRUE)
 browseVignettes("landdownscaleR")
 ```
 
