@@ -285,11 +285,11 @@ into one `terra::SpatRaster` object per coarse resolution cell during the
 downscaling process, to ensure that LULC change in each coarse cell can be 
 allocated independently from other coarse cells. Occasionally there may be cases
 where reference map grid cells at the edge of two coarse resolution cells are 
-counted in both coarse cells. We believe this results in the warning message
-saying that rasters are not aligned when the individual reference map 
+counted in both cells. We believe this results in the warning message saying 
+that rasters are not aligned when the individual reference map 
 `terra:SpatRaster` objects are merged back together using the `terra::mosaic()` 
 function at the end of downscaling one timestep. This warning is likely to 
-affect a very small number of reference grid cells, and should not lead to any 
+affect a very small number of reference grid cells and should not lead to any 
 missing grid cells as the `terra::mosiac()` documentation states that the values
 from the last `terra::SpatRaster` to be merged will be retained in places where 
 two `terra::SpatRaster` objects overlap.
@@ -468,6 +468,129 @@ plot(zoom_fuzzy_2012,
      main = "Fuzzy",
      col = discrete_LC_palette,
      mar = c(1.1, 1.1, 1.1, 10.1),
+     axes = FALSE)
+```
+
+We can also look at the transitions that occur between different years in the
+HILDA+ dataset versus downscaled maps. The code below will generate three maps
+showing LULC transitions between 2009 and 2012 in the maps from HILDA+ and 
+downscaling with the deterministic and fuzzy methods. 
+
+```{r Generate transitions}
+# Downscaling generates discrete maps with integer values from 1 upwards
+# Re-classify the downscaled maps so that the integer values correspond to the LULC class codes
+classification_mat <- cbind(1:10, 
+                            as.numeric(LC_classes))
+zoom_deterministic_2012 <- classify(zoom_deterministic_2012,
+                                    classification_mat,
+                                    others = NA)
+zoom_fuzzy_2012 <- classify(zoom_fuzzy_2012,
+                            classification_mat,
+                            others = NA)
+
+# Ensure all maps are the same extent
+zoom_hilda_2012 <- crop(zoom_hilda_2012,
+                        ext(zoom_deterministic_2012))
+
+# Crop the HILDA+ map in 2009, which we loaded earlier in the vignette
+zoom_hilda_2009 <- crop(reference_2009, 
+                        ext(zoom_deterministic_2012))
+
+# Make the levels in the HILDA+ 2009 map match those in the other maps
+levels(zoom_hilda_2009) <- LC_levels
+
+# Generate maps of transitions
+# We multiply the LULC classes in one map by 100 so that we can create LULC transition categories in the format '1111' for cropland to cropland, and so on
+# A value of '1122' in a transition map means that a grid cell was class 11 in 2009 and class 22 in 2012
+zoom_hilda_transitions <- zoom_hilda_2012 + (zoom_hilda_2009 * 100)
+zoom_deterministic_transitions <- zoom_deterministic_2012 + (zoom_hilda_2009 * 100)
+zoom_fuzzy_transitions <- zoom_fuzzy_2012 + (zoom_hilda_2009 * 100)
+
+# Check the values in the HILDA+ transitions SpatRaster
+zoom_hilda_transitions
+```
+
+After defining the LULC transitions that occur between 2009 and 2012, we can 
+process the transitions further to plot how well the downscaling method was able
+to predict LULC change at the individual grid cell level. The meaning of the 
+numbers in the plot below are:
+
+* 1: Cells that changed in HILDA+ but did not change during downscaling.
+* 2: Cells that changed in both and were correctly predicted by downscaling.
+* 3: Cells that changed in both and were incorrectly predicted by downscaling.
+* 4: Cells that were unchanged in HILDA+ but changed during downscaling.
+* 5: Cells that did not change in either HILDA+ or during downscaling.
+
+```{r Plot correct transitions,fig.width=7,fig.height=3,fig.cap="Correctly and incorrectly predicted LULC transitions between 2009 and 2012 in the downscaled maps generated with the deterministic and fuzzy methods."}
+# Create new categories of LULC transitions
+LC_transition_values <- as.vector(sapply(as.numeric(LC_classes), `+`, as.numeric(LC_classes) * 100))
+LC_transition_categories <- as.vector(sapply(LC_classes, paste, LC_classes, sep = "_"))
+LC_transition_levels <- data.frame(id = LC_transition_values,
+                                   LC_transition = LC_transition_categories)
+
+# Edit the LC_transition_levels data frame so that all LULC transitions that mean no change between two timesteps (for example, 1111) are classified as '101', meaning no change
+no_change_categories <- as.numeric(paste0(LC_classes,
+                                          LC_classes))
+
+LC_transition_levels <- LC_transition_levels[!LC_transition_levels$id %in% no_change_categories, ]
+LC_transition_levels <- rbind(LC_transition_levels,
+                              c(101, "No_change"))
+LC_transition_levels$id <- as.numeric(LC_transition_levels$id)
+
+# Next, classify the LULC transition maps so that all no change LULC transitions are coded as '101'
+no_change_matrix <- cbind(no_change_categories,
+                          rep(101, 
+                              length(no_change_categories)))
+
+zoom_hilda_transitions <- classify(zoom_hilda_transitions,
+                                   no_change_matrix)
+zoom_deterministic_transitions <- classify(zoom_deterministic_transitions,
+                                           no_change_matrix)
+zoom_fuzzy_transitions <- classify(zoom_fuzzy_transitions,
+                                   no_change_matrix)
+
+levels(zoom_hilda_transitions) <- LC_transition_levels
+levels(zoom_deterministic_transitions) <- LC_transition_levels
+levels(zoom_fuzzy_transitions) <- LC_transition_levels
+
+# We set up a function to classify the LULC transitions into whether they were correctly or incorrectly predicted during downscaling
+classify_transitions <- function(hilda_transitions, 
+                                 downscaled_transitions) {
+  
+  downscaled_correct <- ifel(hilda_transitions != 101 & downscaled_transitions == 101,                      # Cells that are changed in HILDA+ but don't change in downscaling
+                          1,
+                          ifel(hilda_transitions == downscaled_transitions & hilda_transitions != 101,      # Cells that are changed in both and correctly predicted by downscaling
+                               2,
+                               ifel(hilda_transitions != 101 & hilda_transitions != downscaled_transitions, # Cells that are changed in both and incorrectly predicted by downscaling
+                                    3,
+                                    ifel(hilda_transitions == 101 & downscaled_transitions != 101,          # Cells that are unchanged in HILDA+ but changed in downscaling
+                                         4,
+                                         5))))
+  
+  return(downscaled_correct)
+}
+
+# Use the function to classify whether transitions were correctly predicted
+zoom_deterministic_correct <- classify_transitions(zoom_hilda_transitions, 
+                                                   zoom_deterministic_transitions)
+zoom_fuzzy_correct <- classify_transitions(zoom_hilda_transitions, 
+                                           zoom_fuzzy_transitions)
+
+# Plot whether LULC transitions were correctly predicted during downscaling
+layout(matrix(c(1, 1, 1, 2, 2, 2),
+              byrow = TRUE,
+              nrow = 1,
+              ncol = 6))
+plot(zoom_deterministic_correct,
+     col = discrete_LC_palette,
+     main = "Deterministic",
+     mar = c(1.1, 1.1, 1.1, 2.1),
+     legend = FALSE,
+     axes = FALSE)
+plot(zoom_fuzzy_correct,
+     main = "Fuzzy",
+     col = discrete_LC_palette,
+     mar = c(1.1, 1.1, 1.1, 2.1),
      axes = FALSE)
 ```
 
