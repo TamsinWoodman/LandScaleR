@@ -582,16 +582,34 @@ layout(matrix(c(1, 1, 1, 2, 2, 2),
               nrow = 1,
               ncol = 6))
 plot(zoom_deterministic_correct,
-     col = discrete_LC_palette,
+     col = discrete_LC_palette[1:5],
      main = "Deterministic",
      mar = c(1.1, 1.1, 1.1, 2.1),
      legend = FALSE,
      axes = FALSE)
 plot(zoom_fuzzy_correct,
      main = "Fuzzy",
-     col = discrete_LC_palette,
+     col = discrete_LC_palette[1:5],
      mar = c(1.1, 1.1, 1.1, 2.1),
      axes = FALSE)
+```
+
+We can use the `terra::barplot()` function to plot the number of grid cells in 
+which LULC transitions were correctly or incorrectly predicted during 
+downscaling. The fuzzy method of LULC allocation appears to have correctly 
+predicted LULC transitions (category 2) in slightly fewer cells than the 
+deterministic method.
+
+```{r Plot correct transition proportions,fig.height=4,fig.width=7,fig.cap="Number of correctly and incorrectly predicted LULC transitions between 2009 and 2012 in the downscaled maps generated with the deterministic and fuzzy methods."}
+par(mfrow = c(1, 2))
+barplot(zoom_deterministic_correct,
+        col = discrete_LC_palette,
+        ylim = c(0, 6000),
+        main = "Deterministic")
+barplot(zoom_fuzzy_correct,
+        col = discrete_LC_palette,
+        ylim = c(0, 6000),
+        main = "Fuzzy")
 ```
 
 ## References
