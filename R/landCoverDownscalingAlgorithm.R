@@ -322,11 +322,11 @@ downscaleLC <- function(ref_map_file_name,
 
     # Save land cover map
     terra::writeRaster(downscaled_map,
-                       filename = paste0(output_dir_path,
-                                         output_file_prefix,
-                                         "_Time",
-                                         timestep,
-                                         ".tif"),
+                       filename = file.path(output_dir_path,
+                                            paste0(output_file_prefix,
+                                                   "_Time",
+                                                   timestep,
+                                                   ".tif")),
                        overwrite = TRUE)
 
     if (discrete_output_map) {
@@ -334,11 +334,11 @@ downscaleLC <- function(ref_map_file_name,
       levels(cat_downscaled_map) <- data.frame(id = 1:terra::nlyr(ref_map),
                                                Land_cover = names(ref_map))
       terra::writeRaster(cat_downscaled_map,
-                         filename = paste0(output_dir_path,
-                                           output_file_prefix,
-                                           "_Discrete_Time",
-                                           timestep,
-                                           ".tif"),
+                         filename = file.path(output_dir_path,
+                                              paste0(output_file_prefix,
+                                                     "_Discrete_Time",
+                                                     timestep,
+                                                     ".tif")),
                          overwrite = TRUE)
     }
 
