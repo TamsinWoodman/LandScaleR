@@ -106,13 +106,16 @@ class:
 | 66 | Other land |
 | 77 | Water |
 
-Load and view the LULC change map for 2009 to 2010 below to see the naming 
-format of each layer as well as other information about the map.
+Load the 'terra' package into R before loading and viewing the LULC change map 
+for 2009 to 2010 to see the naming format of each layer as well as other 
+information about the map.
 
 ```{r Load LULC change 2009-2010}
-LULC_change_2009_2010_name <- system.file("extdata/20221006_HILDA_UK_LUC_2009_2010.tif",
+library("terra")
+
+LULC_change_2009_2010_file <- system.file("extdata/20221006_HILDA_UK_LUC_2009_2010.tif",
                                           package = "landdownscaleR")
-LULC_change_2009_2010 <- rast(LULC_change_2009_2010_name)
+LULC_change_2009_2010 <- rast(LULC_change_2009_2010_file)
 LULC_change_2009_2010
 ```
 Change in LULC can be plotted to assess how much LULC change is going to be 
@@ -149,15 +152,15 @@ exactly the same extent. The values in the UK 2009 reference map use the same
 numeric code as the LULC change maps to represent LULC classes.
 
 ```{r Load LULC in 2009}
-LULC_2009_name <- system.file("extdata/20221006_HILDA_UK_LULC_2009.tif",
+reference_2009_file <- system.file("extdata/20221006_HILDA_UK_LULC_2009.tif",
                               package = "landdownscaleR")
-LULC_2009 <- rast(LULC_2009_name)
-LULC_2009
+reference_2009 <- rast(reference_2009_file)
+reference_2009
 ```
 
 ```{r Plot LULC in 2009,echo = FALSE,fig.width=7,fig.height=6,fig.cap="UK LULC in 2009 at approximately 0.01^o^ resolution from the HILDA+ dataset."}
-levels(LULC_2009) <- LC_levels
-plot(LULC_2009,
+levels(reference_2009) <- LC_levels
+plot(reference_2009,
      col = discrete_LC_palette,
      mar = c(3.1, 3.1, 2.1, 11),
      axes = FALSE)
@@ -212,7 +215,7 @@ to directories on your computer before running the code below.
 
 ```{r Run downscaling,eval=FALSE}
 downscaleLC(ref_map_file_name = system.file("extdata/20221006_HILDA_UK_LULC_2009.tif",
-                                            package = "landdownscaleR"),                         # File path of the reference map
+                                            package = "landdownscaleR"),                         # File path of the fine resolution reference map
             LC_deltas_file_list = list(system.file("extdata/20221006_HILDA_UK_LUC_2009_2010.tif",
                                                    package = "landdownscaleR"),
                                        system.file("extdata/20221006_HILDA_UK_LUC_2010_2011.tif",
