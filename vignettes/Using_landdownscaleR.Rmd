@@ -274,6 +274,39 @@ check these warning messages carefully as they could be due to mismatches in the
 underlying data, or due to differences between LULC change projections and LULC
 in the reference map.
 
+Another warning message that might appear during downscaling is:
+
+```{r mosaic warning,echo=FALSE}
+knitr::include_graphics("img/Mosaic_warning.png")
+```
+
+This warning message is generated because the reference map cells are cropped 
+into one `terra::SpatRaster` object per coarse resolution cell during the 
+downscaling process, to ensure that LULC change in each coarse cell can be 
+allocated independently from other coarse cells. Occasionally there may be cases
+where reference map grid cells at the edge of two coarse resolution cells are 
+counted in both coarse cells. We believe this results in the warning message
+saying that rasters are not aligned when the individual reference map 
+`terra:SpatRaster` objects are merged back together using the `terra::mosaic()` 
+function at the end of downscaling one timestep. This warning is likely to 
+affect a very small number of reference grid cells, and should not lead to any 
+missing grid cells as the `terra::mosiac()` documentation states that the values
+from the last `terra::SpatRaster` to be merged will be retained in places where 
+two `terra::SpatRaster` objects overlap.
+
+Lastly, you might see these error messages from the 'terra' R package during 
+downscaling is: 
+
+```{r terra error,echo=FALSE}
+knitr::include_graphics("img/terra_error.png")
+```
+
+These error messages are a known problem with version 1.5-21 of the 'terra' R 
+package and do not affect the results from downscaling. More information can be
+found at [the 'terra' GitHub page](https://github.com/rspatial/terra/issues/30).
+We intend to update **landdownscaleR** to use the latest versions of 'terra' in
+the future, in which case these error messages should disappear.
+
 ## Calibration of landdownscaleR
 
 The different methods of LULC allocation (`"deterministic"`, "`fuzzy`" and 
