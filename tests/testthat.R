@@ -1,4 +1,4 @@
 library(testthat)
-library(landdownscaleR)
+library(LandScaleR)
 
-test_check("landdownscaleR")
+test_check("LandScaleR")

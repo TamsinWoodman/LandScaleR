@@ -1,9 +1,9 @@
 ---
-title: "Using landdownscaleR"
+title: "Using LandScaleR"
 output: rmarkdown::html_vignette
-bibliography: '`r system.file("REFERENCES.bib", package="landdownscaleR")`'
+bibliography: '`r system.file("REFERENCES.bib", package="LandScaleR")`'
 vignette: >
-  %\VignetteIndexEntry{Using landdownscaleR}
+  %\VignetteIndexEntry{Using LandScaleR}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -36,24 +36,24 @@ LC_levels <- data.frame(id = as.numeric(LC_classes),
                         LULC = LC_classes_display)
 ```
 
-## Introduction to landdownscaleR
+## Introduction to LandScaleR
 
 Land use and land cover (LULC) projections are required for a wide range of 
 models that predict the effect of land use on environmental variables, such as
 biodiversity and hydrology. However, land use models do not always generate 
 projections at adequate resolution for use in other models. The 
-**landdownscaleR** R package implements an algorithm for spatial downscaling of 
+**LandScaleR** R package implements an algorithm for spatial downscaling of 
 LULC projections to fine resolutions that are suitable for environmental 
 modelling.
 
-The **landdownscaleR** algorithm takes coarse resolution maps of LULC change and
+The **LandScaleR** algorithm takes coarse resolution maps of LULC change and
 allocates the change to a fine resolution reference map. Minimal input data is 
 required as new areas of LULC are allocated to grid cells in the reference map 
 based on kernel densities, which quantify the density of each LULC class in the 
 neighbourhood of a focal cell [@LePage2016]. Three methods of LULC allocation 
-are provided in **landdownscaleR**:
+are provided in **LandScaleR**:
 
-* **Deterministic-random** (`"deterministic"`): new LULC areas are placed in
+* **Quasi-deterministic** (`"deterministic"`): new LULC areas are placed in
 reference map grid cells in order from highest to lowest kernel density. Cells 
 with a kernel density equal to zero are randomly ordered, hence the "random"
 part of the method name.
@@ -67,18 +67,18 @@ in the downscaled maps.
 * **Random** (`"null_model"`): new LULC areas are added to the reference map at
 random.
 
-**landdownscaleR** is capable of downscaling multiple timesteps of LULC change 
+**LandScaleR** is capable of downscaling multiple timesteps of LULC change 
 because each downscaled map becomes the reference map for downscaling the 
 subsequent timestep of LULC change. The radius of cells used to calculate kernel
 densities and the $f$ parameter can both be altered to generate downscaled maps
 with different LULC patterns. Given the minimal use of covariate data in 
-**landdownscaleR** it is not intended to generate highly accurate LULC maps, but
+**LandScaleR** it is not intended to generate highly accurate LULC maps, but
 instead to produce theoretical future landscapes that can be used to represent 
 fine resolution LULC in environmental models.
 
-## Using landdownscaleR: downscaling LULC change in the UK
+## Using LandScaleR: downscaling LULC change in the UK
 
-Here, we demonstrate how to use the **landdownscaleR** R package to downscale
+Here, we demonstrate how to use the **LandScaleR** R package to downscale
 LULC change in the UK from 2009 to 2012. 
 
 ### Input maps
@@ -114,7 +114,7 @@ information about the map.
 library("terra")
 
 LULC_change_2009_2010_file <- system.file("extdata/20221006_HILDA_UK_LUC_2009_2010.tif",
-                                          package = "landdownscaleR")
+                                          package = "LandScaleR")
 LULC_change_2009_2010 <- rast(LULC_change_2009_2010_file)
 LULC_change_2009_2010
 ```
@@ -153,7 +153,7 @@ numeric code as the LULC change maps to represent LULC classes.
 
 ```{r Load LULC in 2009}
 reference_2009_file <- system.file("extdata/20221006_HILDA_UK_LULC_2009.tif",
-                              package = "landdownscaleR")
+                              package = "LandScaleR")
 reference_2009 <- rast(reference_2009_file)
 reference_2009
 ```
@@ -169,16 +169,16 @@ plot(reference_2009,
 ### Run downscaling
 
 The first step to downscale LULC change in the UK is to load the 
-**landdownscaleR** package.
+**LandScaleR** package.
 
 ```{r setup}
-library("landdownscaleR")
+library("LandScaleR")
 ```
 
 Next, set up the `match_LC_classes` matrix which matches the LULC classes in the
 LULC change maps to those in the reference map. In this example all maps contain
 the same LULC classes, so we set up a matrix which matches each LULC class to
-itself. The **landdownscaleR** package will prepend each LULC class in a 
+itself. The **LandScaleR** package will prepend each LULC class in a 
 discrete (one LULC class per cell) reference map with "LC" because numeric LULC 
 classes do not work in the algorithm, so if you are using a discrete reference
 map make sure to add "LC" to the start of every reference map LULC class name in
@@ -207,7 +207,7 @@ match_LC_classes <- matrix(data = c(1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                            ref_map_classes))
 ```
 
-Run the **landdownscaleR** algorithm using the `downscaleLC()` function. We use the
+Run the **LandScaleR** algorithm using the `downscaleLC()` function. We use the
 `"deterministic"` method of LULC allocation here, which means that grid cells
 closest to existing patches of LULC will be the first to receive new LULC areas.
 You may want to change the `output_file_prefix` and `output_dir_path` arguments 
@@ -215,24 +215,24 @@ to directories on your computer before running the code below.
 
 ```{r Run downscaling,eval=FALSE}
 downscaleLC(ref_map_file_name = system.file("extdata/20221006_HILDA_UK_LULC_2009.tif",
-                                            package = "landdownscaleR"),                         # File path of the fine resolution reference map
+                                            package = "LandScaleR"),                         # File path of the fine resolution reference map
             LC_deltas_file_list = list(system.file("extdata/20221006_HILDA_UK_LUC_2009_2010.tif",
-                                                   package = "landdownscaleR"),
+                                                   package = "LandScaleR"),
                                        system.file("extdata/20221006_HILDA_UK_LUC_2010_2011.tif",
-                                                   package = "landdownscaleR"),
+                                                   package = "LandScaleR"),
                                        system.file("extdata/20221006_HILDA_UK_LUC_2011_2012.tif",
-                                                   package = "landdownscaleR")),                 # List of file paths to the LULC change maps, in time series order
+                                                   package = "LandScaleR")),                 # List of file paths to the LULC change maps, in time series order
             LC_deltas_classes = LULC_map_classes,                                                # Vector of LULC classes in the LULC change maps
             ref_map_type = "discrete",                                                           # Whether the reference map contains one LULC class per cell or the area of each LULC class per cell
-            cell_size_unit = "km",                                                               # Unit in which landdownscaleR should calculate grid cell sizes, here we use km
+            cell_size_unit = "km",                                                               # Unit in which LandScaleR should calculate grid cell sizes, here we use km
             match_LC_classes = match_LC_classes,                                                 # Matrix showing how the LULC change map classes are matched to the reference map classes
             kernel_radius = 1,                                                                   # Radius of cells to include in the kernel density calculation
-            simulation_type = "deterministic",                                                   # Method of LULC allocation to use in landdownscaleR
+            simulation_type = "deterministic",                                                   # Method of LULC allocation to use in LandScaleR
             fuzzy_multiplier = 1,                                                                # f-value for the fuzzy method of LULC allocation. Not required in the "deterministic" or "null_model" methods so we leave it as the default of 1 here
             discrete_output_map = TRUE,                                                          # Whether to output discrete as well as area-based downscaled maps
             random_seed = 1675,                                                                  # Random seed, so that simulation results can be reproduced
             output_file_prefix = "UK_DS_example",                                                # Prefix for downscaled maps
-            output_dir_path = "landdownscaleR_example/")                                         # Directory in which to store the output downscaled maps
+            output_dir_path = "LandScaleR_example/")                                         # Directory in which to store the output downscaled maps
 ```
 
 When running the `downscaleLC()` function to downscale the example LULC change 
@@ -242,22 +242,22 @@ maps from the UK you might see warning messages such as the one below:
 knitr::include_graphics("img/Harmonisation_warning.png")
 ```
 
-These warning messages occur when the **landdownscaleR** algorithm is unable to 
+These warning messages occur when the **LandScaleR** algorithm is unable to 
 allocate LULC change from one coarse resolution grid cell to the reference map.
 At first, the algorithm attempts to allocate LULC change from one coarse
 resolution cell to a set of reference map cells. Every reference map grid cell
-is assigned to their nearest coarse resolution cell by **landdownscaleR**, so 
+is assigned to their nearest coarse resolution cell by **LandScaleR**, so 
 they can only receive new LULC from that coarse cell. In some cases 
-**landdownscaleR** will be unable to allocate LULC change from a coarse 
+**LandScaleR** will be unable to allocate LULC change from a coarse 
 resolution cell to its assigned reference map cells. For example, let us assume
 that cropland increases by 100 km^2^ in a coarse resolution cell in one timestep
 but the assigned reference map cells are already entirely covered by cropland. 
-**landdownscaleR** will be unable to place more cropland in the reference map 
-cells, so 100 km^2^ of cropland will be unallocated. After **landdownscaleR** 
+**LandScaleR** will be unable to place more cropland in the reference map 
+cells, so 100 km^2^ of cropland will be unallocated. After **LandScaleR** 
 has attempted to allocate LULC change from all coarse resolution cells to the 
 reference map it starts a process called 'harmonisation', where the algorithm 
 places unallocated LULC change in neighbouring coarse resolution cells. When 
-**landdownscaleR** is unable to place all unallocated LULC change on the 
+**LandScaleR** is unable to place all unallocated LULC change on the 
 reference map during harmonisation it prints out a warning such as the one
 above, showing which coarse resolution cells contain unallocated LULC change and 
 how much.
@@ -304,13 +304,13 @@ knitr::include_graphics("img/terra_error.png")
 These error messages are a known problem with version 1.5-21 of the 'terra' R 
 package and do not affect the results from downscaling. More information can be
 found at [the 'terra' GitHub page](https://github.com/rspatial/terra/issues/30).
-We intend to update **landdownscaleR** to use the latest versions of 'terra' in
+We intend to update **LandScaleR** to use the latest versions of 'terra' in
 the future, in which case these error messages should disappear.
 
-## Calibration of landdownscaleR
+## Calibration of LandScaleR
 
 The different methods of LULC allocation (`"deterministic"`, "`fuzzy`" and 
-`"null_model"`) provided in **landdownscaleR** generate varying patterns of LULC
+`"null_model"`) provided in **LandScaleR** generate varying patterns of LULC
 in the output downscaled maps. Multiple timesteps of LULC are provided by 
 HILDA+, so we can use HILDA+ to test which method of LULC allocation best 
 reproduces historic LULC patterns. For example, run `downscaleLC()` with the 
@@ -318,13 +318,13 @@ reproduces historic LULC patterns. For example, run `downscaleLC()` with the
 
 ```{r Run downscaling fuzzy 1.5,eval=FALSE}
 downscaleLC(ref_map_file_name = system.file("extdata/20221006_HILDA_UK_LULC_2009.tif",
-                                            package = "landdownscaleR"),
+                                            package = "LandScaleR"),
             LC_deltas_file_list = list(system.file("extdata/20221006_HILDA_UK_LUC_2009_2010.tif",
-                                                   package = "landdownscaleR"),
+                                                   package = "LandScaleR"),
                                        system.file("extdata/20221006_HILDA_UK_LUC_2010_2011.tif",
-                                                   package = "landdownscaleR"),
+                                                   package = "LandScaleR"),
                                        system.file("extdata/20221006_HILDA_UK_LUC_2011_2012.tif",
-                                                   package = "landdownscaleR")),
+                                                   package = "LandScaleR")),
             LC_deltas_classes = LULC_map_classes,
             ref_map_type = "discrete",
             cell_size_unit = "km",
@@ -335,7 +335,7 @@ downscaleLC(ref_map_file_name = system.file("extdata/20221006_HILDA_UK_LULC_2009
             discrete_output_map = TRUE,
             random_seed = 5255,
             output_file_prefix = "UK_DS_example",
-            output_dir_path = "landdownscaleR_example_fuzzy/")
+            output_dir_path = "LandScaleR_example_fuzzy/")
 ```
 
 Before visualising the downscaled maps, first load two packages that we will use
@@ -351,9 +351,9 @@ methods in 2012 and the actual HILDA+ map from the same year.
 
 ```{r Load and plot 2012 maps}
 hilda_2012 <- rast(system.file("extdata/20230211_HILDA_UK_LULC_2012.tif",
-                               package = "landdownscaleR"))
-deterministic_2012 <- rast("landdownscaleR_example/UK_DS_example_Discrete_Time3.tif")
-fuzzy_2012 <- rast("landdownscaleR_example_fuzzy/UK_DS_example_Discrete_Time3.tif")
+                               package = "LandScaleR"))
+deterministic_2012 <- rast("LandScaleR_example/UK_DS_example_Discrete_Time3.tif")
+fuzzy_2012 <- rast("LandScaleR_example_fuzzy/UK_DS_example_Discrete_Time3.tif")
 
 hilda_2012
 deterministic_2012

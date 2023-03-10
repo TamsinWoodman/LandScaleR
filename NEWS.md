@@ -6,6 +6,7 @@ Documentation:
 - Updated documentation for `downscaleLC()`
 - Updated documentation for `assignRefMapCells()`
 - Wrote 'Using landdownscaleR' vignette
+- Changed name of package from `landdownscaleR` to `LandScaleR`
 
 Bug fixes:
 

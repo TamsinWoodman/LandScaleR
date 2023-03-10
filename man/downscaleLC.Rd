@@ -2,7 +2,7 @@
 % Please edit documentation in R/landCoverDownscalingAlgorithm.R
 \name{downscaleLC}
 \alias{downscaleLC}
-\title{Downscale land use and land cover maps}
+\title{Downscale land use and land cover projections}
 \usage{
 downscaleLC(
   ref_map_file_name,
@@ -59,15 +59,14 @@ density calculation. Defaults to 1, which means all first neighbour cells
 will be used to calculate kernel density (eight cells in total).}
 
 \item{simulation_type}{Character, the method of LULC allocation to be used in
-Landowns. One of "deterministic", "fuzzy", or "null_model". See details for
-more information.}
+LandScaleR. One of "deterministic", "fuzzy", or "null_model". See details
+for more information.}
 
 \item{fuzzy_multiplier}{Numeric, the \eqn{f} parameter for the "fuzzy" method
 of LULC allocation. See details for more information.}
 
 \item{discrete_output_map}{Logical, output a discrete downscaled LULC map as
-well as an
-area-based LULC map if \code{discrete_output_map = TRUE}.}
+well as an area-based LULC map if \code{discrete_output_map = TRUE}.}
 
 \item{random_seed}{Numeric, random seed for the simulation.}
 
@@ -85,7 +84,7 @@ timestep: one with the area of each LULC class per cell and one with the
 largest LULC class per cell.
 }
 \description{
-Implements the 'Landowns' downscaling algorithm, which converts coarse
+Implements the 'LandScaleR' downscaling algorithm, which converts coarse
 resolution land use and land cover (LULC) change maps to a finer resolution
 by applying LULC change from a time series of maps to a fine resolution
 reference map.
@@ -100,7 +99,7 @@ same extent. The reference map can either contain one LULC class per cell
 (\verb{ref_map_type = "discrete}) or the area of each LULC class per cell
 (\code{ref_map_type = "areas"}). Note that if \code{ref_map_type = discrete} is
 specified then the LULC classes in the reference map will be prepended with
-"LC" to ensure that they are treated as characters by Landowns. The LULC
+"LC" to ensure that they are treated as characters by LandScaleR. The LULC
 change maps and reference map do not have to contain the same LULC classes,
 as these can be matched using the \code{match_LC_classes} argument.
 }
@@ -108,14 +107,14 @@ as these can be matched using the \code{match_LC_classes} argument.
 \subsection{Grid cell areas}{
 
 The total terrestrial area of every coarse and fine resolution grid cell is
-required in Landowns to ensure that the areas of coarse and fine resolution
-grid cells match. The algorithm uses the \code{\link[terra:cellSize]{terra::cellSize()}} function to
-calculate grid cell areas in the reference map and LULC change maps.
-Alternatively, for the LULC change maps an extra layer called "cell_area"
-can be added to each file giving the area of every coarse resolution grid
-cell. This can be useful in situations where only a small area of a coarse
-resolution grid cell is covered by land, and the rest is water or ocean
-that is not to be included in the downscaling process.
+required in LandScaleR to ensure that the areas of coarse and fine
+resolution grid cells match. The algorithm uses the \code{\link[terra:cellSize]{terra::cellSize()}}
+function to calculate grid cell areas in the reference map and LULC change
+maps. Alternatively, for the LULC change maps an extra layer called
+"cell_area" can be added to each file giving the area of every coarse
+resolution grid cell. This can be useful in situations where only a small
+area of a coarse resolution grid cell is covered by land, and the rest is
+water or ocean that is not to be included in the downscaling process.
 }
 
 \subsection{Matching LULC classes}{
@@ -145,28 +144,28 @@ secondary vegetation.
 
 \subsection{Kernel density}{
 
-Kernel densities are calculated by Landowns for every reference map grid
+Kernel densities are calculated by LandScaleR for every reference map grid
 cell and LULC class. A kernel density gives the distance-weighted sum of
 the area of each LULC class surrounding a focal cell
-\insertCite{LePage2016}{landdownscaleR}. Kernel densities are used later in
-Landowns to decide where to place LULC change on the reference map.
+\insertCite{LePage2016}{LandScaleR}. Kernel densities are used later in
+LandScaleR to decide where to place LULC change on the reference map.
 }
 
 \subsection{LULC allocation methods}{
 
-Three methods are provided in Landowns to allocate LULC change to the
+Three methods are provided in LandScaleR to allocate LULC change to the
 reference map, which vary the order in which reference map grid cells are
 selected to receive new LULC. The three methods are:
 \itemize{
-\item Deterministic-random ("deterministic")
+\item Quasi-deterministic ("deterministic")
 \item Fuzzy ("fuzzy")
 \item Random ("null_model")
 }
 
-In the deterministic-random method, grid cells are allocated new LULC in
+In the quasi-deterministic method, grid cells are allocated new LULC in
 order from the cell with the highest kernel density for the increasing LULC
 class to the cell with the lowest. Any cells with a kernel density equal to
-zero are allocated new LULC randomly after Landowns has attempted to
+zero are allocated new LULC randomly after LandScaleR has attempted to
 allocate new LULC in all cells with a kernel density greater than zero.
 
 Similarly, in the fuzzy method of LULC allocation new areas of LULC are
@@ -188,5 +187,5 @@ placed in eligible grid cells on the reference map.
 }
 }
 \references{
-\insertRef{LePage2016}{landdownscaleR}
+\insertRef{LePage2016}{LandScaleR}
 }

@@ -1,10 +1,10 @@
-Package: landdownscaleR
+Package: LandScaleR
 Type: Package
-Title: Downscale gridded land-use data from PLUMv2
+Title: An R package for downscaling land use and land cover projections
 Version: 1.0.2
 Author: Tamsin Woodman
 Maintainer: Tamsin Woodman <t.woodman.20@abdn.ac.uk>
-Description: Downscale gridded land use maps.
+Description: LandScaleR is a method for spatial downscaling of land use and land cover projections to high resolutions that are suitable for use with environmental models. The LandScaleR algorithm allocates land use and land cover change to a high-resolution reference map according to the density of land use and land cover classes in neighbouring cells, and a stochasticity parameter that changes the probability of cells next to existing patches of land use and land cover being converted to the same type.
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true

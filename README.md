@@ -1,15 +1,15 @@
-# landdownscaleR
+# LandScaleR
 
 ## Version
 
-This is **landdownscaleR** version 1.0.2.
+This is **LandScaleR** version 1.0.2.
 
 ## Installation
 
 ### Dependencies
 
-Before installing **landdownscaleR** make sure you have the two dependencies 
-installed, which are the 'terra' and 'FNN' R packages. **landdownscaleR** should
+Before installing **LandScaleR** make sure you have the two dependencies 
+installed, which are the 'terra' and 'FNN' R packages. **LandScaleR** should
 work with version 1.1.3 or more of the FNN package but currently requires 
 version 1.5-21 of terra. To install terra 1.5-21, type the code below into R:
 
@@ -19,40 +19,35 @@ install.packages("https://cran.r-project.org/src/contrib/Archive/terra/terra_1.5
 
 You will also need the 'devtools' package and, if on Windows, the 
 [Rtools](https://cran.r-project.org/bin/windows/Rtools/) software to install 
-**landdownscaleR** from GitHub.
+**LandScaleR** from GitHub.
 
-### Install landdownscaleR
+### Install LandScaleR
 
-**landdownscaleR** can be installed in R from GitHub using the code below:
+**LandScaleR** can be installed in R from GitHub using the code below:
 
 ```r
 library("devtools")
-install_github("TamsinWoodman/landdownscaleR", ref = "optimiseRcode", build_vignettes = TRUE)
+install_github("TamsinWoodman/LandScaleR", ref = "optimiseRcode", build_vignettes = TRUE)
 ```
 
-## Using landdownscaleR
+## Using LandScaleR
 
-**landdownscaleR** can be loaded in R as follows:
+**LandScaleR** can be loaded in R as follows:
 
 ```r
-library("landdownscaleR")
+library("LandScaleR")
 ```
 
-A tutorial for using **landdownscaleR** is provided as a vignette with the 
+A tutorial for using **LandScaleR** is provided as a vignette with the 
 package. The vignette can be viewed after installing 
-**landdownscaleR**:
+**LandScaleR**:
 
 ```r
-library("landdownscaleR")
-browseVignettes("landdownscaleR")
+library("LandScaleR")
+browseVignettes("LandScaleR")
 ```
 
 ## News
 
 See the [NEWS](NEWS.md) file for the latest improvements and updates to 
-**landdownscaleR**.
-
-## Citing landdownscaleR
-
-When using **landdownscaleR**, please use this citation:
-
+**LandScaleR**.
