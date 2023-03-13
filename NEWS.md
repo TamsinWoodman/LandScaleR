@@ -7,6 +7,7 @@ Documentation:
 - Updated documentation for `assignRefMapCells()`
 - Wrote 'Using landdownscaleR' vignette
 - Changed name of package from `landdownscaleR` to `LandScaleR`
+- Added GLP-3 license information
 
 Bug fixes:
 
