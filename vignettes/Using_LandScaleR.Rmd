@@ -41,10 +41,9 @@ LC_levels <- data.frame(id = as.numeric(LC_classes),
 Land use and land cover (LULC) projections are required for a wide range of 
 models that predict the effect of land use on environmental variables, such as
 biodiversity and hydrology. However, land use models do not always generate 
-projections at adequate resolution for use in other models. The 
-**LandScaleR** R package implements an algorithm for spatial downscaling of 
-LULC projections to fine resolutions that are suitable for environmental 
-modelling.
+projections at adequate resolution for use in other models. The **LandScaleR** 
+R package implements an algorithm for spatial downscaling of LULC projections to
+fine resolutions that are suitable for environmental modelling.
 
 The **LandScaleR** algorithm takes coarse resolution maps of LULC change and
 allocates the change to a fine resolution reference map. Minimal input data is 
@@ -55,8 +54,8 @@ are provided in **LandScaleR**:
 
 * **Quasi-deterministic** (`"deterministic"`): new LULC areas are placed in
 reference map grid cells in order from highest to lowest kernel density. Cells 
-with a kernel density equal to zero are randomly ordered, hence the "random"
-part of the method name.
+with a kernel density equal to zero are randomly ordered, hence the "quasi" part
+of the method name.
 * **Fuzzy** (`"fuzzy"`): new LULC areas are placed in reference map grid cells 
 in order from highest to lowest kernel density, but each kernel density is 
 adjusted before the cells are ordered. To adjust kernel densities, each one is 
@@ -78,8 +77,14 @@ fine resolution LULC in environmental models.
 
 ## Using LandScaleR: downscaling LULC change in the UK
 
-Here, we demonstrate how to use the **LandScaleR** R package to downscale
-LULC change in the UK from 2009 to 2012. 
+Here, we demonstrate how to use the **LandScaleR** R package to downscale LULC 
+change in the UK from 2009 to 2012. Before using **LandScaleR** ensure that you 
+have version 1.5-21 of the 'terra' R package installed on your machine. This 
+version of 'terra' can be installed using the line of code below:
+
+```{r terra installation,eval=FALSE}
+install.packages("https://cran.r-project.org/src/contrib/Archive/terra/terra_1.5-21.tar.gz", repos = NULL, type = "source")
+```
 
 ### Input maps
 
@@ -118,6 +123,7 @@ LULC_change_2009_2010_file <- system.file("extdata/20221006_HILDA_UK_LUC_2009_20
 LULC_change_2009_2010 <- rast(LULC_change_2009_2010_file)
 LULC_change_2009_2010
 ```
+
 Change in LULC can be plotted to assess how much LULC change is going to be 
 downscaled each year; here, we plot the change in cropland and pasture in the UK 
 between 2009 and 2010.
@@ -168,8 +174,8 @@ plot(reference_2009,
 
 ### Run downscaling
 
-The first step to downscale LULC change in the UK is to load the 
-**LandScaleR** package.
+The first step to downscale LULC change in the UK is to load the **LandScaleR** 
+package.
 
 ```{r setup}
 library("LandScaleR")
@@ -178,11 +184,11 @@ library("LandScaleR")
 Next, set up the `match_LC_classes` matrix which matches the LULC classes in the
 LULC change maps to those in the reference map. In this example all maps contain
 the same LULC classes, so we set up a matrix which matches each LULC class to
-itself. The **LandScaleR** package will prepend each LULC class in a 
-discrete (one LULC class per cell) reference map with "LC" because numeric LULC 
-classes do not work in the algorithm, so if you are using a discrete reference
-map make sure to add "LC" to the start of every reference map LULC class name in
-the `match_LC_class` matrix.
+itself. The **LandScaleR** package will prepend each LULC class in a discrete 
+(one LULC class per cell) reference map with "LC" because numeric LULC classes 
+do not work in the algorithm, so if you are using a discrete reference map make 
+sure to add "LC" to the start of every reference map LULC class name in the 
+`match_LC_class` matrix.
 
 ```{r Create match_LC_classes}
 LULC_map_classes <- paste0("LC",
@@ -246,21 +252,20 @@ These warning messages occur when the **LandScaleR** algorithm is unable to
 allocate LULC change from one coarse resolution grid cell to the reference map.
 At first, the algorithm attempts to allocate LULC change from one coarse
 resolution cell to a set of reference map cells. Every reference map grid cell
-is assigned to their nearest coarse resolution cell by **LandScaleR**, so 
-they can only receive new LULC from that coarse cell. In some cases 
-**LandScaleR** will be unable to allocate LULC change from a coarse 
-resolution cell to its assigned reference map cells. For example, let us assume
-that cropland increases by 100 km^2^ in a coarse resolution cell in one timestep
-but the assigned reference map cells are already entirely covered by cropland. 
-**LandScaleR** will be unable to place more cropland in the reference map 
-cells, so 100 km^2^ of cropland will be unallocated. After **LandScaleR** 
-has attempted to allocate LULC change from all coarse resolution cells to the 
-reference map it starts a process called 'harmonisation', where the algorithm 
-places unallocated LULC change in neighbouring coarse resolution cells. When 
-**LandScaleR** is unable to place all unallocated LULC change on the 
-reference map during harmonisation it prints out a warning such as the one
-above, showing which coarse resolution cells contain unallocated LULC change and 
-how much.
+is assigned to their nearest coarse resolution cell by **LandScaleR**, so they 
+can only receive new LULC from that coarse cell. In some cases **LandScaleR** 
+will be unable to allocate LULC change from a coarse resolution cell to its 
+assigned reference map cells. For example, let us assume that cropland increases
+by 100 km^2^ in a coarse resolution cell in one timestep but the assigned 
+reference map cells are already entirely covered by cropland. **LandScaleR** 
+will be unable to place more cropland in the reference map cells, so 100 km^2^ 
+of cropland will be unallocated. After **LandScaleR** has attempted to allocate 
+LULC change from all coarse resolution cells to the reference map it starts a 
+process called 'harmonisation', where the algorithm places unallocated LULC 
+change in neighbouring coarse resolution cells. When **LandScaleR** is unable to
+place all unallocated LULC change on the reference map during harmonisation it 
+prints out a warning such as the one above, showing which coarse resolution 
+cells contain unallocated LULC change and how much.
 
 In the example of downscaling LULC change in the UK from 2009 to 2012 the 
 warning messages for unallocated LULC are expected to occur for a few cells 
@@ -295,7 +300,7 @@ from the last `terra::SpatRaster` to be merged will be retained in places where
 two `terra::SpatRaster` objects overlap.
 
 Lastly, you might see these error messages from the 'terra' R package during 
-downscaling is: 
+downscaling: 
 
 ```{r terra error,echo=FALSE}
 knitr::include_graphics("img/terra_error.png")
@@ -303,18 +308,18 @@ knitr::include_graphics("img/terra_error.png")
 
 These error messages are a known problem with version 1.5-21 of the 'terra' R 
 package and do not affect the results from downscaling. More information can be
-found at [the 'terra' GitHub page](https://github.com/rspatial/terra/issues/30).
+found at [the 'terra' GitHub site](https://github.com/rspatial/terra/issues/30).
 We intend to update **LandScaleR** to use the latest versions of 'terra' in
 the future, in which case these error messages should disappear.
 
 ## Calibration of LandScaleR
 
 The different methods of LULC allocation (`"deterministic"`, "`fuzzy`" and 
-`"null_model"`) provided in **LandScaleR** generate varying patterns of LULC
-in the output downscaled maps. Multiple timesteps of LULC are provided by 
-HILDA+, so we can use HILDA+ to test which method of LULC allocation best 
-reproduces historic LULC patterns. For example, run `downscaleLC()` with the 
-`"fuzzy"` method of LULC allocation and $f = 1.5$.
+`"null_model"`) provided in **LandScaleR** generate varying patterns of LULC in 
+the output downscaled maps. Multiple timesteps of LULC are provided by HILDA+, 
+so we can use HILDA+ to test which method of LULC allocation best reproduces 
+historic LULC patterns. For example, run `downscaleLC()` with the `"fuzzy"` 
+method of LULC allocation and $f = 1.5$.
 
 ```{r Run downscaling fuzzy 1.5,eval=FALSE}
 downscaleLC(ref_map_file_name = system.file("extdata/20221006_HILDA_UK_LULC_2009.tif",
