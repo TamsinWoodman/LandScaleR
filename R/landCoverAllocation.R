@@ -242,7 +242,7 @@ getFuzzyKernelDensities <- function(cells_for_allocation,
                                                                                                                   na.rm = TRUE))
     # tmp$new <- cells_for_allocation$kernel_density
     # plot(tmp$old, tmp$new)
-    
+
     cells_for_allocation <- sortKernelDensities(kernel_density_df = cells_for_allocation)
 
   }
@@ -277,6 +277,21 @@ getCellsForAllocationKdZero <- function(cells_for_allocation) {
   cells_for_allocation_kd_zero_random <- randomiseDataFrame(input_df = cells_for_allocation_kd_zero)
 
   return(cells_for_allocation_kd_zero_random)
+}
+
+#' Sort a data frame with a 'kernel_density' column from highest to lowest
+#'   kernel density
+#'
+#' @param kernel_density_df Data frame of grid cells with a column named
+#'   `kernel_density` that contains a kernel density for each cell.
+#'
+#' @return Input data frame sorted from highest to lowest kernel density value.
+sortKernelDensities <- function(kernel_density_df) {
+
+  sorted_kernel_density_df <- kernel_density_df[order(kernel_density_df[ , "kernel_density"],
+                                                      decreasing = TRUE), ]
+
+  return(sorted_kernel_density_df)
 }
 
 #' Calculate actual conversion areas for a set of grid cells

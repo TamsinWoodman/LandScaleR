@@ -54,18 +54,3 @@ calculateKernelDensities <- function(ref_map,
 
   return(kernel_densities)
 }
-
-#' Sort a data frame with a 'kernel_density' column from highest to lowest
-#'   kernel density
-#'
-#' @param kernel_density_df Data frame of grid cells with a column named
-#'   `kernel_density` that contains a kernel density for each cell.
-#'
-#' @return Input data frame sorted from highest to lowest kernel density value.
-sortKernelDensities <- function(kernel_density_df) {
-
-  sorted_kernel_density_df <- kernel_density_df[order(kernel_density_df[ , "kernel_density"],
-                                                      decreasing = TRUE), ]
-
-  return(sorted_kernel_density_df)
-}
