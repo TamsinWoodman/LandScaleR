@@ -10,6 +10,7 @@ Documentation:
 - Added GLP-3 license information
 
 Bug fixes:
+- The fuzzy method now randomly orders kernel densities if all kernel density values are equal to zero
 
 # Version 1.0.1
 

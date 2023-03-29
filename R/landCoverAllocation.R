@@ -229,22 +229,27 @@ sortCellsForAllocation <- function(cells_for_allocation) {
 getFuzzyKernelDensities <- function(cells_for_allocation,
                                     fuzzy_multiplier) {
 
-  # tmp <- data.frame(old = cells_for_allocation$kernel_density,
-  #                   new = NA)
-
-  # Add deviations drawn from a Normal distribution to the kernel density values
-  # This introduces stochasticity to the simulation
   if (length(cells_for_allocation$kernel_density) > 1) {
 
-    cells_for_allocation$kernel_density <- cells_for_allocation$kernel_density + stats::rnorm(length(cells_for_allocation$kernel_density),
-                                                                                       mean = 0,
-                                                                                       sd = fuzzy_multiplier * stats::sd(cells_for_allocation$kernel_density,
-                                                                                                                  na.rm = TRUE))
-    # tmp$new <- cells_for_allocation$kernel_density
-    # plot(tmp$old, tmp$new)
+    if (sd(cells_for_allocation$kernel_density) == 0) {
 
-    cells_for_allocation <- sortKernelDensities(kernel_density_df = cells_for_allocation)
+      # If all kernel densities are zero then data frame won't be shuffled by the fuzzy method,
+      # so we randomise the data frame here instead
+      cells_for_allocation <- randomiseDataFrame(input_df = cells_for_allocation)
 
+    } else {
+
+      # Add deviations drawn from a Normal distribution to the kernel density values
+      # This introduces stochasticity to the simulation
+      cells_for_allocation$kernel_density <- cells_for_allocation$kernel_density + stats::rnorm(length(cells_for_allocation$kernel_density),
+                                                                                                mean = 0,
+                                                                                                sd = fuzzy_multiplier * stats::sd(cells_for_allocation$kernel_density,
+                                                                                                                                  na.rm = TRUE))
+
+      # Sort cells
+      cells_for_allocation <- sortKernelDensities(kernel_density_df = cells_for_allocation)
+
+    }
   }
 
   return(cells_for_allocation)
