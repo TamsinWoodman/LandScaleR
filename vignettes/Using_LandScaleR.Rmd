@@ -78,13 +78,7 @@ fine resolution LULC in environmental models.
 ## Using LandScaleR: downscaling LULC change in the UK
 
 Here, we demonstrate how to use the **LandScaleR** R package to downscale LULC 
-change in the UK from 2009 to 2012. Before using **LandScaleR** ensure that you 
-have version 1.5-21 of the 'terra' R package installed on your machine. This 
-version of 'terra' can be installed using the line of code below:
-
-```{r terra installation,eval=FALSE}
-install.packages("https://cran.r-project.org/src/contrib/Archive/terra/terra_1.5-21.tar.gz", repos = NULL, type = "source")
-```
+change in the UK from 2009 to 2012.
 
 ### Input maps
 
@@ -306,11 +300,9 @@ downscaling:
 knitr::include_graphics("img/terra_error.png")
 ```
 
-These error messages are a known problem with version 1.5-21 of the 'terra' R 
+These error messages are a known problem with older versions of the 'terra' R 
 package and do not affect the results from downscaling. More information can be
 found at [the 'terra' GitHub site](https://github.com/rspatial/terra/issues/30).
-We intend to update **LandScaleR** to use the latest versions of 'terra' in
-the future, in which case these error messages should disappear.
 
 ## Calibration of LandScaleR
 

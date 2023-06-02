@@ -2,7 +2,7 @@
 
 ## Version
 
-This is **LandScaleR** version 1.0.2.
+This is **LandScaleR** version 1.1.0.
 
 ## Installation
 
@@ -10,12 +10,8 @@ This is **LandScaleR** version 1.0.2.
 
 Before installing **LandScaleR** make sure you have the two dependencies 
 installed, which are the 'terra' and 'FNN' R packages. **LandScaleR** should
-work with version 1.1.3 or more of the FNN package but currently requires 
-version 1.5-21 of terra. To install terra 1.5-21, type the code below into R:
-
-```r
-install.packages("https://cran.r-project.org/src/contrib/Archive/terra/terra_1.5-21.tar.gz", repos = NULL, type = "source")
-```
+work with version >=1.1.3 of the FNN package and version >=1.6-53 of the terra
+package.
 
 You will also need the 'devtools' package and, if on Windows, the 
 [Rtools](https://cran.r-project.org/bin/windows/Rtools/) software to install 

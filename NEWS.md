@@ -1,6 +1,9 @@
 
 # Version 1.1.0
 
+Dependencies:
+- `LandScaleR` now depends on `terra` version >=1.6-53
+
 # Version 1.0.2
 
 Documentation:
