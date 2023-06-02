@@ -3,85 +3,85 @@
 
 #' Downscale land use and land cover projections
 #'
-#' Implements the 'LandScaleR' downscaling algorithm, which converts coarse 
+#' Implements the 'LandScaleR' downscaling algorithm, which converts coarse
 #'   resolution land use and land cover (LULC) change maps to a finer resolution
-#'   by applying LULC change from a time series of maps to a fine resolution 
+#'   by applying LULC change from a time series of maps to a fine resolution
 #'   reference map.
-#'   
-#' @param ref_map_file_name Character, file path to the fine resolution 
-#'   reference map. The reference map must be at the resolution to which you 
-#'   want to downscale the input LULC change maps. File format of the reference 
-#'   map must be one that can be read by the [terra::rast()] function from the 
-#'   'terra' R package. It is recommended to use the GeoTIFF file format because 
+#'
+#' @param ref_map_file_name Character, file path to the fine resolution
+#'   reference map. The reference map must be at the resolution to which you
+#'   want to downscale the input LULC change maps. File format of the reference
+#'   map must be one that can be read by the [terra::rast()] function from the
+#'   'terra' R package. It is recommended to use the GeoTIFF file format because
 #'   [downscaleLC()] outputs downscaled LULC maps as GeoTIFF files.
-#' @param LC_deltas_file_list List, gives the file paths of a time series of 
+#' @param LC_deltas_file_list List, gives the file paths of a time series of
 #'   LULC change maps. Each file should contain one timestep of LULC change, and
 #'   the list must be in the order of maps in the time series. There must be one
-#'   layer per LULC class in every file. An additional layer specifying the 
-#'   total land area per coarse resolution cell can optionally be included in 
-#'   every LULC change map; this layer must be named "cell_area". Each LULC 
+#'   layer per LULC class in every file. An additional layer specifying the
+#'   total land area per coarse resolution cell can optionally be included in
+#'   every LULC change map; this layer must be named "cell_area". Each LULC
 #'   change map must be in a file format that can be read by the [terra::rast()]
-#'   function, although the GeoTIFF format is recommended. 
-#' @param LC_deltas_classes Character vector of LULC classes that occur in the 
-#'   LULC change maps. 
+#'   function, although the GeoTIFF format is recommended.
+#' @param LC_deltas_classes Character vector of LULC classes that occur in the
+#'   LULC change maps.
 #' @param ref_map_type Character, one of "areas" or "discrete". If the reference
 #'   map contains one LULC class per cell use "areas". If the reference map has
-#'   one layer per LULC class containing the area of each LULC class per cell 
+#'   one layer per LULC class containing the area of each LULC class per cell
 #'   use "discrete".
 #' @param cell_size_unit Character, unit for calculating grid cell areas. Must
-#'   be one of "km", "m", or "ha". Cell areas are calculated using the 
+#'   be one of "km", "m", or "ha". Cell areas are calculated using the
 #'   [terra::cellSize()] function.
-#' @param match_LC_classes Matrix, specifies the proportion of each LULC class 
-#'   from the LULC change maps that corresponds to every reference map LULC 
-#'   class. Columns contain reference map LULC classes and rows LULC change map 
+#' @param match_LC_classes Matrix, specifies the proportion of each LULC class
+#'   from the LULC change maps that corresponds to every reference map LULC
+#'   class. Columns contain reference map LULC classes and rows LULC change map
 #'   classes. See details for more information.
-#' @param  kernel_radius Numeric, radius of cells to include in the kernel 
-#'   density calculation. Defaults to 1, which means all first neighbour cells 
+#' @param  kernel_radius Numeric, radius of cells to include in the kernel
+#'   density calculation. Defaults to 1, which means all first neighbour cells
 #'   will be used to calculate kernel density (eight cells in total).
 #' @param simulation_type Character, the method of LULC allocation to be used in
-#'   LandScaleR. One of "deterministic", "fuzzy", or "null_model". See details 
+#'   LandScaleR. One of "deterministic", "fuzzy", or "null_model". See details
 #'   for more information.
-#' @param fuzzy_multiplier Numeric, the \eqn{f} parameter for the "fuzzy" method 
+#' @param fuzzy_multiplier Numeric, the \eqn{f} parameter for the "fuzzy" method
 #'   of LULC allocation. See details for more information.
-#' @param discrete_output_map Logical, output a discrete downscaled LULC map as 
+#' @param discrete_output_map Logical, output a discrete downscaled LULC map as
 #'   well as an area-based LULC map if `discrete_output_map = TRUE`.
 #' @param random_seed Numeric, random seed for the simulation.
-#' @param output_file_prefix Character, prefix for the output downscaled LULC 
+#' @param output_file_prefix Character, prefix for the output downscaled LULC
 #'   map files.
 #' @param output_dir_path Character, path to the directory in which to saved the
 #'   downscaled LULC map files. The directory will be created by [downscaleLC()]
 #'   if it does not already exist.
 #'
 #' @details ## Input maps
-#' The fine resolution reference map must be at the resolution to which the 
+#' The fine resolution reference map must be at the resolution to which the
 #'   LULC change maps are to be downscaled. The reference and LULC maps must be
 #'   in the same geographic projection but they do not have to cover exactly the
-#'   same extent. The reference map can either contain one LULC class per cell 
-#'   (`ref_map_type = "discrete`) or the area of each LULC class per cell 
-#'   (`ref_map_type = "areas"`). Note that if `ref_map_type = discrete` is 
-#'   specified then the LULC classes in the reference map will be prepended with 
-#'   "LC" to ensure that they are treated as characters by LandScaleR. The LULC 
+#'   same extent. The reference map can either contain one LULC class per cell
+#'   (`ref_map_type = "discrete`) or the area of each LULC class per cell
+#'   (`ref_map_type = "areas"`). Note that if `ref_map_type = discrete` is
+#'   specified then the LULC classes in the reference map will be prepended with
+#'   "LC" to ensure that they are treated as characters by LandScaleR. The LULC
 #'   change maps and reference map do not have to contain the same LULC classes,
 #'   as these can be matched using the `match_LC_classes` argument.
 #'
 #' ## Grid cell areas
 #'   The total terrestrial area of every coarse and fine resolution grid cell is
-#'   required in LandScaleR to ensure that the areas of coarse and fine 
-#'   resolution grid cells match. The algorithm uses the [terra::cellSize()] 
-#'   function to calculate grid cell areas in the reference map and LULC change 
-#'   maps. Alternatively, for the LULC change maps an extra layer called 
-#'   "cell_area" can be added to each file giving the area of every coarse 
-#'   resolution grid cell. This can be useful in situations where only a small 
-#'   area of a coarse resolution grid cell is covered by land, and the rest is 
+#'   required in LandScaleR to ensure that the areas of coarse and fine
+#'   resolution grid cells match. The algorithm uses the [terra::cellSize()]
+#'   function to calculate grid cell areas in the reference map and LULC change
+#'   maps. Alternatively, for the LULC change maps an extra layer called
+#'   "cell_area" can be added to each file giving the area of every coarse
+#'   resolution grid cell. This can be useful in situations where only a small
+#'   area of a coarse resolution grid cell is covered by land, and the rest is
 #'   water or ocean that is not to be included in the downscaling process.
-#'   
+#'
 #' ## Matching LULC classes
-#'   The `match_LC_classes` argument allows for cases where the input LULC 
+#'   The `match_LC_classes` argument allows for cases where the input LULC
 #'   change maps and reference map do not contain the same LULC classes. Columns
 #'   of the matrix must contain the reference map LULC classes and rows the LULC
-#'   change map classes. Values specify the proportion of each LULC change map 
+#'   change map classes. Values specify the proportion of each LULC change map
 #'   class that should be matched to each reference map LULC class. For example:
-#'   
+#'
 #'   | | Primary vegetation | Secondary vegetation | Forest plantation | Cropland | Pasture | Urban |
 #'   | --- | --- | --- | --- | --- | --- | --- |
 #'   | Managed forest | 0 | 0 | 1 | 0 | 0 | 0 |
@@ -90,59 +90,59 @@
 #'   | Cropland | 0 | 0 | 0 | 1 | 0 | 0 |
 #'   | Pasture | 0 | 0 | 0 | 0 | 1 | 0 |
 #'   | Urban | 0 | 0 | 0 | 0 | 0 | 1 |
-#'   
-#'   In this case, if unmanaged forest were to increase by 100 
-#'   \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} in an LULC change map, 50 
-#'   \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} of the increase would be 
+#'
+#'   In this case, if unmanaged forest were to increase by 100
+#'   \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} in an LULC change map, 50
+#'   \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} of the increase would be
 #'   allocated to the reference map as primary vegetation and a further 50
-#'   \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} would be allocated as 
+#'   \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} would be allocated as
 #'   secondary vegetation.
 #'
 #' ## Kernel density
 #'   Kernel densities are calculated by LandScaleR for every reference map grid
-#'   cell and LULC class. A kernel density gives the distance-weighted sum of 
-#'   the area of each LULC class surrounding a focal cell  
-#'   \insertCite{LePage2016}{LandScaleR}. Kernel densities are used later in 
+#'   cell and LULC class. A kernel density gives the distance-weighted sum of
+#'   the area of each LULC class surrounding a focal cell
+#'   \insertCite{LePage2016}{LandScaleR}. Kernel densities are used later in
 #'   LandScaleR to decide where to place LULC change on the reference map.
-#'   
+#'
 #' ## LULC allocation methods
-#'   Three methods are provided in LandScaleR to allocate LULC change to the 
+#'   Three methods are provided in LandScaleR to allocate LULC change to the
 #'   reference map, which vary the order in which reference map grid cells are
 #'   selected to receive new LULC. The three methods are:
-#'   
+#'
 #'   * Quasi-deterministic ("deterministic")
 #'   * Fuzzy ("fuzzy")
 #'   * Random ("null_model")
-#'   
-#'   In the quasi-deterministic method, grid cells are allocated new LULC in 
+#'
+#'   In the quasi-deterministic method, grid cells are allocated new LULC in
 #'   order from the cell with the highest kernel density for the increasing LULC
 #'   class to the cell with the lowest. Any cells with a kernel density equal to
-#'   zero are allocated new LULC randomly after LandScaleR has attempted to 
+#'   zero are allocated new LULC randomly after LandScaleR has attempted to
 #'   allocate new LULC in all cells with a kernel density greater than zero.
-#'   
-#'   Similarly, in the fuzzy method of LULC allocation new areas of LULC are 
-#'   allocated in order from the cell with the highest to the one with the 
-#'   lowest kernel density. However, in the fuzzy method kernel densities are 
+#'
+#'   Similarly, in the fuzzy method of LULC allocation new areas of LULC are
+#'   allocated in order from the cell with the highest to the one with the
+#'   lowest kernel density. However, in the fuzzy method kernel densities are
 #'   adjusted to alter the likelihood of each grid cell receiving new LULC. For
 #'   a single reference map grid cell, the kernel density is adjusted by summing
-#'   the kernel density and an adjustment drawn from the Normal distribution 
-#'   with mean of zero. The standard deviation for the Normal distribution is 
-#'   the standard deviation of kernel densities for all cells eligible to 
+#'   the kernel density and an adjustment drawn from the Normal distribution
+#'   with mean of zero. The standard deviation for the Normal distribution is
+#'   the standard deviation of kernel densities for all cells eligible to
 #'   receive the increasing LULC class, multiplied by the user-specified \eqn{f}
-#'   parameter (`fuzzy_multiplier`). The higher the \eqn{f} parameter, the more 
+#'   parameter (`fuzzy_multiplier`). The higher the \eqn{f} parameter, the more
 #'   the order in which grid cells are allocated new LULC is shuffled. Increased
-#'   shuffling of the order of grid cells leads to more random patterns of LULC 
+#'   shuffling of the order of grid cells leads to more random patterns of LULC
 #'   in the output downscaled maps.
-#'   
-#'   In the random method of LULC allocation new areas of LULC are randomly 
+#'
+#'   In the random method of LULC allocation new areas of LULC are randomly
 #'   placed in eligible grid cells on the reference map.
-#'   
+#'
 #'
 #' @return GeoTIFF files containing downscaled land-use maps. If
-#'   `discrete_output_map = TRUE` two output files will be generated per 
-#'   timestep: one with the area of each LULC class per cell and one with the 
+#'   `discrete_output_map = TRUE` two output files will be generated per
+#'   timestep: one with the area of each LULC class per cell and one with the
 #'   largest LULC class per cell.
-#' @references 
+#' @references
 #' \insertRef{LePage2016}{LandScaleR}
 #' @importFrom Rdpack reprompt
 #' @importFrom methods new slot slot<-
@@ -163,7 +163,7 @@ downscaleLC <- function(ref_map_file_name,
                         output_dir_path) {
 
   start_time <- Sys.time()
-  
+
   ## Check inputs
   inputChecks(ref_map_file_name = ref_map_file_name,
               LC_deltas_file_list = LC_deltas_file_list,
@@ -319,6 +319,9 @@ downscaleLC <- function(ref_map_file_name,
       downscaled_map <- terra::mosaic(terra::sprc(downscaled_chunks))
     }
 
+    # Set names of downscaled map as these are lost during mosaic function
+    names(downscaled_map) <- names(ref_map)
+
     # Save land cover map
     terra::writeRaster(downscaled_map,
                        filename = file.path(output_dir_path,
@@ -391,8 +394,8 @@ loadRefMap <- function(ref_map_file_name,
   if (ref_map_type == "discrete") {
     ref_map <- terra::segregate(ref_map) * terra::cellSize(ref_map,
                                                            unit = cell_size_unit)
-    
-    # Add LC to the start of names so that they are treated as characters and 
+
+    # Add LC to the start of names so that they are treated as characters and
     # not as numeric during the downscaling algorithm
     ref_map_names <- names(ref_map)
     names(ref_map) <- paste0("LC",
@@ -403,22 +406,22 @@ loadRefMap <- function(ref_map_file_name,
 }
 
 #' Assign fine resolution grid cells to a coarse resolution map
-#' 
+#'
 #' Assigns grid cells from a fine resolution map to their nearest neighbour grid
 #'   cell in a coarse resolution map using the [FNN::get.knnx()] function.
 #'
 #' @param ref_map [`terra::SpatRaster`] object at fine resolution.
-#' @param LC_deltas_coords Matrix, coordinates of coarse resolution grid cells. 
-#'   Can be obtained from a [`terra::SpatRaster`] object using the 
+#' @param LC_deltas_coords Matrix, coordinates of coarse resolution grid cells.
+#'   Can be obtained from a [`terra::SpatRaster`] object using the
 #'   [terra::crds()] function.
-#' @param LC_deltas_cell_numbers Numeric, cell numbers that uniquely identify 
-#'   each cell in the coarse resolution map. Should correspond to the order of 
-#'   coordinates in `LC_deltas_coords`. Can be obtained from a 
+#' @param LC_deltas_cell_numbers Numeric, cell numbers that uniquely identify
+#'   each cell in the coarse resolution map. Should correspond to the order of
+#'   coordinates in `LC_deltas_coords`. Can be obtained from a
 #'   [`terra::SpatRaster`] object using the [terra::cells()] function.
-#'   
-#' @return [`terra::SpatVector`] object of numbered polygons. The number of each 
-#'   polygon corresponds to the unique identifier of a coarse resolution grid 
-#'   cell. Each polygon encapsulates a set of fine resolution cells that have 
+#'
+#' @return [`terra::SpatVector`] object of numbered polygons. The number of each
+#'   polygon corresponds to the unique identifier of a coarse resolution grid
+#'   cell. Each polygon encapsulates a set of fine resolution cells that have
 #'   been assigned to that coarse resolution cell.
 #'
 #' @export
