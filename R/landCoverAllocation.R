@@ -184,8 +184,8 @@ getAllocationDF <- function(cell_numbers_for_allocation,
 
   # Set up data frame
   cells_for_allocation <- data.frame(cell_number = cell_numbers_for_allocation,
-                                     dec_LC_area = data.frame(updated_ref_cells[cell_numbers_for_allocation])[LC_from_name],
-                                     kernel_density = data.frame(kernel_densities[cell_numbers_for_allocation])[LC_to_name],
+                                     dec_LC_area = updated_ref_cells[cell_numbers_for_allocation][LC_from_name],
+                                     kernel_density = kernel_densities[cell_numbers_for_allocation][LC_to_name],
                                      actual_conversion = 0)
   colnames(cells_for_allocation)[3] <- "kernel_density"
 
@@ -344,8 +344,8 @@ updateRefCells <- function(cells_for_allocation,
   cell_numbers_for_allocation <- cells_for_allocation$cell_number
   actual_conversions <- cells_for_allocation$actual_conversion
 
-  updated_ref_cells[[LC_to_name]][cell_numbers_for_allocation] <- updated_ref_cells[[LC_to_name]][cell_numbers_for_allocation] + actual_conversions
-  updated_ref_cells[[LC_from_name]][cell_numbers_for_allocation] <- updated_ref_cells[[LC_from_name]][cell_numbers_for_allocation] - actual_conversions
+  updated_ref_cells[[LC_to_name]][cell_numbers_for_allocation] <- unlist(updated_ref_cells[[LC_to_name]][cell_numbers_for_allocation]) + actual_conversions
+  updated_ref_cells[[LC_from_name]][cell_numbers_for_allocation] <- unlist(updated_ref_cells[[LC_from_name]][cell_numbers_for_allocation]) - actual_conversions
 
   return(updated_ref_cells)
 }
