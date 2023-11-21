@@ -23,7 +23,7 @@ You will also need the 'devtools' package and, if on Windows, the
 
 ```r
 library("devtools")
-install_github("TamsinWoodman/LandScaleR", ref = "optimiseRcode", build_vignettes = TRUE)
+install_github("TamsinWoodman/LandScaleR", build_vignettes = TRUE)
 ```
 
 ## Using LandScaleR
