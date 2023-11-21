@@ -197,7 +197,8 @@ downscaleLC <- function(ref_map_file_name,
 
       # Load LC_deltas file
       LC_deltas <- loadLCDeltas(LC_deltas_file_list = LC_deltas_file_list,
-                                timestep = timestep)
+                                timestep = timestep,
+                                cell_size_unit = cell_size_unit)
 
       # Load ref map file
       ref_map <- loadRefMap(ref_map_file_name = ref_map_file_name,
@@ -238,7 +239,8 @@ downscaleLC <- function(ref_map_file_name,
 
       # Load LC_deltas file
       LC_deltas <- loadLCDeltas(LC_deltas_file_list = LC_deltas_file_list,
-                                timestep = timestep)
+                                timestep = timestep,
+                                cell_size_unit = cell_size_unit)
 
       # Calculate kernel densities
       kernel_densities <- calculateKernelDensities(ref_map = downscaled_map,
@@ -370,7 +372,8 @@ createOutputDir <- function(output_dir_path) {
 }
 
 loadLCDeltas <- function(LC_deltas_file_list,
-                         timestep) {
+                         timestep,
+                         cell_size_unit) {
 
   # Load LC_deltas file
   LC_deltas <- terra::rast(LC_deltas_file_list[[timestep]])
@@ -378,7 +381,8 @@ loadLCDeltas <- function(LC_deltas_file_list,
   # If cell_area layer is not present, calculate the area of each cell
   if (!"cell_area" %in% names(LC_deltas)) {
     LC_deltas <- c(LC_deltas,
-                   terra::cellSize(LC_deltas))
+                   terra::cellSize(LC_deltas[[1]],
+                                   unit = cell_size_unit))
     names(LC_deltas)[terra::nlyr(LC_deltas)] <- "cell_area"
   }
 
