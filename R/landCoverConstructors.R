@@ -2,12 +2,19 @@
 CoarseCellFromRaster <- function(cell_number,
                                  LC_deltas,
                                  LC_deltas_classes,
+                                 LC_deltas_type,
                                  ref_map_polygons,
                                  ref_map,
                                  kernel_densities) {
 
   cell_LC_deltas <- unlist(LC_deltas[cell_number])
-  cell_area <- cell_LC_deltas["cell_area"]
+  
+  ## Note that cell areas are not required if the LC deltas are provided as the 
+  ## proportion of each grid cell that changes
+  cell_area <- switch(LC_deltas_type, 
+                      "areas" = cell_LC_deltas["cell_area"],
+                      "proportions" = NA_real_)
+  
   cell_LC_deltas <- cell_LC_deltas[LC_deltas_classes]
   cell_coords <- terra::xyFromCell(LC_deltas,
                                    cell_number)

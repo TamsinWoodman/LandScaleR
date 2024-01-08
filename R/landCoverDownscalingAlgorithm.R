@@ -212,6 +212,7 @@ downscaleLC <- function(ref_map_file_name,
       # Load LC_deltas file
       LC_deltas <- loadLCDeltas(LC_deltas_file_list = LC_deltas_file_list,
                                 timestep = timestep,
+                                LC_deltas_type = LC_deltas_type,
                                 cell_size_unit = cell_size_unit)
 
       # Load ref map file
@@ -244,6 +245,7 @@ downscaleLC <- function(ref_map_file_name,
                                  FUN = CoarseCellFromRaster,
                                  LC_deltas = LC_deltas,
                                  LC_deltas_classes = LC_deltas_classes,
+                                 LC_deltas_type = LC_deltas_type,
                                  ref_map_polygons = ref_map_polygons,
                                  ref_map = ref_map,
                                  kernel_densities = kernel_densities)
@@ -254,6 +256,7 @@ downscaleLC <- function(ref_map_file_name,
       # Load LC_deltas file
       LC_deltas <- loadLCDeltas(LC_deltas_file_list = LC_deltas_file_list,
                                 timestep = timestep,
+                                LC_deltas_type = LC_deltas_type,
                                 cell_size_unit = cell_size_unit)
 
       # Calculate kernel densities
@@ -388,13 +391,16 @@ createOutputDir <- function(output_dir_path) {
 
 loadLCDeltas <- function(LC_deltas_file_list,
                          timestep,
+                         LC_deltas_type,
                          cell_size_unit) {
 
   # Load LC_deltas file
   LC_deltas <- terra::rast(LC_deltas_file_list[[timestep]])
 
   # If cell_area layer is not present, calculate the area of each cell
-  if (!"cell_area" %in% names(LC_deltas)) {
+  # Note that we only need to calculate cell areas if the input LC deltas map 
+  # type is "areas"
+  if (LC_deltas_type == "areas" & !"cell_area" %in% names(LC_deltas)) {
     LC_deltas <- c(LC_deltas,
                    terra::cellSize(LC_deltas[[1]],
                                    unit = cell_size_unit))
