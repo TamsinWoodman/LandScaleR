@@ -25,6 +25,10 @@ inputChecks <- function(ref_map_file_name,
     stop("The names of LULC change map classes must be of class character")
   }
   
+  if (!LC_deltas_type %in% c("areas", "proportions")) {
+    stop("LULC change map type must be one of \"areas\" or \"proportions\"")
+  }
+  
   if (!ref_map_type %in% c("areas", "discrete")) {
     stop("Reference map type must be one of \"areas\" or \"discrete\"")
   }
@@ -72,18 +76,23 @@ inputChecks <- function(ref_map_file_name,
 
 inputMapChecks <- function(LC_deltas,
                            ref_map,
+                           LC_deltas_type,
                            match_LC_classes) {
 
   if (!terra::crs(LC_deltas) == terra::crs(ref_map)) {
     stop("Projections of land cover change and reference maps do not match")
   }
 
-  if(!all(rownames(match_LC_classes) %in% names(LC_deltas))) {
+  if (!all(rownames(match_LC_classes) %in% names(LC_deltas))) {
     stop("Row names of the match_LC_classes matrix are not all present in the land-use change map")
   }
 
-  if(!all(colnames(match_LC_classes) %in% names(ref_map))) {
+  if (!all(colnames(match_LC_classes) %in% names(ref_map))) {
     stop("Column names of the match_LC_classes matrix are not all present in the reference map")
+  }
+  
+  if (LC_deltas_type == "proportions" & "cell_area" %in% names(LC_deltas)) {
+    warning("Cell areas do not need to be supplied if LC_deltas_type is \"proportions\"")
   }
 
 }
