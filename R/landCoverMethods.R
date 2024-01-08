@@ -16,7 +16,7 @@ setGeneric("aggRefCells", function(x) standardGeneric("aggRefCells"))
 setGeneric("aggRefCells<-", function(x, value) standardGeneric("aggRefCells<-"))
 setGeneric("refCellsArea", function(x) standardGeneric("refCellsArea"))
 setGeneric("refCellsArea<-", function(x, value) standardGeneric("refCellsArea<-"))
-setGeneric("reconcileLCDeltas", function(x, match_LC_classes) standardGeneric("reconcileLCDeltas"))
+setGeneric("reconcileLCDeltas", function(x, match_LC_classes, LC_deltas_type) standardGeneric("reconcileLCDeltas"))
 setGeneric("updateCoarseCell", function(x, LC_deltas, LC_deltas_classes, kernel_densities, ref_map_polygons) standardGeneric("updateCoarseCell"))
 setGeneric("isUnallocatedLC", function(x) standardGeneric("isUnallocatedLC"))
 setGeneric("lcDeltasAndCoords", function(x) standardGeneric("lcDeltasAndCoords"))
@@ -91,8 +91,14 @@ setMethod("updateCoarseCell", "CoarseCell", function(x,
 
 
 # Methods to reconcile LC deltas
-setMethod("reconcileLCDeltas", "CoarseCell", function(x, match_LC_classes) {
-  adjusted_LC_deltas <- x@LC_deltas * (x@ref_cells_area / x@cell_area)
+setMethod("reconcileLCDeltas", "CoarseCell", function(x, 
+                                                      match_LC_classes,
+                                                      LC_deltas_type) {
+  
+  adjusted_LC_deltas <- switch(LC_deltas_type,
+                               "areas" = x@LC_deltas * (x@ref_cells_area / x@cell_area),
+                               "proportions" = x@LC_deltas * x@ref_cells_area)
+  
   matched_LC_deltas <- colSums(match_LC_classes * adjusted_LC_deltas)
 
   x@LC_deltas <- matched_LC_deltas

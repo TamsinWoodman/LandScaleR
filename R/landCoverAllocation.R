@@ -1,11 +1,13 @@
 
 downscaleLCForOneCoarseCell <- function(coarse_cell,
                                         match_LC_classes,
+                                        LC_deltas_type,
                                         simulation_type,
                                         fuzzy_multiplier) {
 
   coarse_cell <- reconcileLCDeltas(x = coarse_cell,
-                                   match_LC_classes = match_LC_classes)
+                                   match_LC_classes = match_LC_classes,
+                                   LC_deltas_type = LC_deltas_type)
 
   # Get transition matrix showing area of LU conversion between each LC class
   LC_transitions <- getLCTransitions(LC_deltas = lcDeltas(coarse_cell))

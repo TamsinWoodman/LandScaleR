@@ -151,6 +151,7 @@
 downscaleLC <- function(ref_map_file_name,
                         LC_deltas_file_list,
                         LC_deltas_classes,
+                        LC_deltas_type = "areas",
                         ref_map_type = "areas",
                         cell_size_unit = "m",
                         match_LC_classes,
@@ -263,6 +264,7 @@ downscaleLC <- function(ref_map_file_name,
     coarse_cell_list <- lapply(coarse_cell_list,
                                downscaleLCForOneCoarseCell,
                                match_LC_classes = match_LC_classes,
+                               LC_deltas_type = LC_deltas_type,
                                simulation_type = simulation_type,
                                fuzzy_multiplier = fuzzy_multiplier)
 
