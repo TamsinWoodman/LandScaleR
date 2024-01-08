@@ -8,6 +8,7 @@ downscaleLC(
   ref_map_file_name,
   LC_deltas_file_list,
   LC_deltas_classes,
+  LC_deltas_type = "areas",
   ref_map_type = "areas",
   cell_size_unit = "m",
   match_LC_classes,
@@ -39,6 +40,11 @@ function, although the GeoTIFF format is recommended.}
 
 \item{LC_deltas_classes}{Character vector of LULC classes that occur in the
 LULC change maps.}
+
+\item{LC_deltas_type}{Character, one of "areas" or "proportions". Use "areas"
+if the LULC change maps contain the area of change for each LULC class per
+grid cell. Use "proportions" if the LULC change maps contain the change in
+each LULC class as a proportion of grid cell area.}
 
 \item{ref_map_type}{Character, one of "areas" or "discrete". If the reference
 map contains one LULC class per cell use "areas". If the reference map has
@@ -93,15 +99,24 @@ reference map.
 \subsection{Input maps}{
 
 The fine resolution reference map must be at the resolution to which the
-LULC change maps are to be downscaled. The reference and LULC maps must be
-in the same geographic projection but they do not have to cover exactly the
-same extent. The reference map can either contain one LULC class per cell
-(\verb{ref_map_type = "discrete}) or the area of each LULC class per cell
-(\code{ref_map_type = "areas"}). Note that if \code{ref_map_type = discrete} is
-specified then the LULC classes in the reference map will be prepended with
-"LC" to ensure that they are treated as characters by LandScaleR. The LULC
-change maps and reference map do not have to contain the same LULC classes,
-as these can be matched using the \code{match_LC_classes} argument.
+LULC change maps are to be downscaled. The reference and LULC change maps
+must be in the same geographic projection but they do not have to cover
+exactly the same extent. The reference map can either contain one LULC
+class per cell (\verb{ref_map_type = "discrete}) or the area of each LULC class
+per cell (\code{ref_map_type = "areas"}). Note that if \code{ref_map_type = discrete}
+is specified then the LULC classes in the reference map will be prepended
+with "LC" to ensure that they are treated as characters by LandScaleR.
+
+The LULC change maps can give LULC change in terms of the area of change
+for each LULC class per grid cell (\code{LC_deltas_type = "areas"}).
+Alternatively, LULC change maps can provide LULC change as the proportion
+of a grid cell which changed in each timestep. For example, if
+\code{LC_deltas_type = "proportions"} a value of 0.2 for cropland in one grid
+cell would mean that 20\% of the grid cell was converted to cropland during
+the current timestep.
+
+The LULC change maps and reference map do not have to contain the same LULC
+classes, as these can be matched using the \code{match_LC_classes} argument.
 }
 
 \subsection{Grid cell areas}{
