@@ -4,6 +4,13 @@
 Dependencies:
 - `LandScaleR` now depends on `terra` version >=1.6-53
 
+New functionality:
+- LULC change maps can contain LULC change for each class as a proportion of a grid cell
+- The LULC `LC_deltas_classes` input argument has been removed as the LULC change map classes are now derived from the `match_LC_classes` matrix
+
+Bug fixes:
+- The unit for calculating cell sizes is now provided to the `loadLCDeltas` function so that cell areas are calculated with the user-specified units
+
 # Version 1.0.2
 
 Documentation:
