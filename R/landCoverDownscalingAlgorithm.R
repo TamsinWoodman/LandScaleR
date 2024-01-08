@@ -22,8 +22,6 @@
 #'   every LULC change map; this layer must be named "cell_area". Each LULC
 #'   change map must be in a file format that can be read by the [terra::rast()]
 #'   function, although the GeoTIFF format is recommended.
-#' @param LC_deltas_classes Character vector of LULC classes that occur in the
-#'   LULC change maps.
 #' @param LC_deltas_type Character, one of "areas" or "proportions". Use "areas"
 #'   if the LULC change maps contain the area of change for each LULC class per 
 #'   grid cell. Use "proportions" if the LULC change maps contain the change in 
@@ -163,7 +161,6 @@
 #' @export
 downscaleLC <- function(ref_map_file_name,
                         LC_deltas_file_list,
-                        LC_deltas_classes,
                         LC_deltas_type = "areas",
                         ref_map_type = "areas",
                         cell_size_unit = "m",
@@ -181,7 +178,6 @@ downscaleLC <- function(ref_map_file_name,
   ## Check inputs
   inputChecks(ref_map_file_name = ref_map_file_name,
               LC_deltas_file_list = LC_deltas_file_list,
-              LC_deltas_classes = LC_deltas_classes,
               LC_deltas_type = LC_deltas_type,
               ref_map_type = ref_map_type,
               cell_size_unit = cell_size_unit,
@@ -200,6 +196,9 @@ downscaleLC <- function(ref_map_file_name,
 
   # Calculate distance matrix
   distance_mat <- getDistMatrix(kernel_radius = kernel_radius)
+  
+  # Get the names of LULC classes in the LULC change map
+  LC_deltas_classes <- rownames(match_LC_classes)
 
   # set the seed
   set.seed(random_seed)

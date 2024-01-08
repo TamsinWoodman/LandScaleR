@@ -1,7 +1,7 @@
 
 inputChecks <- function(ref_map_file_name,
                         LC_deltas_file_list,
-                        LC_deltas_classes,
+                        LC_deltas_type,
                         ref_map_type,
                         cell_size_unit,
                         match_LC_classes,
@@ -21,10 +21,6 @@ inputChecks <- function(ref_map_file_name,
     stop("The names of LULC change maps must be provided as a list")
   }
   
-  if (class(LC_deltas_classes) != "character") {
-    stop("The names of LULC change map classes must be of class character")
-  }
-  
   if (!LC_deltas_type %in% c("areas", "proportions")) {
     stop("LULC change map type must be one of \"areas\" or \"proportions\"")
   }
@@ -39,10 +35,6 @@ inputChecks <- function(ref_map_file_name,
   
   if (class(match_LC_classes)[1] != "matrix") {
     stop("Match_LC_classes must be of class matrix")
-  }
-  
-  if (!all(LC_deltas_classes == rownames(match_LC_classes))) {
-    stop("Row names of the match_LC_classes matrix must be the same as the LC_deltas_classes argument")
   }
   
   if (class(kernel_radius) != "numeric") {

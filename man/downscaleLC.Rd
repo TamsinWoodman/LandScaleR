@@ -7,7 +7,6 @@
 downscaleLC(
   ref_map_file_name,
   LC_deltas_file_list,
-  LC_deltas_classes,
   LC_deltas_type = "areas",
   ref_map_type = "areas",
   cell_size_unit = "m",
@@ -37,9 +36,6 @@ total land area per coarse resolution cell can optionally be included in
 every LULC change map; this layer must be named "cell_area". Each LULC
 change map must be in a file format that can be read by the \code{\link[terra:rast]{terra::rast()}}
 function, although the GeoTIFF format is recommended.}
-
-\item{LC_deltas_classes}{Character vector of LULC classes that occur in the
-LULC change maps.}
 
 \item{LC_deltas_type}{Character, one of "areas" or "proportions". Use "areas"
 if the LULC change maps contain the area of change for each LULC class per
