@@ -228,6 +228,7 @@ sortCellsForAllocation <- function(cells_for_allocation) {
   return(cells_for_allocation_sorted)
 }
 
+#' @importFrom stats sd
 getFuzzyKernelDensities <- function(cells_for_allocation,
                                     fuzzy_multiplier) {
 

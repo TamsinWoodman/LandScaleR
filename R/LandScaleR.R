@@ -9,6 +9,7 @@
                         "type 'LandScaleR_license' for details.")
 }
 
+#' Print the LandScaleR license
 #' @export
 LandScaleR_license <- function() {
   
