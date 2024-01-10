@@ -10,6 +10,7 @@ downscaleLC(
   LC_deltas_type = "areas",
   ref_map_type = "areas",
   cell_size_unit = "m",
+  assign_ref_cells = TRUE,
   match_LC_classes,
   kernel_radius,
   simulation_type = "deterministic",
@@ -50,6 +51,12 @@ use "discrete".}
 \item{cell_size_unit}{Character, unit for calculating grid cell areas. Must
 be one of "km", "m", or "ha". Cell areas are calculated using the
 \code{\link[terra:cellSize]{terra::cellSize()}} function.}
+
+\item{assign_ref_cells}{Logical, individually assign reference map grid cells
+to coarse resolution LULC change map cells if \code{assign_ref_cells = TRUE}. If
+\code{assign_ref_cells = FALSE} the algorithm assumes that all reference map
+cells are encapsulated within a coarse cell and will not perform individual
+assignment of reference cells.}
 
 \item{match_LC_classes}{Matrix, specifies the proportion of each LULC class
 from the LULC change maps that corresponds to every reference map LULC

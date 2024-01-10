@@ -33,6 +33,11 @@
 #' @param cell_size_unit Character, unit for calculating grid cell areas. Must
 #'   be one of "km", "m", or "ha". Cell areas are calculated using the
 #'   [terra::cellSize()] function.
+#' @param assign_ref_cells Logical, individually assign reference map grid cells
+#'   to coarse resolution LULC change map cells if `assign_ref_cells = TRUE`. If
+#'   `assign_ref_cells = FALSE` the algorithm assumes that all reference map 
+#'   cells are encapsulated within a coarse cell and will not perform individual
+#'   assignment of reference cells.
 #' @param match_LC_classes Matrix, specifies the proportion of each LULC class
 #'   from the LULC change maps that corresponds to every reference map LULC
 #'   class. Columns contain reference map LULC classes and rows LULC change map
