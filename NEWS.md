@@ -7,6 +7,7 @@ Dependencies:
 New functionality:
 - LULC change maps can contain LULC change for each class as a proportion of a grid cell
 - The LULC `LC_deltas_classes` input argument has been removed as the LULC change map classes are now derived from the `match_LC_classes` matrix
+- The `assign_ref_cells` input argument has been added to allow for the individual assignment of reference map cells to LULC change map cells to be turned off
 
 Bug fixes:
 - The unit for calculating cell sizes is now provided to the `loadLCDeltas` function so that cell areas are calculated with the user-specified units
