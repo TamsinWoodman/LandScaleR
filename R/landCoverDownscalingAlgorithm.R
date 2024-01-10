@@ -499,12 +499,12 @@ assignRefMapCells <- function(ref_map,
 makePolygonsFromCoarseCells <- function(LC_deltas,
                                         LC_deltas_cell_numbers) {
   
-  coarse_rast_for_polygons <- rast(LC_deltas[[1]])
+  coarse_rast_for_polygons <- terra::rast(LC_deltas[[1]])
   names(coarse_rast_for_polygons) <- "coarse_ID"
   
-  values(coarse_rast_for_polygons) <- LC_deltas_cell_numbers
+  terra::values(coarse_rast_for_polygons) <- LC_deltas_cell_numbers
   
-  coarse_polygons <- as.polygons(coarse_rast_for_polygons,
+  coarse_polygons <- terra::as.polygons(coarse_rast_for_polygons,
                                  dissolve = FALSE)
   
   return(coarse_polygons)
