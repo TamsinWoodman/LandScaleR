@@ -164,6 +164,7 @@ downscaleLC <- function(ref_map_file_name,
                         LC_deltas_type = "areas",
                         ref_map_type = "areas",
                         cell_size_unit = "m",
+                        assign_ref_cells = TRUE,
                         match_LC_classes,
                         kernel_radius,
                         simulation_type = "deterministic",
@@ -232,9 +233,18 @@ downscaleLC <- function(ref_map_file_name,
                                                   LC_deltas_coords)
 
       # Get polygons of ref map cells for each coarse cell
-      ref_map_polygons <- assignRefMapCells(ref_map = ref_map,
-                                            LC_deltas_coords = LC_deltas_coords,
-                                            LC_deltas_cell_numbers = LC_deltas_cell_numbers)
+      if (assign_ref_cells) {
+        
+        ref_map_polygons <- assignRefMapCells(ref_map = ref_map,
+                                              LC_deltas_coords = LC_deltas_coords,
+                                              LC_deltas_cell_numbers = LC_deltas_cell_numbers)
+        
+      } else {
+        
+        ref_map_polygons <- makePolygonsFromCoarseCells(LC_deltas = LC_deltas, 
+                                                        LC_deltas_cell_numbers = LC_deltas_cell_numbers)
+
+      }
 
       # Calculate kernel densities
       kernel_densities <- calculateKernelDensities(ref_map = ref_map,
@@ -479,4 +489,18 @@ assignRefMapCells <- function(ref_map,
                    "Assigned reference map cells to coarse-scale map cells in ")
 
   return(ref_map_polygons)
+}
+
+makePolygonsFromCoarseCells <- function(LC_deltas,
+                                        LC_deltas_cell_numbers) {
+  
+  coarse_rast_for_polygons <- rast(LC_deltas[[1]])
+  names(coarse_rast_for_polygons) <- "coarse_ID"
+  
+  values(coarse_rast_for_polygons) <- LC_deltas_cell_numbers
+  
+  coarse_polygons <- as.polygons(coarse_rast_for_polygons,
+                                 dissolve = FALSE)
+  
+  return(coarse_polygons)
 }
