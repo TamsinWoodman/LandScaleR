@@ -108,39 +108,49 @@ setMethod("reconcileLCDeltas", "CoarseCell", function(x,
 # Method to check a coarse cell for unallocated land cover
 setMethod("isUnallocatedLC", "CoarseCell", function(x) {
 
-  area_tolerance <- (x@ref_cells_area / 100) * 0.01
-
-  # Check if any LC_deltas are more than or equal to 0
-  if (any(x@LC_deltas > area_tolerance)) {
-    return(TRUE)
-  } else {
+  if (is.na(x@ref_cells_area)) {
+    # This accounts for cases where there are no reference map cells in a coarse resolution grid cell
     return(FALSE)
+    
+  } else {
+    
+    area_tolerance <- (x@ref_cells_area / 100) * 0.01
+    
+    # Check if any LC_deltas are more than or equal to 0
+    if (any(x@LC_deltas > area_tolerance)) {
+      return(TRUE)
+    } else {
+      return(FALSE)
+    }
+    
   }
+  
 })
 
 
 # Method to check that areas match after downscaling and harmonisation`
 setMethod("areasMatch", "CoarseCell", function(x) {
 
-
-  total_old_area <- x@ref_cells_area
-  # New area must be within 0.01% of the original area
-  area_tolerance <- (total_old_area / 100) * 0.0001
-
-  new_area <- unlist(terra::global(x@ref_cells,
-                                   fun = "sum",
-                                   na.rm = TRUE))
-  total_new_area <- sum(new_area)
-
-  if(total_new_area < total_old_area - area_tolerance |
+  if (!is.na(x@ref_cells_area)) {
+    
+    total_old_area <- x@ref_cells_area
+    # New area must be within 0.01% of the original area
+    area_tolerance <- (total_old_area / 100) * 0.0001
+    
+    new_area <- unlist(terra::global(x@ref_cells,
+                                     fun = "sum",
+                                     na.rm = TRUE))
+    total_new_area <- sum(new_area)
+    
+    if(total_new_area < total_old_area - area_tolerance |
        total_new_area > total_old_area + area_tolerance) {
-
-    warning("Total area of reference cells before and after downscaling does not match")
-    print(paste0("New area: ",
-                 total_new_area))
-    print(paste0("Old area: ",
-                 total_old_area))
-
+      
+      warning("Total area of reference cells before and after downscaling does not match. New area: ",
+              total_new_area,
+              " Old area: ",
+              total_old_area)
+      
+    }
   }
 
 })

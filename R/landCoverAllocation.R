@@ -4,18 +4,31 @@ downscaleLCForOneCoarseCell <- function(coarse_cell,
                                         LC_deltas_type,
                                         simulation_type,
                                         fuzzy_multiplier) {
-
-  coarse_cell <- reconcileLCDeltas(x = coarse_cell,
-                                   match_LC_classes = match_LC_classes,
-                                   LC_deltas_type = LC_deltas_type)
-
-  # Get transition matrix showing area of LU conversion between each LC class
-  LC_transitions <- getLCTransitions(LC_deltas = lcDeltas(coarse_cell))
-
-  updated_coarse_cell <- allocateLCTransitions(coarse_cell = coarse_cell,
-                                               LC_transitions = LC_transitions,
-                                               simulation_type = simulation_type,
-                                               fuzzy_multiplier = fuzzy_multiplier)
+  
+  if (is.na(refCellsArea(coarse_cell))) {
+    
+    updated_coarse_cell <- coarse_cell
+    
+    warning("There are no reference map cells in coarse cell: ", 
+            lcDeltasAndCoords(coarse_cell)[1],
+            ", ",
+            lcDeltasAndCoords(coarse_cell)[2])
+    
+  } else {
+    
+    coarse_cell <- reconcileLCDeltas(x = coarse_cell,
+                                     match_LC_classes = match_LC_classes,
+                                     LC_deltas_type = LC_deltas_type)
+    
+    # Get transition matrix showing area of LU conversion between each LC class
+    LC_transitions <- getLCTransitions(LC_deltas = lcDeltas(coarse_cell))
+    
+    updated_coarse_cell <- allocateLCTransitions(coarse_cell = coarse_cell,
+                                                 LC_transitions = LC_transitions,
+                                                 simulation_type = simulation_type,
+                                                 fuzzy_multiplier = fuzzy_multiplier)
+    
+  }
 
   return(updated_coarse_cell)
 }
@@ -29,7 +42,7 @@ downscaleLCForOneCoarseCell <- function(coarse_cell,
 #'
 #' @return Data frame giving order and magnitude of land cover transitions.
 getLCTransitions <- function(LC_deltas) {
-
+  
   # Get increasing and decreasing LC deltas
   inc_LC_deltas <- LC_deltas[LC_deltas > 0]
   dec_LC_deltas <- LC_deltas[LC_deltas < 0]
