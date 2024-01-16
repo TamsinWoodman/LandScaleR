@@ -330,6 +330,7 @@ downscaleLC <- function(ref_map_file_name,
     ## memory requirements
     downscaled_tiles <- lapply(coarse_cell_list,
                                FUN = refCells)
+    chunk_size <- 10 ^ floor(log10(length(downscaled_tiles)))
     mosaic_chunks <- ceiling(length(downscaled_tiles) / 100)
 
     if (mosaic_chunks == 1) {
@@ -343,8 +344,8 @@ downscaleLC <- function(ref_map_file_name,
 
       for (chunk in 1:mosaic_chunks) {
 
-        end_pos <- chunk * 100
-        start_pos <- end_pos - 99
+        end_pos <- chunk * chunk_size
+        start_pos <- end_pos - (chunk_size - 1)
         end_pos <- ifelse(end_pos > length(downscaled_tiles),
                           length(downscaled_tiles),
                           end_pos)
