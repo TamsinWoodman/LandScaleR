@@ -41,6 +41,8 @@ kernelDensitiesEquation <- function(x,
 
 calculateKernelDensities <- function(ref_map,
                                      distance_mat) {
+  
+  kd_start <- Sys.time()
 
   kernel_densities <- ref_map
 
@@ -51,6 +53,11 @@ calculateKernelDensities <- function(ref_map,
                                           cell_distances = distance_mat,
                                           na.policy = "omit")
   }
+  
+  kd_end <- Sys.time()
+  timeCheckMessage(kd_start,
+                   kd_end,
+                   "Calculated kernel densities in ")
 
   return(kernel_densities)
 }
