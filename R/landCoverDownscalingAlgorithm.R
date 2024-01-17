@@ -331,7 +331,7 @@ downscaleLC <- function(ref_map_file_name,
     downscaled_tiles <- lapply(coarse_cell_list,
                                FUN = refCells)
     chunk_size <- 10 ^ floor(log10(length(downscaled_tiles)))
-    mosaic_chunks <- ceiling(length(downscaled_tiles) / 100)
+    mosaic_chunks <- ceiling(length(downscaled_tiles) / chunk_size)
 
     if (mosaic_chunks == 1) {
 
@@ -340,7 +340,7 @@ downscaleLC <- function(ref_map_file_name,
     } else if (mosaic_chunks > 1) {
 
       downscaled_chunks <- vector(mode = "list",
-                                  length = length(mosaic_chunks))
+                                  length = length(1:mosaic_chunks))
 
       for (chunk in 1:mosaic_chunks) {
 
