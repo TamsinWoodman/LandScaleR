@@ -41,12 +41,13 @@ function, although the GeoTIFF format is recommended.}
 \item{LC_deltas_type}{Character, one of "areas" or "proportions". Use "areas"
 if the LULC change maps contain the area of change for each LULC class per
 grid cell. Use "proportions" if the LULC change maps contain the change in
-each LULC class as a proportion of grid cell area.}
+each LULC class as a proportion of total grid cell area.}
 
 \item{ref_map_type}{Character, one of "areas" or "discrete". If the reference
-map contains one LULC class per cell use "areas". If the reference map has
-one layer per LULC class containing the area of each LULC class per cell
-use "discrete".}
+map contains one LULC class per cell use "areas". Note that the layer names
+of a reference map with one LULC class per cell must not be numeric. If the
+reference map has one layer per LULC class containing the area of each LULC
+class per cell use "discrete".}
 
 \item{cell_size_unit}{Character, unit for calculating grid cell areas. Must
 be one of "km", "m", or "ha". Cell areas are calculated using the

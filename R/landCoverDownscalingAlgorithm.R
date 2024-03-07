@@ -25,7 +25,7 @@
 #' @param LC_deltas_type Character, one of "areas" or "proportions". Use "areas"
 #'   if the LULC change maps contain the area of change for each LULC class per 
 #'   grid cell. Use "proportions" if the LULC change maps contain the change in 
-#'   each LULC class as a proportion of grid cell area.
+#'   each LULC class as a proportion of total grid cell area.
 #' @param ref_map_type Character, one of "areas" or "discrete". If the reference
 #'   map contains one LULC class per cell use "areas". Note that the layer names
 #'   of a reference map with one LULC class per cell must not be numeric. If the
@@ -219,7 +219,6 @@ downscaleLC <- function(ref_map_file_name,
       # Load LC_deltas file
       LC_deltas <- loadLCDeltas(LC_deltas_file_list = LC_deltas_file_list,
                                 timestep = timestep,
-                                LC_deltas_type = LC_deltas_type,
                                 cell_size_unit = cell_size_unit)
 
       # Load ref map file
@@ -230,7 +229,6 @@ downscaleLC <- function(ref_map_file_name,
       # Input checks
       inputMapChecks(LC_deltas = LC_deltas,
                      ref_map = ref_map,
-                     LC_deltas_type = LC_deltas_type,
                      match_LC_classes = match_LC_classes)
 
       # Assign ref map cells to LC_deltas cells
@@ -262,7 +260,6 @@ downscaleLC <- function(ref_map_file_name,
                                  FUN = CoarseCellFromRaster,
                                  LC_deltas = LC_deltas,
                                  LC_deltas_classes = LC_deltas_classes,
-                                 LC_deltas_type = LC_deltas_type,
                                  ref_map_polygons = ref_map_polygons,
                                  ref_map = ref_map,
                                  kernel_densities = kernel_densities)
@@ -273,7 +270,6 @@ downscaleLC <- function(ref_map_file_name,
       # Load LC_deltas file
       LC_deltas <- loadLCDeltas(LC_deltas_file_list = LC_deltas_file_list,
                                 timestep = timestep,
-                                LC_deltas_type = LC_deltas_type,
                                 cell_size_unit = cell_size_unit)
 
       # Calculate kernel densities
@@ -409,7 +405,6 @@ createOutputDir <- function(output_dir_path) {
 
 loadLCDeltas <- function(LC_deltas_file_list,
                          timestep,
-                         LC_deltas_type,
                          cell_size_unit) {
 
   # Load LC_deltas file
@@ -418,7 +413,7 @@ loadLCDeltas <- function(LC_deltas_file_list,
   # If cell_area layer is not present, calculate the area of each cell
   # Note that we only need to calculate cell areas if the input LC deltas map 
   # type is "areas"
-  if (LC_deltas_type == "areas" & !"cell_area" %in% names(LC_deltas)) {
+  if (!"cell_area" %in% names(LC_deltas)) {
     LC_deltas <- c(LC_deltas,
                    terra::cellSize(LC_deltas[[1]],
                                    unit = cell_size_unit))

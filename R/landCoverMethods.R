@@ -97,7 +97,7 @@ setMethod("reconcileLCDeltas", "CoarseCell", function(x,
   
   adjusted_LC_deltas <- switch(LC_deltas_type,
                                "areas" = x@LC_deltas * (x@ref_cells_area / x@cell_area),
-                               "proportions" = x@LC_deltas * x@ref_cells_area)
+                               "proportions" = x@LC_deltas * x@cell_area)
   
   matched_LC_deltas <- colSums(match_LC_classes * adjusted_LC_deltas)
 
