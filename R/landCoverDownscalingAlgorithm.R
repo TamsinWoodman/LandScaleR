@@ -308,7 +308,10 @@ downscaleLC <- function(ref_map_file_name,
 
     coarse_cell_list <- harmoniseUnallocatedLC(coarse_cell_list = coarse_cell_list,
                                                simulation_type = simulation_type,
-                                               fuzzy_multiplier = fuzzy_multiplier)
+                                               fuzzy_multiplier = fuzzy_multiplier,
+                                               timestep = timestep,
+                                               output_file_prefix = output_file_prefix, 
+                                               output_dir_path = output_dir_path)
 
     harmonisation_end <- Sys.time()
     timeCheckMessage(harmonisation_start,

@@ -4,7 +4,10 @@
 
 harmoniseUnallocatedLC <- function(coarse_cell_list,
                                    simulation_type,
-                                   fuzzy_multiplier) {
+                                   fuzzy_multiplier,
+                                   timestep,
+                                   output_file_prefix,
+                                   output_dir_path) {
 
   for (i in 1:length(coarse_cell_list)) {
 
@@ -110,6 +113,10 @@ harmoniseUnallocatedLC <- function(coarse_cell_list,
 
   ## Print warnings for unallocated land cover change
   for (m in 1:length(coarse_cell_list)) {
+    
+    unallocated_file_name <- paste0(output_dir_path, 
+                                    output_file_prefix,
+                                    "_unallocated_LC.txt")
 
     if (isUnallocatedLC(coarse_cell_list[[m]])) {
 
@@ -121,6 +128,15 @@ harmoniseUnallocatedLC <- function(coarse_cell_list,
               sum(cell_LC_deltas[cell_LC_deltas < 0]),
               " unallocated land cover change in grid cell: ")
       print(lcDeltasAndCoords(coarse_cell_list[[m]]))
+      
+      write.table(data.frame(Timestep = timestep, 
+                             lcDeltasAndCoords(coarse_cell_list[[m]])),
+                  file = unallocated_file_name,
+                  quote = FALSE,
+                  sep = "\t",
+                  row.names = FALSE, 
+                  append = TRUE, 
+                  col.names=!file.exists(unallocated_file_name))
 
     }
   }
