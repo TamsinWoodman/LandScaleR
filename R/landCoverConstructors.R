@@ -10,6 +10,8 @@ CoarseCellFromRaster <- function(cell_number,
   
   cell_area <- cell_LC_deltas["cell_area"]
   
+  # The line of code below means that the order of LULC classes will be the same
+  # as the order of LULC classes in the match_LC_classes matrix 
   cell_LC_deltas <- cell_LC_deltas[LC_deltas_classes]
   cell_coords <- terra::xyFromCell(LC_deltas,
                                    cell_number)
