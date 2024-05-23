@@ -3,14 +3,20 @@
 
 Dependencies:
 - `LandScaleR` now depends on `terra` version >=1.6-53
+    - Note that `LandScaleR` is not currently compatible with versions 1.7-37 and 1.7-39 of `terra`
 
 New functionality:
 - LULC change maps can contain LULC change for each class as a proportion of a grid cell
-- The LULC `LC_deltas_classes` input argument has been removed as the LULC change map classes are now derived from the `match_LC_classes` matrix
-- The `assign_ref_cells` input argument has been added to allow for the individual assignment of reference map cells to LULC change map cells to be turned off
+    - LULC change proportions for one coarse resolution grid cell are multiplied by the total area of that cell to get LULC change areas for downscaling
+- Removed the LULC `LC_deltas_classes` input argument as the LULC change map classes are now derived from the `match_LC_classes` matrix
+- Added the `assign_ref_cells` input argument to allow for the individual assignment of reference map cells to LULC change map cells to be turned off
+- Prints out time check for calculation of kernel densities
+- Added a warning that layer names of area-based reference maps must not be numeric
+- Added a warning if a coarse resolution grid cell has no fine resolution grid cells assigned to it
 
 Bug fixes:
 - The unit for calculating cell sizes is now provided to the `loadLCDeltas` function so that cell areas are calculated with the user-specified units
+- Updated the code to merge downscaled coarse resolution grid cells so that it can handle much larger maps
 
 # Version 1.0.2
 
