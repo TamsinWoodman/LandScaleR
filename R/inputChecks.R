@@ -37,6 +37,19 @@ inputChecks <- function(ref_map_file_name,
     stop("Match_LC_classes must be of class matrix")
   }
   
+  # Check properties of match_LC_classes
+  row_sums_match_LC_classes <- rowSums(match_LC_classes)
+  
+  # All rows must sum to an integer value
+  if (any(row_sums_match_LC_classes %% 1 != 0)) {
+    stop("All rows in match_LC_classes must sum to an integer")
+  }
+  
+  # No values can be greater than 1
+  if (any(match_LC_classes > 1 | match_LC_classes < 0)) {
+    stop("All values in match_LC_classes must be between 0 and 1")
+  }
+  
   if (class(kernel_radius) != "numeric") {
     stop("Kernel radius must be numeric")
   }

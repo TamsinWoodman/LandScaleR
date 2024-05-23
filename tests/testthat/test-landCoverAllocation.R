@@ -1,4 +1,262 @@
 
+test_that("getCellMatchLCClasses makes no changes if sum of all rows equals 1", {
+  
+  test_coarse_cell <- createCoarseCellForTests()
+  coarse_LC_classes <- c("managedForest",
+                         "unmanagedForest",
+                         "otherNatural",
+                         "cropland",
+                         "pasture",
+                         "barren",
+                         "urban")
+  ref_LC_classes <- c("pri",
+                      "sec",
+                      "crp",
+                      "pas",
+                      "urb")
+  
+  # Case 1 - one coarse class split between two ref classes
+  expected_df1 <- matrix(data = c(0, 1, 0.5, 0, 0, 0, 0,
+                                  1, 0, 0.5, 0, 0, 1, 0,
+                                  0, 0, 0, 1, 0, 0, 0,
+                                  0, 0, 0, 0, 1, 0, 0,
+                                  0, 0, 0, 0, 0, 0, 1),
+                         nrow = 7,
+                         ncol = 5,
+                         dimnames = list(coarse_LC_classes,
+                                         ref_LC_classes))
+  actual_df1 <- getCellMatchLCClasses(match_LC_classes = expected_df1, 
+                                      coarse_cell = test_coarse_cell)
+  
+  # Case 2 - every coarse class matched to one ref class
+  expected_df2 <- matrix(data = c(0, 1, 0, 0, 0, 0, 0,
+                                  1, 0, 1, 0, 0, 1, 0,
+                                  0, 0, 0, 1, 0, 0, 0,
+                                  0, 0, 0, 0, 1, 0, 0,
+                                  0, 0, 0, 0, 0, 0, 1),
+                         nrow = 7,
+                         ncol = 5,
+                         dimnames = list(coarse_LC_classes,
+                                         ref_LC_classes))
+  actual_df2 <- getCellMatchLCClasses(match_LC_classes = expected_df2, 
+                                      coarse_cell = test_coarse_cell)
+  
+  expect_equal(actual_df1, 
+               expected_df1)
+  expect_equal(actual_df2,
+               expected_df2)
+})
+
+test_that("getCellMatchLCClasses gets cell-specific ratios if any rows sum to > 1", {
+  
+  test_coarse_cell <- createCoarseCellForTests()
+  coarse_LC_classes <- c("managedForest",
+                         "unmanagedForest",
+                         "otherNatural",
+                         "cropland",
+                         "pasture",
+                         "barren",
+                         "urban")
+  ref_LC_classes <- c("pri",
+                      "sec",
+                      "crp",
+                      "pas",
+                      "urb")
+  
+  # Case 1 - split proportionally between two ref classes
+  match_LC_classes1 <- matrix(data = c(0, 1, 1, 0, 0, 0, 0,
+                                       1, 0, 1, 0, 0, 1, 0,
+                                       0, 0, 0, 1, 0, 0, 0,
+                                       0, 0, 0, 0, 1, 0, 0,
+                                       0, 0, 0, 0, 0, 0, 1),
+                              nrow = 7,
+                              ncol = 5,
+                              dimnames = list(coarse_LC_classes, 
+                                              ref_LC_classes))
+  expected_df1 <- matrix(data = c(0, 1, 0.46153846, 0, 0, 0, 0,
+                                  1, 0, 0.53846154, 0, 0, 1, 0,
+                                  0, 0, 0, 1, 0, 0, 0,
+                                  0, 0, 0, 0, 1, 0, 0,
+                                  0, 0, 0, 0, 0, 0, 1),
+                         nrow = 7,
+                         ncol = 5,
+                         dimnames = list(coarse_LC_classes, 
+                                         ref_LC_classes))
+  actual_df1 <- getCellMatchLCClasses(match_LC_classes = match_LC_classes1, 
+                                      coarse_cell = test_coarse_cell)
+  
+  # Case 2 - split one coarse class with set proportions and one with grid 
+  # cell-specific proportions
+  match_LC_classes2 <- matrix(data = c(0, 1, 0.5, 0, 0, 0, 0,
+                                       1, 0, 0.5, 0, 0, 1, 0,
+                                       0, 0, 0, 1, 0, 0, 0,
+                                       0, 0, 0, 0, 1, 0, 0,
+                                       0, 0, 0, 0, 0, 1, 1),
+                              nrow = 7,
+                              ncol = 5,
+                              dimnames = list(coarse_LC_classes, 
+                                              ref_LC_classes))
+  expected_df2 <- matrix(data = c(0, 1, 0.5, 0, 0, 0, 0,
+                                  1, 0, 0.5, 0, 0, 0.59574468, 0,
+                                  0, 0, 0, 1, 0, 0, 0,
+                                  0, 0, 0, 0, 1, 0, 0,
+                                  0, 0, 0, 0, 0, 0.40425532, 1),
+                         nrow = 7,
+                         ncol = 5,
+                         dimnames = list(coarse_LC_classes, 
+                                         ref_LC_classes))
+  actual_df2 <- getCellMatchLCClasses(match_LC_classes = match_LC_classes2, 
+                                      coarse_cell = test_coarse_cell)
+  
+  # Case 3 - split one coarse class between all ref classes
+  match_LC_classes3 <- matrix(data = c(0, 1, 1, 0, 0, 0, 0,
+                                       1, 0, 1, 0, 0, 1, 0,
+                                       0, 0, 1, 1, 0, 0, 0,
+                                       0, 0, 1, 0, 1, 0, 0,
+                                       0, 0, 1, 0, 0, 1, 1),
+                              nrow = 7,
+                              ncol = 5,
+                              dimnames = list(coarse_LC_classes, 
+                                              ref_LC_classes))
+  expected_df3 <- matrix(data = c(0, 1, 0.24, 0, 0, 0, 0,
+                                  1, 0, 0.28, 0, 0, 0.59574468, 0,
+                                  0, 0, 0.12, 1, 0, 0, 0,
+                                  0, 0, 0.17, 0, 1, 0, 0,
+                                  0, 0, 0.19, 0, 0, 0.40425532, 1),
+                         nrow = 7,
+                         ncol = 5,
+                         dimnames = list(coarse_LC_classes, 
+                                         ref_LC_classes))
+  actual_df3 <- getCellMatchLCClasses(match_LC_classes = match_LC_classes3, 
+                                      coarse_cell = test_coarse_cell)
+  
+  # Case 4 - split proportionally between three ref classes when one is zero in 
+  # the ref map
+  test_coarse_cell4 <- test_coarse_cell
+  test_coarse_cell4@ref_cells[["pas"]] <- test_coarse_cell4@ref_cells[["pas"]] + 
+    test_coarse_cell4@ref_cells[["urb"]]
+  terra::values(test_coarse_cell4@ref_cells[["urb"]]) <- 0
+  test_coarse_cell4@agg_ref_cells <- unlist(terra::global(test_coarse_cell4@ref_cells,
+                                                          fun = "sum",
+                                                          na.rm = TRUE))
+  names(test_coarse_cell4@agg_ref_cells) <- names(test_coarse_cell4@ref_cells)
+  
+  match_LC_classes4 <- matrix(data = c(0, 1, 1, 0, 0, 0, 0,
+                                       1, 0, 1, 0, 0, 1, 0,
+                                       0, 0, 0, 1, 0, 0, 0,
+                                       0, 0, 0, 0, 1, 0, 0,
+                                       0, 0, 1, 0, 0, 0, 1),
+                              nrow = 7,
+                              ncol = 5,
+                              dimnames = list(coarse_LC_classes, 
+                                              ref_LC_classes))
+  expected_df4 <- matrix(data = c(0, 1, 0.46153846, 0, 0, 0, 0,
+                                  1, 0, 0.53846154, 0, 0, 1, 0,
+                                  0, 0, 0, 1, 0, 0, 0,
+                                  0, 0, 0, 0, 1, 0, 0,
+                                  0, 0, 0, 0, 0, 0, 1),
+                         nrow = 7,
+                         ncol = 5,
+                         dimnames = list(coarse_LC_classes, 
+                                         ref_LC_classes))
+  actual_df4 <- getCellMatchLCClasses(match_LC_classes = match_LC_classes4, 
+                                      coarse_cell = test_coarse_cell4)
+  
+  expect_equal(actual_df1, 
+               expected_df1)
+  expect_equal(actual_df2, 
+               expected_df2)
+  expect_equal(actual_df3, 
+               expected_df3)
+  expect_equal(actual_df4, 
+               expected_df4)
+})
+
+test_that("getCellMatchLCClasses splits LULC equally if any rows sum to >1 and all classes are zero in the ref map", {
+  
+  test_coarse_cell <- createCoarseCellForTests()
+  test_coarse_cell@ref_cells[["crp"]] <- test_coarse_cell@ref_cells[["crp"]] + 
+    test_coarse_cell@ref_cells[["pri"]] + 
+    test_coarse_cell@ref_cells[["sec"]]
+  terra::values(test_coarse_cell@ref_cells[["pri"]]) <- 0
+  terra::values(test_coarse_cell@ref_cells[["sec"]]) <- 0
+  test_coarse_cell@agg_ref_cells <- unlist(terra::global(test_coarse_cell@ref_cells,
+                                                         fun = "sum",
+                                                         na.rm = TRUE))
+  names(test_coarse_cell@agg_ref_cells) <- names(test_coarse_cell@ref_cells)
+  
+  coarse_LC_classes <- c("managedForest",
+                         "unmanagedForest",
+                         "otherNatural",
+                         "cropland",
+                         "pasture",
+                         "barren",
+                         "urban")
+  ref_LC_classes <- c("pri",
+                      "sec",
+                      "crp",
+                      "pas",
+                      "urb")
+  
+  # Case 1 - split between two ref classes which are both zero in the ref map
+  match_LC_classes1 <- matrix(data = c(0, 1, 1, 0, 0, 0, 0,
+                                       1, 0, 1, 0, 0, 1, 0,
+                                       0, 0, 0, 1, 0, 0, 0,
+                                       0, 0, 0, 0, 1, 0, 0,
+                                       0, 0, 0, 0, 0, 0, 1),
+                              nrow = 7,
+                              ncol = 5,
+                              dimnames = list(coarse_LC_classes, 
+                                              ref_LC_classes))
+  expected_df1 <- matrix(data = c(0, 1, 0.5, 0, 0, 0, 0,
+                                  1, 0, 0.5, 0, 0, 1, 0,
+                                  0, 0, 0, 1, 0, 0, 0,
+                                  0, 0, 0, 0, 1, 0, 0,
+                                  0, 0, 0, 0, 0, 0, 1),
+                         nrow = 7,
+                         ncol = 5,
+                         dimnames = list(coarse_LC_classes, 
+                                         ref_LC_classes))
+  actual_df1 <- getCellMatchLCClasses(match_LC_classes = match_LC_classes1, 
+                                      coarse_cell = test_coarse_cell)
+  
+  # Case 2 - split between 3 ref classes which are all zero in the ref map
+  test_coarse_cell2 <- test_coarse_cell
+  test_coarse_cell2@ref_cells[["pas"]] <- test_coarse_cell2@ref_cells[["pas"]] + 
+    test_coarse_cell2@ref_cells[["urb"]]
+  terra::values(test_coarse_cell2@ref_cells[["urb"]]) <- 0
+  test_coarse_cell2@agg_ref_cells <- unlist(terra::global(test_coarse_cell2@ref_cells,
+                                                          fun = "sum",
+                                                          na.rm = TRUE))
+  names(test_coarse_cell2@agg_ref_cells) <- names(test_coarse_cell2@ref_cells)
+  
+  match_LC_classes2 <- matrix(data = c(0, 1, 1, 0, 0, 0, 0,
+                                       1, 0, 1, 0, 0, 1, 0,
+                                       0, 0, 0, 1, 0, 0, 0,
+                                       0, 0, 0, 0, 1, 0, 0,
+                                       0, 0, 1, 0, 0, 0, 1),
+                              nrow = 7,
+                              ncol = 5,
+                              dimnames = list(coarse_LC_classes, 
+                                              ref_LC_classes))
+  expected_df2 <- matrix(data = c(0, 1, 0.33333333, 0, 0, 0, 0,
+                                  1, 0, 0.33333333, 0, 0, 1, 0,
+                                  0, 0, 0, 1, 0, 0, 0,
+                                  0, 0, 0, 0, 1, 0, 0,
+                                  0, 0, 0.33333333, 0, 0, 0, 1),
+                         nrow = 7,
+                         ncol = 5,
+                         dimnames = list(coarse_LC_classes, 
+                                         ref_LC_classes))
+  actual_df2 <- getCellMatchLCClasses(match_LC_classes = match_LC_classes2, 
+                                      coarse_cell = test_coarse_cell2)
+  
+  expect_equal(actual_df1, 
+               expected_df1)
+  expect_equal(actual_df2, 
+               expected_df2)
+})
+
 test_that("sortKernelDensities sorts a data frame by kernel_density column", {
 
   test_df <- data.frame(x = c(1, 2, 3, 4),

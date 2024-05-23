@@ -16,8 +16,12 @@ downscaleLCForOneCoarseCell <- function(coarse_cell,
     
   } else {
     
+    # Get cell-specific match_LC_classes matrix
+    cell_match_LC_classes <- getCellMatchLCClasses(match_LC_classes = match_LC_classes, 
+                                                   coarse_cell = coarse_cell)
+    
     coarse_cell <- reconcileLCDeltas(x = coarse_cell,
-                                     match_LC_classes = match_LC_classes,
+                                     match_LC_classes = cell_match_LC_classes,
                                      LC_deltas_type = LC_deltas_type)
     
     # Get transition matrix showing area of LU conversion between each LC class
@@ -31,6 +35,48 @@ downscaleLCForOneCoarseCell <- function(coarse_cell,
   }
 
   return(updated_coarse_cell)
+}
+
+# Updates the match_LC_classes matrix with any cell-specific ratios
+getCellMatchLCClasses <- function(match_LC_classes, 
+                                  coarse_cell) {
+  
+  cell_match_LC_classes <- match_LC_classes
+  
+  # Update match LC classes matrix
+  if (any(rowSums(cell_match_LC_classes) > 1)) {
+    
+    agg_ref_cells <- coarse_cell@agg_ref_cells
+    
+    for (i in 1:nrow(cell_match_LC_classes)) {
+      
+      if (sum(cell_match_LC_classes[i, ]) > 1) {
+        
+        row_to_update <- cell_match_LC_classes[i, ]
+        
+        proportional_ref_classes <- names(row_to_update)[which(row_to_update == 1)]
+        
+        proportional_ref_areas <- agg_ref_cells[proportional_ref_classes]
+        
+        if (all(proportional_ref_areas == 0)) {
+          
+          # This if statement sets the proportions to be equal if none of the 
+          # LULC classes to be split proportionally are present in the reference
+          # map grid cells
+          proportions_for_matching <- proportional_ref_areas
+          proportions_for_matching[proportional_ref_classes] <- 1 / length(proportional_ref_classes)
+          
+        } else {
+          
+          proportions_for_matching <- proportional_ref_areas / sum(proportional_ref_areas)
+        }
+        
+        cell_match_LC_classes[i, proportional_ref_classes] <- proportions_for_matching
+      }
+    }
+  }
+  
+  return(cell_match_LC_classes)
 }
 
 #' Get the transition matrix for one cell

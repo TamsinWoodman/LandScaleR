@@ -114,6 +114,44 @@
 #'   allocated to the reference map as primary vegetation and a further 50
 #'   \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} would be allocated as
 #'   secondary vegetation.
+#'   
+#'   Alternatively, a value of 1 can be put in multiple columns to indicate that
+#'   one LULC change map class matches two or more reference map classes. If one
+#'   row contains multiple entries of 1, LandScaleR will set the proportion of 
+#'   the LULC change map class matched to each reference map class according to 
+#'   the proportions of the reference map classes in each coarse resolution grid 
+#'   cell. For example:
+#'   
+#'   | | Primary vegetation | Secondary vegetation | Forest plantation | Cropland | Pasture | Urban |
+#'   | --- | --- | --- | --- | --- | --- | --- |
+#'   | Managed forest | 0 | 0 | 1 | 0 | 0 | 0 |
+#'   | Unmanaged forest | 1 | 1 | 0 | 0 | 0 | 0 |
+#'   | Other natural | 0.5 | 0.5 | 0 | 0 | 0 | 0 |
+#'   | Cropland | 0 | 0 | 0 | 1 | 0 | 0 |
+#'   | Pasture | 0 | 0 | 0 | 0 | 1 | 0 |
+#'   | Urban | 0 | 0 | 0 | 0 | 0 | 1 |
+#'   
+#'   Assume that unmanaged forest were to increase by 20 
+#'   \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} in one coarse resolution 
+#'   grid cell which has 3 \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} 
+#'   of primary vegetation and 5 \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}}
+#'   of secondary vegetation in the corresponding reference map cells. The 
+#'   increase in unmanaged forest would be allocated to the reference map as 7.5
+#'   \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} of primary vegetation and 
+#'   12.5 \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} of secondary 
+#'   vegetation. In another example, assume that unmanaged forest is predicted 
+#'   to decrease by 10 \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} in 
+#'   a coarse resolution grid cell with 20 
+#'   \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} of primary vegetation and 
+#'   5 \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} of secondary vegetation.
+#'   In this case 8 \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} of primary 
+#'   vegetation and 2 \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} of 
+#'   secondary vegetation would be removed.
+#'   
+#'   Note that if a coarse resolution grid cell contains none of the reference
+#'   map LULC classes that are matched to a specific LULC change map class, 
+#'   LandScaleR will distribute the LULC change map class equally between the 
+#'   matched reference map LULC classes.
 #'
 #' ## Kernel density
 #'   Kernel densities are calculated by LandScaleR for every reference map grid
