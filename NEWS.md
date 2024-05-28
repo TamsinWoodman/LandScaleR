@@ -13,6 +13,7 @@ New functionality:
 - Prints out time check for calculation of kernel densities
 - Added a warning that layer names of area-based reference maps must not be numeric
 - Added a warning if a coarse resolution grid cell has no fine resolution grid cells assigned to it
+- New `harmonisation_radius` input argument which changes the search radius for harmonisation
 
 Bug fixes:
 - The unit for calculating cell sizes is now provided to the `loadLCDeltas` function so that cell areas are calculated with the user-specified units
