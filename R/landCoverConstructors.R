@@ -2,6 +2,7 @@
 CoarseCellFromRaster <- function(cell_number,
                                  LC_deltas,
                                  LC_deltas_classes,
+                                 harmonisation_radius,
                                  ref_map_polygons,
                                  ref_map,
                                  kernel_densities) {
@@ -15,21 +16,10 @@ CoarseCellFromRaster <- function(cell_number,
   cell_LC_deltas <- cell_LC_deltas[LC_deltas_classes]
   cell_coords <- terra::xyFromCell(LC_deltas,
                                    cell_number)
-  inner_neighbour_cells <- as.vector(terra::adjacent(LC_deltas,
-                                                     cell_number,
-                                                     directions = "8"))
-  outer_neighbour_cells <- as.vector(terra::adjacent(LC_deltas,
-                                                     cell_number,
-                                                     directions = matrix(c(1, 1, 1, 1, 1,
-                                                                           1, 0, 0, 0, 1,
-                                                                           1, 0, 0, 0, 1,
-                                                                           1, 0, 0, 0, 1,
-                                                                           1, 1, 1, 1, 1),
-                                                                         ncol = 5,
-                                                                         nrow = 5,
-                                                                         byrow = TRUE)))
-  neighbour_cells <- c(inner_neighbour_cells,
-                       outer_neighbour_cells)
+  
+  neighbour_cells <- getNeighbourCells(LC_deltas = LC_deltas, 
+                                       cell_number = cell_number, 
+                                       harmonisation_radius = harmonisation_radius)
   ref_cells <- terra::crop(ref_map,
                            ref_map_polygons[ref_map_polygons$coarse_ID == cell_number],
                            mask = TRUE)
@@ -55,3 +45,39 @@ CoarseCellFromRaster <- function(cell_number,
 
   return(coarse_cell)
 }
+
+getNeighbourCells <- function(LC_deltas, 
+                              cell_number, 
+                              harmonisation_radius) {
+  
+  all_neighbour_cells <- as.vector(terra::adjacent(LC_deltas,
+                                                   cell_number,
+                                                   directions = "8"))
+  
+  if (harmonisation_radius > 1) {
+    
+    # Start the for loop from second neighbours as first neighbours have already
+    # been generated above
+    for (i in 2:harmonisation_radius) {
+      
+      tmp_neighbour_matrix <- matrix(data = 0, 
+                                     nrow = (i * 2) + 1,
+                                     ncol = (i * 2) + 1)
+      
+      tmp_neighbour_matrix[1, ] <- 1
+      tmp_neighbour_matrix[ , 1] <- 1
+      tmp_neighbour_matrix[nrow(tmp_neighbour_matrix), ] <- 1
+      tmp_neighbour_matrix[ , ncol(tmp_neighbour_matrix)] <- 1
+      
+      tmp_neighbour_cells <- as.vector(terra::adjacent(LC_deltas, 
+                                                       cell_number, 
+                                                       directions = tmp_neighbour_matrix))
+      
+      all_neighbour_cells <- c(all_neighbour_cells, 
+                               tmp_neighbour_cells)
+    }
+  }
+  
+  return(all_neighbour_cells)
+}
+

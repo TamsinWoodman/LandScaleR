@@ -43,9 +43,13 @@
 #'   from the LULC change maps that corresponds to every reference map LULC
 #'   class. Columns contain reference map LULC classes and rows LULC change map
 #'   classes. See details for more information.
-#' @param  kernel_radius Numeric, radius of cells to include in the kernel
+#' @param  kernel_radius Integer, radius of cells to include in the kernel
 #'   density calculation. Defaults to 1, which means all first neighbour cells
 #'   will be used to calculate kernel density (eight cells in total).
+#' @param harmonisation_radius Integer, radius of cells to search during the
+#'   harmonisation procedure. Defaults to 2, which means first and second 
+#'   neighbour coarse resolution grid cells (24 cells in total) will be searched
+#'   during harmonisation
 #' @param simulation_type Character, the method of LULC allocation to be used in
 #'   LandScaleR. One of "deterministic", "fuzzy", or "null_model". See details
 #'   for more information.
@@ -211,6 +215,7 @@ downscaleLC <- function(ref_map_file_name,
                         assign_ref_cells = TRUE,
                         match_LC_classes,
                         kernel_radius,
+                        harmonisation_radius = 2,
                         simulation_type = "deterministic",
                         fuzzy_multiplier = 1,
                         discrete_output_map = FALSE,
@@ -228,6 +233,7 @@ downscaleLC <- function(ref_map_file_name,
               cell_size_unit = cell_size_unit,
               match_LC_classes = match_LC_classes,
               kernel_radius = kernel_radius,
+              harmonisation_radius = harmonisation_radius,
               simulation_type = simulation_type,
               discrete_output_map = discrete_output_map,
               random_seed = random_seed,
@@ -298,6 +304,7 @@ downscaleLC <- function(ref_map_file_name,
                                  FUN = CoarseCellFromRaster,
                                  LC_deltas = LC_deltas,
                                  LC_deltas_classes = LC_deltas_classes,
+                                 harmonisation_radius = harmonisation_radius,
                                  ref_map_polygons = ref_map_polygons,
                                  ref_map = ref_map,
                                  kernel_densities = kernel_densities)

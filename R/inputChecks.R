@@ -6,6 +6,7 @@ inputChecks <- function(ref_map_file_name,
                         cell_size_unit,
                         match_LC_classes,
                         kernel_radius,
+                        harmonisation_radius,
                         simulation_type,
                         discrete_output_map,
                         random_seed,
@@ -50,8 +51,16 @@ inputChecks <- function(ref_map_file_name,
     stop("All values in match_LC_classes must be between 0 and 1")
   }
   
-  if (class(kernel_radius) != "numeric") {
-    stop("Kernel radius must be numeric")
+  if (kernel_radius %% 1 != 0) {
+    stop("Kernel radius must be an integer")
+  }
+  
+  if (harmonisation_radius %% 1 != 0) {
+    stop("Harmonisation radius must be an integer")
+  }
+  
+  if(harmonisation_radius < 1 | harmonisation_radius > 5) {
+    stop("Harmonisation radius must be between 1 and 5")
   }
   
   if (!simulation_type %in% c("deterministic", "fuzzy", "null_model")) {
