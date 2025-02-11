@@ -57,6 +57,7 @@ getCellMatchLCClasses <- function(match_LC_classes,
         proportional_ref_classes <- names(row_to_update)[which(row_to_update == 1)]
         
         proportional_ref_areas <- agg_ref_cells[proportional_ref_classes]
+        proportional_ref_areas <- round(proportional_ref_areas, 8)
         
         if (all(proportional_ref_areas == 0)) {
           
