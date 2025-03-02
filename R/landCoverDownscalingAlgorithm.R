@@ -23,8 +23,8 @@
 #'   change map must be in a file format that can be read by the [terra::rast()]
 #'   function, although the GeoTIFF format is recommended.
 #' @param LC_deltas_type Character, one of "areas" or "proportions". Use "areas"
-#'   if the LULC change maps contain the area of change for each LULC class per 
-#'   grid cell. Use "proportions" if the LULC change maps contain the change in 
+#'   if the LULC change maps contain the area of change for each LULC class per
+#'   grid cell. Use "proportions" if the LULC change maps contain the change in
 #'   each LULC class as a proportion of total grid cell area.
 #' @param ref_map_type Character, one of "areas" or "discrete". If the reference
 #'   map contains one LULC class per cell use "areas". Note that the layer names
@@ -36,7 +36,7 @@
 #'   [terra::cellSize()] function.
 #' @param assign_ref_cells Logical, individually assign reference map grid cells
 #'   to coarse resolution LULC change map cells if `assign_ref_cells = TRUE`. If
-#'   `assign_ref_cells = FALSE` the algorithm assumes that all reference map 
+#'   `assign_ref_cells = FALSE` the algorithm assumes that all reference map
 #'   cells are encapsulated within a coarse cell and will not perform individual
 #'   assignment of reference cells.
 #' @param match_LC_classes Matrix, specifies the proportion of each LULC class
@@ -47,7 +47,7 @@
 #'   density calculation. Defaults to 1, which means all first neighbour cells
 #'   will be used to calculate kernel density (eight cells in total).
 #' @param harmonisation_radius Integer, radius of cells to search during the
-#'   harmonisation procedure. Defaults to 2, which means first and second 
+#'   harmonisation procedure. Defaults to 2, which means first and second
 #'   neighbour coarse resolution grid cells (24 cells in total) will be searched
 #'   during harmonisation
 #' @param simulation_type Character, the method of LULC allocation to be used in
@@ -66,22 +66,22 @@
 #'
 #' @details ## Input maps
 #' The fine resolution reference map must be at the resolution to which the
-#'   LULC change maps are to be downscaled. The reference and LULC change maps 
-#'   must be in the same geographic projection but they do not have to cover 
-#'   exactly the same extent. The reference map can either contain one LULC 
-#'   class per cell (`ref_map_type = "discrete`) or the area of each LULC class 
+#'   LULC change maps are to be downscaled. The reference and LULC change maps
+#'   must be in the same geographic projection but they do not have to cover
+#'   exactly the same extent. The reference map can either contain one LULC
+#'   class per cell (`ref_map_type = "discrete`) or the area of each LULC class
 #'   per cell (`ref_map_type = "areas"`). Note that if `ref_map_type = discrete`
-#'   is specified then the LULC classes in the reference map will be prepended 
-#'   with "LC" to ensure that they are treated as characters by LandScaleR. 
-#'   
-#'   The LULC change maps can give LULC change in terms of the area of change 
+#'   is specified then the LULC classes in the reference map will be prepended
+#'   with "LC" to ensure that they are treated as characters by LandScaleR.
+#'
+#'   The LULC change maps can give LULC change in terms of the area of change
 #'   for each LULC class per grid cell (`LC_deltas_type = "areas"`).
 #'   Alternatively, LULC change maps can provide LULC change as the proportion
-#'   of a grid cell which changed in each timestep. For example, if 
-#'   `LC_deltas_type = "proportions"` a value of 0.2 for cropland in one grid 
+#'   of a grid cell which changed in each timestep. For example, if
+#'   `LC_deltas_type = "proportions"` a value of 0.2 for cropland in one grid
 #'   cell would mean that 20% of the grid cell was converted to cropland during
 #'   the current timestep.
-#'   
+#'
 #'   The LULC change maps and reference map do not have to contain the same LULC
 #'   classes, as these can be matched using the `match_LC_classes` argument.
 #'
@@ -118,14 +118,14 @@
 #'   allocated to the reference map as primary vegetation and a further 50
 #'   \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} would be allocated as
 #'   secondary vegetation.
-#'   
+#'
 #'   Alternatively, a value of 1 can be put in multiple columns to indicate that
 #'   one LULC change map class matches two or more reference map classes. If one
-#'   row contains multiple entries of 1, LandScaleR will set the proportion of 
-#'   the LULC change map class matched to each reference map class according to 
-#'   the proportions of the reference map classes in each coarse resolution grid 
+#'   row contains multiple entries of 1, LandScaleR will set the proportion of
+#'   the LULC change map class matched to each reference map class according to
+#'   the proportions of the reference map classes in each coarse resolution grid
 #'   cell. For example:
-#'   
+#'
 #'   | | Primary vegetation | Secondary vegetation | Forest plantation | Cropland | Pasture | Urban |
 #'   | --- | --- | --- | --- | --- | --- | --- |
 #'   | Managed forest | 0 | 0 | 1 | 0 | 0 | 0 |
@@ -134,27 +134,27 @@
 #'   | Cropland | 0 | 0 | 0 | 1 | 0 | 0 |
 #'   | Pasture | 0 | 0 | 0 | 0 | 1 | 0 |
 #'   | Urban | 0 | 0 | 0 | 0 | 0 | 1 |
-#'   
-#'   Assume that unmanaged forest were to increase by 20 
-#'   \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} in one coarse resolution 
-#'   grid cell which has 3 \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} 
+#'
+#'   Assume that unmanaged forest were to increase by 20
+#'   \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} in one coarse resolution
+#'   grid cell which has 3 \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}}
 #'   of primary vegetation and 5 \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}}
-#'   of secondary vegetation in the corresponding reference map cells. The 
+#'   of secondary vegetation in the corresponding reference map cells. The
 #'   increase in unmanaged forest would be allocated to the reference map as 7.5
-#'   \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} of primary vegetation and 
-#'   12.5 \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} of secondary 
-#'   vegetation. In another example, assume that unmanaged forest is predicted 
-#'   to decrease by 10 \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} in 
-#'   a coarse resolution grid cell with 20 
-#'   \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} of primary vegetation and 
+#'   \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} of primary vegetation and
+#'   12.5 \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} of secondary
+#'   vegetation. In another example, assume that unmanaged forest is predicted
+#'   to decrease by 10 \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} in
+#'   a coarse resolution grid cell with 20
+#'   \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} of primary vegetation and
 #'   5 \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} of secondary vegetation.
-#'   In this case 8 \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} of primary 
-#'   vegetation and 2 \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} of 
+#'   In this case 8 \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} of primary
+#'   vegetation and 2 \ifelse{html}{\out{km<sup>2</sup>}}{\eqn{km^2}} of
 #'   secondary vegetation would be removed.
-#'   
+#'
 #'   Note that if a coarse resolution grid cell contains none of the reference
-#'   map LULC classes that are matched to a specific LULC change map class, 
-#'   LandScaleR will distribute the LULC change map class equally between the 
+#'   map LULC classes that are matched to a specific LULC change map class,
+#'   LandScaleR will distribute the LULC change map class equally between the
 #'   matched reference map LULC classes.
 #'
 #' ## Kernel density
@@ -247,7 +247,7 @@ downscaleLC <- function(ref_map_file_name,
 
   # Calculate distance matrix
   distance_mat <- getDistMatrix(kernel_radius = kernel_radius)
-  
+
   # Get the names of LULC classes in the LULC change map
   LC_deltas_classes <- rownames(match_LC_classes)
 
@@ -266,9 +266,13 @@ downscaleLC <- function(ref_map_file_name,
                                 cell_size_unit = cell_size_unit)
 
       # Load ref map file
-      ref_map <- loadRefMap(ref_map_file_name = ref_map_file_name,
-                            ref_map_type = ref_map_type,
-                            cell_size_unit = cell_size_unit)
+      ref_map_list <- loadRefMap(ref_map_file_name = ref_map_file_name,
+                                 ref_map_type = ref_map_type,
+                                 cell_size_unit = cell_size_unit,
+                                 discrete_output_map = discrete_output_map)
+
+      ref_map <- ref_map_list[["ref_map"]]
+      ref_map_levels <- ref_map_levels[["ref_map_levels"]]
 
       # Input checks
       inputMapChecks(LC_deltas = LC_deltas,
@@ -282,14 +286,14 @@ downscaleLC <- function(ref_map_file_name,
 
       # Get polygons of ref map cells for each coarse cell
       if (assign_ref_cells) {
-        
+
         ref_map_polygons <- assignRefMapCells(ref_map = ref_map,
                                               LC_deltas_coords = LC_deltas_coords,
                                               LC_deltas_cell_numbers = LC_deltas_cell_numbers)
-        
+
       } else {
-        
-        ref_map_polygons <- makePolygonsFromCoarseCells(LC_deltas = LC_deltas, 
+
+        ref_map_polygons <- makePolygonsFromCoarseCells(LC_deltas = LC_deltas,
                                                         LC_deltas_cell_numbers = LC_deltas_cell_numbers)
 
       }
@@ -355,7 +359,7 @@ downscaleLC <- function(ref_map_file_name,
                                                simulation_type = simulation_type,
                                                fuzzy_multiplier = fuzzy_multiplier,
                                                timestep = timestep,
-                                               output_file_prefix = output_file_prefix, 
+                                               output_file_prefix = output_file_prefix,
                                                output_dir_path = output_dir_path)
 
     harmonisation_end <- Sys.time()
@@ -414,9 +418,10 @@ downscaleLC <- function(ref_map_file_name,
                        overwrite = TRUE)
 
     if (discrete_output_map) {
-      cat_downscaled_map <- terra::which.max(downscaled_map)
-      levels(cat_downscaled_map) <- data.frame(id = 1:terra::nlyr(ref_map),
-                                               Land_cover = names(ref_map))
+
+      cat_downscaled_map <- createDiscreteMap(downscaled_map = downscaled_map,
+                                              ref_map_levels = ref_map_levels,
+                                              ref_map_type = ref_map_type)
       terra::writeRaster(cat_downscaled_map,
                          filename = file.path(output_dir_path,
                                               paste0(output_file_prefix,
@@ -459,7 +464,7 @@ loadLCDeltas <- function(LC_deltas_file_list,
   LC_deltas <- terra::rast(LC_deltas_file_list[[timestep]])
 
   # If cell_area layer is not present, calculate the area of each cell
-  # Note that we only need to calculate cell areas if the input LC deltas map 
+  # Note that we only need to calculate cell areas if the input LC deltas map
   # type is "areas"
   if (!"cell_area" %in% names(LC_deltas)) {
     LC_deltas <- c(LC_deltas,
@@ -473,22 +478,97 @@ loadLCDeltas <- function(LC_deltas_file_list,
 
 loadRefMap <- function(ref_map_file_name,
                        ref_map_type,
-                       cell_size_unit) {
+                       cell_size_unit,
+                       discrete_output_map) {
+
+  print("Loading reference map")
 
   ref_map <- terra::rast(ref_map_file_name)
 
+  # Set up categories for discrete output map
+  if (discrete_output_map) {
+
+    ref_map_levels <- setRefMapLevels(ref_map)
+
+  } else {
+
+    ref_map_levels <- NULL
+
+  }
+
   if (ref_map_type == "discrete") {
-    ref_map <- terra::segregate(ref_map) * terra::cellSize(ref_map,
-                                                           unit = cell_size_unit)
+
+    ref_map <- convertDiscreteRefMapToAreas(ref_map = ref_map,
+                                            cell_size_unit = cell_size_unit)
+  }
+
+  ref_map <- list(ref_map = ref_map,
+                  ref_map_levels = ref_map_levels)
+
+  return(ref_map)
+}
+
+setRefMapLevels <- function(ref_map,
+                            ref_map_type) {
+
+  if (ref_map_type == "areas") {
+
+    ref_map_levels <- data.frame(id = 1:terra::nlyr(ref_map),
+                                 Land_cover = names(ref_map))
+
+  } else if (ref_map_type == "discrete" & !is.data.frame(terra::levels(ref_map)[[1]])) {
+
+    ref_map_values <- sort(terra::unique(ref_map)[ , 1])
+    ref_map_levels <- data.frame(id = ref_map_values,
+                                 Land_cover = paste0("LC",
+                                                     ref_map_values))
+
+  } else if (ref_map_type == "discrete" & is.data.frame(terra::levels(ref_map)[[1]])) {
+
+    ref_map_levels <- terra::levels(ref_map)[[1]]
+    ref_map_levels <- ref_map_levels[order(ref_map_levels[ , 1]), ]
+    row.names(ref_map_levels) <- 1:nrow(ref_map_levels)
+
+  }
+
+  return(ref_map_levels)
+}
+
+convertDiscreteRefMapToAreas <- function(ref_map,
+                                         cell_size_unit) {
+
+  areas_ref_map <- terra::segregate(ref_map) * terra::cellSize(ref_map,
+                                                               unit = cell_size_unit)
+
+  if (!is.data.frame(terra::levels(ref_map)[[1]])) {
 
     # Add LC to the start of names so that they are treated as characters and
     # not as numeric during the downscaling algorithm
-    ref_map_names <- names(ref_map)
-    names(ref_map) <- paste0("LC",
-                             ref_map_names)
+    ref_map_names <- names(areas_ref_map)
+    names(areas_ref_map) <- paste0("LC",
+                                      ref_map_names)
+
+  } else if (is.data.frame(terra::levels(ref_map)[[1]])) {
+
+    # Set reference map names to be the categories from the input raster
+    # terra orders the layers sequentially in the segregate function, so the
+    # names need to be matched correctly to each layer here
+
+    # Get the numeric names (values) of the new area-based reference map
+    ref_map_values <- names(areas_ref_map)
+
+    # Get the levels of the original discrete reference map
+    ref_map_levels <- terra::levels(ref_map)[[1]]
+
+    # Get the correct category for each value
+    ref_map_cats <- lapply(ref_map_values,
+                           FUN = function(x) ref_map_levels[ref_map_levels[ , 1] == x, 2])
+
+    names(areas_ref_map) <- ref_map_cats
+
   }
 
-  return(ref_map)
+  return(areas_ref_map)
 }
 
 #' Assign fine resolution grid cells to a coarse resolution map
@@ -543,14 +623,34 @@ assignRefMapCells <- function(ref_map,
 
 makePolygonsFromCoarseCells <- function(LC_deltas,
                                         LC_deltas_cell_numbers) {
-  
+
   coarse_rast_for_polygons <- LC_deltas[[1]]
-  
+
   coarse_polygons <- terra::as.polygons(coarse_rast_for_polygons,
                                         dissolve = FALSE)
-  
+
   terra::values(coarse_polygons) <- LC_deltas_cell_numbers
   names(coarse_polygons) <- "coarse_ID"
-  
+
   return(coarse_polygons)
+}
+
+createDiscreteMap <- function(downscaled_map,
+                              ref_map_levels,
+                              ref_map_type) {
+
+  cat_downscaled_map <- terra::which.max(downscaled_map)
+
+  if (ref_map_type == "discrete") {
+
+    # Classify to convert sequential integers to values from the input map
+    cat_downscaled_map <- terra::classify(cat_downscaled_map,
+                                          rcl = cbind(1:terra::nlyr(downscaled_map),
+                                                      ref_map_levels[ , 1]))
+
+  }
+
+  levels(cat_downscaled_map) <- ref_map_levels
+
+  return(cat_downscaled_map)
 }
