@@ -2,7 +2,7 @@
 .onAttach <- function(libname, 
                       pkgname) {
   
-  packageStartupMessage("LandScaleR version 1.1.0\n",
+  packageStartupMessage("LandScaleR version 1.1.1\n",
                         "Copyright (C) 2021-2023 Tamsin Woodman\n",
                         "This program comes with ABSOLUTELY NO WARRANTY.\n",
                         "This is free software, and you are welcome to redistribute it and/or modify it under certain conditions;\n",
@@ -13,7 +13,7 @@
 #' @export
 LandScaleR_license <- function() {
   
-  cat("\nLandScaleR version 1.1.0\n")
+  cat("\nLandScaleR version 1.1.1\n")
   cat("Copyright (C) 2021-2023 Tamsin Woodman\n")
   cat("This program is free software: you can redistribute it and/or modify\n")
   cat("it under the terms of the GNU General Public License as published by\n")

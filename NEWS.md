@@ -1,4 +1,12 @@
 
+# Version 1.1.1
+
+Bug fixes:
+- Output discrete maps will now contain the same LULC classes as the input reference map:
+    - If the reference map contains the area of each LULC class per grid cell, the categories in the discrete map will be the same as the layer names of the input map. The underlying values in the discrete map will be sequential integers starting at 1.
+    - If the reference map contains one LULC class per grid cell and does not have associated categories, the categories in the discrete output map will the same as the values in the reference map with "LC" added at the start of each value.
+    - If the reference map contains one LULC class per grid cell and has categories, the categories and underlying values in the discrete output map will be the same as those in the reference map.
+
 # Version 1.1.0
 
 Dependencies:
