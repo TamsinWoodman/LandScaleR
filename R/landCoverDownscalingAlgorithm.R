@@ -272,7 +272,7 @@ downscaleLC <- function(ref_map_file_name,
                                  discrete_output_map = discrete_output_map)
 
       ref_map <- ref_map_list[["ref_map"]]
-      ref_map_levels <- ref_map_levels[["ref_map_levels"]]
+      ref_map_levels <- ref_map_list[["ref_map_levels"]]
 
       # Input checks
       inputMapChecks(LC_deltas = LC_deltas,
@@ -488,7 +488,8 @@ loadRefMap <- function(ref_map_file_name,
   # Set up categories for discrete output map
   if (discrete_output_map) {
 
-    ref_map_levels <- setRefMapLevels(ref_map)
+    ref_map_levels <- setRefMapLevels(ref_map = ref_map, 
+                                      ref_map_type = ref_map_type)
 
   } else {
 
