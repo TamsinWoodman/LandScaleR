@@ -7,6 +7,9 @@ Bug fixes:
     - If the reference map contains one LULC class per grid cell and does not have associated categories, the categories in the discrete output map will the same as the values in the reference map with "LC" added at the start of each value.
     - If the reference map contains one LULC class per grid cell and has categories, the categories and underlying values in the discrete output map will be the same as those in the reference map.
 
+Testing:
+- Added unit tests for the main `downscaleLC` function
+
 # Version 1.1.0
 
 Dependencies:

@@ -11,7 +11,7 @@ assignRefMapCells(ref_map, LC_deltas_coords, LC_deltas_cell_numbers)
 
 \item{LC_deltas_coords}{Matrix, coordinates of coarse resolution grid cells.
 Can be obtained from a \code{\link[terra:SpatRaster-class]{terra::SpatRaster}} object using the
-\code{\link[terra:coords]{terra::crds()}} function.}
+\code{\link[terra:crds]{terra::crds()}} function.}
 
 \item{LC_deltas_cell_numbers}{Numeric, cell numbers that uniquely identify
 each cell in the coarse resolution map. Should correspond to the order of
