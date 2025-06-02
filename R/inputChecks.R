@@ -14,11 +14,13 @@ inputChecks <- function(ref_map_file_name,
                         output_dir_path,
                         fuzzy_multiplier) {
   
-  if (class(ref_map_file_name) != "character") {
+  if (!inherits(ref_map_file_name, 
+                what = "character")) {
     stop("Name of the reference map must be of class character")
   }
   
-  if (class(LC_deltas_file_list) != "list") {
+  if (!inherits(LC_deltas_file_list, 
+                what = "list")) {
     stop("The names of LULC change maps must be provided as a list")
   }
   
@@ -34,7 +36,8 @@ inputChecks <- function(ref_map_file_name,
     stop("The cell size unit must be one of \"km\", \"m\", or \"ha\"")
   }
   
-  if (class(match_LC_classes)[1] != "matrix") {
+  if (!inherits(match_LC_classes, 
+                what = "matrix")) {
     stop("Match_LC_classes must be of class matrix")
   }
   
@@ -67,23 +70,28 @@ inputChecks <- function(ref_map_file_name,
     stop("Simulation type must be one of \"deterministic\", \"fuzzy\", or \"null_model\"")
   }
   
-  if (class(discrete_output_map) != "logical") {
+  if (!inherits(discrete_output_map, 
+                what = "logical")) {
     stop("Discrete_output_map must be logical")
   }
   
-  if (class(random_seed) != "numeric") {
+  if (!inherits(random_seed, 
+                what = "numeric")) {
     stop("Random seed must be numeric")
   }
   
-  if (class(output_file_prefix) != "character") {
+  if (!inherits(output_file_prefix, 
+                what = "character")) {
     stop("Output file prefix must be of class character")
   }
   
-  if (class(output_dir_path) != "character") {
+  if (!inherits(output_dir_path, 
+                what = "character")) {
     stop("Output directory path must be of class character")
   }
   
-  if (class(fuzzy_multiplier) != "numeric") {
+  if (!inherits(fuzzy_multiplier, 
+                what = "numeric")) {
     stop("Fuzzy multiplier must be numeric")
   }
 }
