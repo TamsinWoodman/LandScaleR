@@ -52,12 +52,12 @@ based on kernel densities, which quantify the density of each LULC class in the
 neighbourhood of a focal cell [@LePage2016]. Three methods of LULC allocation 
 are provided in **LandScaleR**:
 
-* **Quasi-deterministic** (`"deterministic"`): new LULC areas are placed in
+* **Quasi-deterministic** (`"deterministic"`): new LULC areas are allocated to
 reference map grid cells in order from highest to lowest kernel density. Cells 
 with a kernel density equal to zero are randomly ordered, hence the "quasi" part
 of the method name.
-* **Fuzzy** (`"fuzzy"`): new LULC areas are placed in reference map grid cells 
-in order from highest to lowest kernel density, but each kernel density is 
+* **Fuzzy** (`"fuzzy"`): new LULC areas are allocated to reference map grid 
+cells in order from highest to lowest kernel density, but each kernel density is 
 adjusted before the cells are ordered. To adjust kernel densities, each one is 
 summed with an adjustment drawn from a Normal distribution $N(0, f \sigma)$, 
 where $\sigma$ is the standard deviation of the kernel densities and $f$ is 
@@ -105,9 +105,8 @@ class:
 | 66 | Other land |
 | 77 | Water |
 
-Load the 'terra' package into R before loading and viewing the LULC change map 
-for 2009 to 2010 to see the naming format of each layer as well as other 
-information about the map.
+The 'terra' package is used here to load and view the LULC change map for 2009 
+to 2010.
 
 ```{r Load LULC change 2009-2010}
 library("terra")
@@ -146,10 +145,10 @@ The reference map must give LULC at the start of the time series of LULC change
 maps, so here we use LULC in the UK in 2009 as the reference map to downscale 
 LULC change in the UK from 2009 to 2012. The reference map is at approximately
 0.01^o^ resolution, contains one LULC class per cell, and was also derived from 
-the HILDA+ LULC dataset [@winkler2020hglu]. Both the reference and LULC change
-maps have to have the same geographic projection, but they do not need to cover 
-exactly the same extent. The values in the UK 2009 reference map use the same 
-numeric code as the LULC change maps to represent LULC classes.
+the HILDA+ LULC dataset [@winkler2020hglu]. The reference and LULC change maps
+must have the same geographic projection, but they do not need to cover exactly
+the same extent. The values in the UK 2009 reference map use the same numeric
+code to represent LULC classes as the LULC change maps.
 
 ```{r Load LULC in 2009}
 reference_2009_file <- system.file("extdata/20221006_HILDA_UK_LULC_2009.tif",
@@ -178,11 +177,12 @@ library("LandScaleR")
 Next, set up the `match_LC_classes` matrix which matches the LULC classes in the
 LULC change maps to those in the reference map. In this example all maps contain
 the same LULC classes, so we set up a matrix which matches each LULC class to
-itself. The **LandScaleR** package will prepend each LULC class in a discrete 
-(one LULC class per cell) reference map with "LC" because numeric LULC classes 
-do not work in the algorithm, so if you are using a discrete reference map make 
+itself. The **LandScaleR** package will prepend each LULC class with "LC" if a 
+discrete reference map (one LULC class per cell) with no associated categories 
+is provided because numeric LULC classes do not work in the algorithm. 
+Therefore, if you are using a discrete reference map with no categories make 
 sure to add "LC" to the start of every reference map LULC class name in the 
-`match_LC_class` matrix.
+`match_LC_class` matrix, as shown below.
 
 ```{r Create match_LC_classes}
 LULC_map_classes <- paste0("LC",
@@ -222,7 +222,6 @@ downscaleLC(ref_map_file_name = system.file("extdata/20221006_HILDA_UK_LULC_2009
                                                    package = "LandScaleR"),
                                        system.file("extdata/20221006_HILDA_UK_LUC_2011_2012.tif",
                                                    package = "LandScaleR")),                 # List of file paths to the LULC change maps, in time series order
-            LC_deltas_classes = LULC_map_classes,                                                # Vector of LULC classes in the LULC change maps
             ref_map_type = "discrete",                                                           # Whether the reference map contains one LULC class per cell or the area of each LULC class per cell
             cell_size_unit = "km",                                                               # Unit in which LandScaleR should calculate grid cell sizes, here we use km
             match_LC_classes = match_LC_classes,                                                 # Matrix showing how the LULC change map classes are matched to the reference map classes
@@ -256,10 +255,12 @@ will be unable to place more cropland in the reference map cells, so 100 km^2^
 of cropland will be unallocated. After **LandScaleR** has attempted to allocate 
 LULC change from all coarse resolution cells to the reference map it starts a 
 process called 'harmonisation', where the algorithm places unallocated LULC 
-change in neighbouring coarse resolution cells. When **LandScaleR** is unable to
-place all unallocated LULC change on the reference map during harmonisation it 
-prints out a warning such as the one above, showing which coarse resolution 
-cells contain unallocated LULC change and how much.
+change in neighbouring coarse resolution cells. The `harmonisation_radius` 
+argument can be used to set the number of neighbouring cells that are searched
+during the haronisation process. When **LandScaleR** is unable to place all 
+unallocated LULC change on the reference map during harmonisation it prints out
+a warning such as the one above, showing which coarse resolution cells still 
+have unallocated LULC change and how much.
 
 In the example of downscaling LULC change in the UK from 2009 to 2012 the 
 warning messages for unallocated LULC are expected to occur for a few cells 
@@ -271,7 +272,9 @@ land in HILDA+ must have increased by 0.64 km^2^ in this coarse cell and year,
 probably due to a coastal grid cell being added in HILDA+. It is recommended to
 check these warning messages carefully as they could be due to mismatches in the
 underlying data, or due to differences between LULC change projections and LULC
-in the reference map.
+in the reference map. Note that any unallocated LULC change is also saved as a
+table in the file ending 'unallocated_LC.txt' to allow for further investigation
+after downscaling.
 
 Another warning message that might appear during downscaling is:
 
@@ -293,25 +296,14 @@ missing grid cells as the `terra::mosiac()` documentation states that the values
 from the last `terra::SpatRaster` to be merged will be retained in places where 
 two `terra::SpatRaster` objects overlap.
 
-Lastly, you might see these error messages from the 'terra' R package during 
-downscaling: 
-
-```{r terra error,echo=FALSE}
-knitr::include_graphics("img/terra_error.png")
-```
-
-These error messages are a known problem with older versions of the 'terra' R 
-package and do not affect the results from downscaling. More information can be
-found at [the 'terra' GitHub site](https://github.com/rspatial/terra/issues/30).
-
 ## Calibration of LandScaleR
 
 The different methods of LULC allocation (`"deterministic"`, "`fuzzy`" and 
 `"null_model"`) provided in **LandScaleR** generate varying patterns of LULC in 
 the output downscaled maps. Multiple timesteps of LULC are provided by HILDA+, 
 so we can use HILDA+ to test which method of LULC allocation best reproduces 
-historic LULC patterns. For example, run `downscaleLC()` with the `"fuzzy"` 
-method of LULC allocation and $f = 1.5$.
+historic LULC patterns. For example, here we run `downscaleLC()` with the 
+`"fuzzy"` method of LULC allocation and $f = 1.5$.
 
 ```{r Run downscaling fuzzy 1.5,eval=FALSE}
 downscaleLC(ref_map_file_name = system.file("extdata/20221006_HILDA_UK_LULC_2009.tif",
@@ -322,7 +314,6 @@ downscaleLC(ref_map_file_name = system.file("extdata/20221006_HILDA_UK_LULC_2009
                                                    package = "LandScaleR"),
                                        system.file("extdata/20221006_HILDA_UK_LUC_2011_2012.tif",
                                                    package = "LandScaleR")),
-            LC_deltas_classes = LULC_map_classes,
             ref_map_type = "discrete",
             cell_size_unit = "km",
             match_LC_classes = match_LC_classes,
@@ -441,7 +432,10 @@ maps with historic LULC patterns. For example, the **landscapemetrics** R
 package [@hesselbarth_landscapemetrics_2019] can calculate a wide variety of 
 landscape pattern metrics. Other metrics are also available to assess the 
 accuracy of LULC maps, such as the Kappa and Figure of Merit indices 
-[@garcia-alvarez_land_2022].
+[@garcia-alvarez_land_2022]. The paper that describes **LandScaleR** used 
+accuracy and landscape pattern metrics to compare the effectiveness of the 
+quasi-deterministic and fuzzy methods for downscaling historic LULC change in 
+Colombia [@woodman_introducing_2023].
 
 ```{r fig.width=7,fig.height=5,fig.cap="LULC in the south-east of the UK in 2012 from HILDA+ and downscaling with the determininistic and fuzzy options."}
 layout(matrix(c(1, 1, 2, 2, 
@@ -474,17 +468,6 @@ showing LULC transitions between 2009 and 2012 in the maps from HILDA+ and
 downscaling with the deterministic and fuzzy methods. 
 
 ```{r Generate transitions}
-# Downscaling generates discrete maps with integer values from 1 upwards
-# Re-classify the downscaled maps so that the integer values correspond to the LULC class codes
-classification_mat <- cbind(1:10, 
-                            as.numeric(LC_classes))
-zoom_deterministic_2012 <- classify(zoom_deterministic_2012,
-                                    classification_mat,
-                                    others = NA)
-zoom_fuzzy_2012 <- classify(zoom_fuzzy_2012,
-                            classification_mat,
-                            others = NA)
-
 # Ensure all maps are the same extent
 zoom_hilda_2012 <- crop(zoom_hilda_2012,
                         ext(zoom_deterministic_2012))
