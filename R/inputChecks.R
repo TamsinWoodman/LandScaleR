@@ -41,18 +41,9 @@ inputChecks <- function(ref_map_file_name,
     stop("Match_LC_classes must be of class matrix")
   }
   
-  # Check properties of match_LC_classes
-  row_sums_match_LC_classes <- rowSums(match_LC_classes)
-  
-  # All rows must sum to an integer value
-  if (any(row_sums_match_LC_classes %% 1 != 0)) {
-    stop("All rows in match_LC_classes must sum to an integer")
-  }
-  
-  # No values can be greater than 1
-  if (any(match_LC_classes > 1 | match_LC_classes < 0)) {
-    stop("All values in match_LC_classes must be between 0 and 1")
-  }
+  apply(match_LC_classes, 
+        MARGIN = 1, 
+        FUN = checkMatchLCClassesRows)
   
   if (kernel_radius %% 1 != 0) {
     stop("Kernel radius must be an integer")
@@ -93,6 +84,29 @@ inputChecks <- function(ref_map_file_name,
   if (!inherits(fuzzy_multiplier, 
                 what = "numeric")) {
     stop("Fuzzy multiplier must be numeric")
+  }
+}
+
+checkMatchLCClassesRows <- function(tmp_row) {
+  
+  tolerance <- 1e-8
+  one_upper_limit <- 1 + tolerance
+  one_lower_limit <- 1 - tolerance
+  
+  # All numbers must be between zero and one
+  if (all(tmp_row >= 0 & tmp_row <= one_upper_limit)) {
+    
+    # For fixed proportions
+    if (any(tmp_row > 0 + tolerance & tmp_row < one_lower_limit)) {
+      
+      # Must sum to 1
+      if (!(sum(tmp_row) > one_lower_limit & sum(tmp_row) < one_upper_limit)) {
+        stop("Rows in match_LC_classes must sum to 1 if matching LULC classes using fixed proportions")
+      }
+    }
+    
+  } else {
+    stop("All numbers in match_LC_classes matrix must be between 0 and 1")
   }
 }
 
