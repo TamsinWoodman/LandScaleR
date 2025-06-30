@@ -27,10 +27,11 @@
 #'   grid cell. Use "proportions" if the LULC change maps contain the change in
 #'   each LULC class as a proportion of total grid cell area.
 #' @param ref_map_type Character, one of "areas" or "discrete". If the reference
-#'   map contains one LULC class per cell use "areas". Note that the layer names
-#'   of a reference map with one LULC class per cell must not be numeric. If the
-#'   reference map has one layer per LULC class containing the area of each LULC
-#'   class per cell use "discrete".
+#'   map has one layer per LULC class containing the area of that LULC class per 
+#'   grid cell use "areas". If the reference map has a single layer that 
+#'   contains one LULC class per grid cell use "discrete". See below for more 
+#'   information about how the type of reference map affects the output LULC 
+#'   classes.
 #' @param cell_size_unit Character, unit for calculating grid cell areas. Must
 #'   be one of "km", "m", or "ha". Cell areas are calculated using the
 #'   [terra::cellSize()] function.
@@ -70,9 +71,7 @@
 #'   must be in the same geographic projection but they do not have to cover
 #'   exactly the same extent. The reference map can either contain one LULC
 #'   class per cell (`ref_map_type = "discrete`) or the area of each LULC class
-#'   per cell (`ref_map_type = "areas"`). Note that if `ref_map_type = discrete`
-#'   is specified then the LULC classes in the reference map will be prepended
-#'   with "LC" to ensure that they are treated as characters by LandScaleR.
+#'   per cell (`ref_map_type = "areas"`).
 #'
 #'   The LULC change maps can give LULC change in terms of the area of change
 #'   for each LULC class per grid cell (`LC_deltas_type = "areas"`).
@@ -200,7 +199,21 @@
 #' @return GeoTIFF files containing downscaled land-use maps. If
 #'   `discrete_output_map = TRUE` two output files will be generated per
 #'   timestep: one with the area of each LULC class per cell and one with the
-#'   largest LULC class per cell.
+#'   largest LULC class per cell (discrete). LandScaleR will set the LULC class
+#'   names in the discrete output map as follows: 
+#'   * If the reference map contains the area of each LULC class per grid cell 
+#'     (`ref_map_type = "areas"`) the categories in the discrete map will be the
+#'     same as the layer names of the reference map. The underlying values in 
+#'     the discrete map will be sequential integers starting at 1.
+#'   * If the reference map contains one LULC class per grid cell 
+#'     (`ref_map_type = "discrete"`) and does not have associated categories, 
+#'     the categories in the discrete output map will the same as the values in
+#'     the reference map with "LC" prepended to the start of each value.
+#'   * If the reference map contains one LULC class per grid cell 
+#'     (`ref_map_type = "discrete"`) and has categories, the categories and 
+#'     underlying values in the discrete output map will be the same as those in
+#'     the reference map.
+#'   
 #' @references
 #' \insertRef{LePage2016}{LandScaleR}
 #' @importFrom Rdpack reprompt
