@@ -1832,3 +1832,92 @@ test_that("downscaleLC works with increased harmonisation radius", {
                as.data.frame(exp_discrete_ds_map_2))
   
 })
+
+test_that("downscaleLC works with discrete reference map, deterministic method and LUC maps named using numbers", {
+  
+  ## Set up for downscaling
+  ref_map_file_name <- test_path("testdata", 
+                                 "downscaleLC_discrete_reference_map.tif")
+  LC_delta_files <- list(test_path("testdata", 
+                                   "downscaleLC_LUC_numeric_names_1.tif"),
+                         test_path("testdata", 
+                                   "downscaleLC_LUC_numeric_names_2.tif"))
+  
+  PLUM_LC_classes <- as.character(c(10, 
+                                    20, 
+                                    30, 
+                                    40, 
+                                    50, 
+                                    60, 
+                                    70))
+  reference_LC_classes <- c("LC11",
+                            "LC12",
+                            "LC13",
+                            "LC14",
+                            "LC15")
+  final_LC_classes <- matrix(data = c(0, 1, 0.5, 0, 0, 0, 0,
+                                      1, 0, 0.5, 0, 0, 1, 0,
+                                      0, 0, 0, 1, 0, 0, 0,
+                                      0, 0, 0, 0, 1, 0, 0,
+                                      0, 0, 0, 0, 0, 0, 1),
+                             nrow = 7,
+                             ncol = 5,
+                             dimnames = list(PLUM_LC_classes,
+                                             reference_LC_classes))
+  kernel_radius <- 1
+  random_seed <- 503
+  output_file_prefix <- "test17"
+  
+  ## Run downscaling
+  downscaleLC(ref_map_file_name = ref_map_file_name,
+              LC_deltas_file_list = LC_delta_files,
+              ref_map_type = "discrete",
+              cell_size_unit = "m",
+              match_LC_classes = final_LC_classes,
+              kernel_radius = kernel_radius,
+              simulation_type = "deterministic",
+              discrete_output_map = TRUE,
+              random_seed = random_seed,
+              output_file_prefix = output_file_prefix,
+              output_dir_path = shared_temp_dir)
+  
+  
+  ## Load results
+  ds_map_1 <- terra::rast(paste0(shared_temp_dir, 
+                                 "/",
+                                 output_file_prefix,
+                                 "_Time1.tif"))
+  ds_map_2 <- terra::rast(paste0(shared_temp_dir,
+                                 "/",
+                                 output_file_prefix,
+                                 "_Time2.tif"))
+  discrete_ds_map_1 <- terra::rast(paste0(shared_temp_dir, 
+                                          "/",
+                                          output_file_prefix,
+                                          "_Discrete_Time1.tif"))
+  discrete_ds_map_2 <- terra::rast(paste0(shared_temp_dir, 
+                                          "/",
+                                          output_file_prefix,
+                                          "_Discrete_Time2.tif"))
+  
+  ## Load expected results
+  exp_ds_map_1 <- terra::rast(test_path("testdata", 
+                                        "downscaleLC_test17_Time1.tif"))
+  exp_ds_map_2 <- terra::rast(test_path("testdata", 
+                                        "downscaleLC_test17_Time2.tif"))
+  exp_discrete_ds_map_1 <- terra::rast(test_path("testdata", 
+                                                 "downscaleLC_test17_Discrete_Time1.tif"))
+  exp_discrete_ds_map_2 <- terra::rast(test_path("testdata", 
+                                                 "downscaleLC_test17_Discrete_Time2.tif"))
+  
+  ## Tests
+  expect_equal(as.data.frame(ds_map_1), 
+               as.data.frame(exp_ds_map_1))
+  expect_equal(as.data.frame(ds_map_2), 
+               as.data.frame(exp_ds_map_2))
+  expect_equal(as.data.frame(discrete_ds_map_1), 
+               as.data.frame(exp_discrete_ds_map_1))
+  expect_equal(as.data.frame(discrete_ds_map_2), 
+               as.data.frame(exp_discrete_ds_map_2))
+  
+})
