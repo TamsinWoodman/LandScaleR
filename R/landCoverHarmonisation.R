@@ -66,7 +66,6 @@ harmoniseUnallocatedLC <- function(coarse_cell_list,
 
                 # Allocate land cover change
                 cells_for_allocation <- getActualConversions(cells_for_allocation = cells_for_allocation,
-                                                             LC_from_name = LC_from_name,
                                                              LC_conversion_area = LC_conversion_area)
 
                 # Update the coarse-scale cell and all corresponding fine-scale cells

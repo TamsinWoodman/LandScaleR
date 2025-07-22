@@ -410,7 +410,7 @@ test_that("getAllocationDF returns expected data frame", {
   cell_numbers_for_allocation <- c(1, 5, 6, 7, 8, 9)
 
   expected_allocation_df <- data.frame(cell_number = cell_numbers_for_allocation,
-                                       pas = c(12, 3, 3, 2, 7, 1),
+                                       dec_LC_area = c(12, 3, 3, 2, 7, 1),
                                        kernel_density = c(0.4, 0.5, 0.2, 0.3, 0.9, 1.5),
                                        actual_conversion = 0)
 

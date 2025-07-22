@@ -180,7 +180,6 @@ allocateLCTransitions <- function(coarse_cell,
 
           # Allocate land cover change
           cells_for_allocation <- getActualConversions(cells_for_allocation = cells_for_allocation,
-                                                       LC_from_name = LC_from_name,
                                                        LC_conversion_area = LC_conversion_area)
 
           # Update the coarse-scale cell and all corresponding fine-scale cells
@@ -249,6 +248,7 @@ getAllocationDF <- function(cell_numbers_for_allocation,
                                      dec_LC_area = updated_ref_cells[cell_numbers_for_allocation][LC_from_name],
                                      kernel_density = kernel_densities[cell_numbers_for_allocation][LC_to_name],
                                      actual_conversion = 0)
+  colnames(cells_for_allocation)[2] <- "dec_LC_area"
   colnames(cells_for_allocation)[3] <- "kernel_density"
 
   # Put fix in to convert NaN kernel density values to 0
@@ -379,14 +379,13 @@ sortKernelDensities <- function(kernel_density_df) {
 #'   `actual_conversion` that contains the actual conversion areas for each grid
 #'   cell.
 getActualConversions <- function(cells_for_allocation,
-                                 LC_from_name,
                                  LC_conversion_area) {
 
   LC_conversion_area_remaining <- LC_conversion_area
 
   for (m in 1:nrow(cells_for_allocation)) {
 
-    cells_for_allocation$actual_conversion[m] <- min(cells_for_allocation[m, LC_from_name],
+    cells_for_allocation$actual_conversion[m] <- min(cells_for_allocation[m, "dec_LC_area"],
                                                      LC_conversion_area_remaining)
 
     LC_conversion_area_remaining <- LC_conversion_area_remaining - cells_for_allocation$actual_conversion[m]

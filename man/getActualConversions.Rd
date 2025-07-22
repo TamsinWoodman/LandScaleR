@@ -4,14 +4,11 @@
 \alias{getActualConversions}
 \title{Calculate actual conversion areas for a set of grid cells}
 \usage{
-getActualConversions(cells_for_allocation, LC_from_name, LC_conversion_area)
+getActualConversions(cells_for_allocation, LC_conversion_area)
 }
 \arguments{
 \item{cells_for_allocation}{Data frame of fine-scale cells selected to
 receive a given land cover class.}
-
-\item{LC_from_name}{Name of the land cover class that is being converted to
-\code{LC_to_name}.}
 
 \item{LC_conversion_area}{Remaining area of land in the coarse-scale cell to
 be converted from \code{LC_from_name} (decreasing land cover class) to
