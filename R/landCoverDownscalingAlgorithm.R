@@ -397,7 +397,8 @@ downscaleLC <- function(ref_map_file_name,
 
     if (mosaic_chunks == 1) {
 
-      downscaled_map <- terra::mosaic(terra::sprc(downscaled_tiles))
+      downscaled_map <- terra::mosaic(terra::sprc(downscaled_tiles), 
+                                      fun = "first")
 
     } else if (mosaic_chunks > 1) {
 
@@ -412,10 +413,12 @@ downscaleLC <- function(ref_map_file_name,
                           length(downscaled_tiles),
                           end_pos)
 
-        downscaled_chunks[[chunk]] <- terra::mosaic(terra::sprc(downscaled_tiles[start_pos:end_pos]))
+        downscaled_chunks[[chunk]] <- terra::mosaic(terra::sprc(downscaled_tiles[start_pos:end_pos]), 
+                                                    fun = "first")
       }
 
-      downscaled_map <- terra::mosaic(terra::sprc(downscaled_chunks))
+      downscaled_map <- terra::mosaic(terra::sprc(downscaled_chunks), 
+                                      fun = "first")
     }
 
     # Set names of downscaled map as these are lost during mosaic function

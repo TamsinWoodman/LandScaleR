@@ -1,6 +1,14 @@
 
 # Version 1.2.0
 
+Bug fixes:
+- Fixed an issue where spaces or other special characters in the names of reference map classes was causing the amount of LULC change allocated to be incorrect
+- When merging the downscaled maps, values in overlapping grid cells are now determined by the first value in the set of rasters, rather than the average of values in the overlapping cells.
+    - This change was implemented due to unexpected behaviour in the 'mosaic' function from 'terra' when merging rasters based on average values in overlapping cells 
+
+Testing: 
+- Added a unit test for the behaviour of `assignRefMapCells` when some coarse resolution grid cells do not overlap with any fine resolution cells
+
 Dependencies:
 - `LandScaleR` now depends on `terra` version >=1.8-10
 
